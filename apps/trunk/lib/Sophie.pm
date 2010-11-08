@@ -1,8 +1,8 @@
 package Sophie;
 use Moose;
 use namespace::autoclean;
-
 use Catalyst::Runtime 5.80;
+use Sophie::Base;
 
 # Set flags and add plugins for the application
 #
@@ -13,9 +13,14 @@ use Catalyst::Runtime 5.80;
 #                 directory
 
 use Catalyst qw/
-    -Debug
     ConfigLoader
     Static::Simple
+    Session
+    Session::Store::DBI
+    Session::State::Cookie
+    Compress::Zlib
+    Server
+    Server::XMLRPC
 /;
 
 extends 'Catalyst';
@@ -36,10 +41,25 @@ __PACKAGE__->config(
     name => 'Sophie',
     # Disable deprecated behavior needed by old applications
     disable_component_resolution_regex_fallback => 1,
+#    default_view => 'TT',
 );
+
+__PACKAGE__->config->{session} = {
+    expires   => 31536000,
+    dbi_dsn   => 'noo',
+    dbi_table => 'sessions',
+};
 
 # Start the application
 __PACKAGE__->setup();
+
+# This is after because db config is in config file
+__PACKAGE__->config->{session}{dbi_dsn} =
+    'dbi:Pg:' . __PACKAGE__->config->{dbconnect};
+__PACKAGE__->config->{session}{dbi_user} =
+    __PACKAGE__->config->{dbuser};
+__PACKAGE__->config->{session}{dbi_pass} =
+    __PACKAGE__->config->{dbpassword};
 
 
 =head1 NAME

@@ -30,7 +30,8 @@ sub index :Path :Args(0) {
     my ( $self, $c ) = @_;
 
     # Hello World
-    $c->response->body( $c->welcome_message );
+    $c->forward($c->view('Global'));
+    #$c->response->body( $c->welcome_message );
 }
 
 =head2 default
@@ -51,7 +52,16 @@ Attempt to render a view, if needed.
 
 =cut
 
-sub end : ActionClass('RenderView') {}
+sub _end : ActionClass('RenderView') {}
+
+sub  end : Private {
+    my ( $self, $c ) = @_;
+    if ($c->req->xmlrpc->method) {
+        return;
+    } else {
+        $c->forward('_end');
+    }
+}
 
 =head1 AUTHOR
 
