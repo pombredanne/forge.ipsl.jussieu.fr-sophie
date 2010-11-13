@@ -41,7 +41,7 @@ __PACKAGE__->config(
     name => 'Sophie',
     # Disable deprecated behavior needed by old applications
     disable_component_resolution_regex_fallback => 1,
-#    default_view => 'TT',
+    default_view => 'TT',
 );
 
 __PACKAGE__->config->{session} = {

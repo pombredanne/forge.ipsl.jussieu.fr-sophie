@@ -20,6 +20,16 @@ Sophie::Controller::Root - Root Controller for Sophie
 
 =head1 METHODS
 
+=cut
+
+sub begin : Private {
+    my ( $self, $c ) = @_;
+
+    if ($c->req->param('json')) {
+        $c->stash->{current_view} = 'Json';
+    }
+}
+
 =head2 index
 
 The root page (/)
@@ -56,11 +66,11 @@ sub _end : ActionClass('RenderView') {}
 
 sub  end : Private {
     my ( $self, $c ) = @_;
-    if ($c->req->xmlrpc->method) {
-        return;
-    } else {
+    if (!$c->req->xmlrpc->method) {
         $c->forward('_end');
+    } elsif (!$c->stash->{current_view}) {
     }
+    $c->model('Base')->storage->dbh->rollback;
 }
 
 =head1 AUTHOR

@@ -1,0 +1,9 @@
+[% FOREACH r = rpm %]
+[% IF loop.first %]
+<ol>
+[% END %]
+<li>[% r.filename %]</li>
+[% IF loop.last %]
+</ol>
+[% END %]
+[% END %]

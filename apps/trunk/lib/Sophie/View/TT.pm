@@ -6,10 +6,10 @@ use warnings;
 use base 'Catalyst::View::TT';
 
 __PACKAGE__->config(
-    TEMPLATE_EXTENSION => '.tt',
+    TEMPLATE_EXTENSION => '.html',
     render_die => 1,
     INCLUDE_PATH => [
-        Sophie->path_to( 'root', 'templates', 'ajax' ),
+        Sophie->path_to( 'root', 'templates', 'includes' ),
         Sophie->path_to( 'root', 'templates', 'html' ),
     ],
     PRE_PROCESS => 'header.tt',

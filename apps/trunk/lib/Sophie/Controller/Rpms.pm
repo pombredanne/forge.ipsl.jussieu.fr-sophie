@@ -27,10 +27,22 @@ sub index :Path :Args(0) {
     $c->response->body('Matched Sophie::Controller::Rpms in Rpms.');
 }
 
-sub tags : XMLRPCLocal {
-    my ( $self, $c, $pkgid ) = @_;
-    $c->stash->{pkgid} = $c->model('Base::Rpms')->search(pkgid => $pkgid)->next;
-    $c->stash->{xmlrpc} = $c->stash->{pkgid}->summary;
+sub queryformat : XMLRPCLocal {
+    my ( $self, $c, $pkgid, $qf ) = @_;
+    @{$c->stash->{xmlrpc}} = map { $_->get_column('qf') } $c->model('Base')->resultset('Rpms')->search(
+        { pkgid => $pkgid },
+        { select => [ qq{rpmqueryformat("header", '$qf')} ], as => [ 'qf'
+                ] }
+    )->all;
+}
+
+sub tag : XMLRPCLocal {
+    my ( $self, $c, $pkgid, $tag ) = @_;
+    @{$c->stash->{xmlrpc}} = map { $_->get_column('tag') } $c->model('Base')->resultset('Rpms')->search(
+        { pkgid => $pkgid },
+        { select => [ qq{rpmquery("header", rpmtag('$tag'))} ], as => [ 'tag'
+                ] }
+    )->all;
 }
 
 sub rpms : Chained : PathPart {
