@@ -21,7 +21,11 @@ use Catalyst qw/
     Compress::Zlib
     Server
     Server::XMLRPC
+    Authentication
 /;
+
+use RPC::XML;
+$RPC::XML::FORCE_STRING_ENCODING = 1;
 
 extends 'Catalyst';
 
@@ -42,10 +46,31 @@ __PACKAGE__->config(
     # Disable deprecated behavior needed by old applications
     disable_component_resolution_regex_fallback => 1,
     default_view => 'TT',
+
+    'authentication' => {
+        default_realm => 'members',
+        realms => {
+            members => {
+                credential => {
+                    class => 'Password',
+                    password_field => 'password',
+                    password_type => 'clear'
+                },
+                store => {
+                    class => 'Minimal',
+                    users => {
+                        admin => {
+                            password => 'toto',
+                        }
+                    }
+                },
+            },
+        },
+    },
 );
 
 __PACKAGE__->config->{session} = {
-    expires   => 31536000,
+    expires   => 3600,
     dbi_dsn   => 'noo',
     dbi_table => 'sessions',
 };

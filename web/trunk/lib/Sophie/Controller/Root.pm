@@ -28,6 +28,12 @@ sub begin : Private {
     if ($c->req->param('json')) {
         $c->stash->{current_view} = 'Json';
     }
+
+    if ($c->action =~ m/^admin\//) {
+        if (!$c->user_exists) {
+            $c->res->redirect($c->uri_for('/login'));
+        }
+    }
 }
 
 =head2 index
@@ -40,8 +46,6 @@ sub index :Path :Args(0) {
     my ( $self, $c ) = @_;
 
     # Hello World
-    $c->forward($c->view('Global'));
-    #$c->response->body( $c->welcome_message );
 }
 
 =head2 default

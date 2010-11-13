@@ -16,8 +16,9 @@ Catalyst Controller.
 
 =cut
 
-sub content :XMLRPC {
-    my ( $self, $c, $distribution, $release, $arch ) = @_;
+sub list :XMLRPC {
+    my ( $self, $c, $distribution, $release ) = @_;
+    $c->session->{toto} = 1; 
     my $rs = $c->model('Base')->resultset('Distribution');
     if (!$distribution) {
         @{$c->stash->{xmlrpc}} = map { $_->name } $rs->all;
@@ -29,18 +30,23 @@ sub content :XMLRPC {
         return;
     }
     $rs = $rs->search(version => $release)->search_related('Arch');
-    if (!$arch) {
-        @{$c->stash->{xmlrpc}} = map { $_->arch } $rs->all;
-        return;
-    }
-    $rs = $rs->search(arch => $arch)->search_related('Medias');
-    @{$c->stash->{xmlrpc}} = map {
+    @{$c->stash->{xmlrpc}} = map { $_->arch } $rs->all;
+}
+
+sub struct :XMLRPC {
+    my ( $self, $c, $distribution, $release, $arch ) = @_;
+    my $rs = $c->model('Base')->resultset('Distribution')
+        ->search(name => $distribution)
+        ->search_related('Release', { version => $release })
+        ->search_related('Arch', { arch => $arch })
+        ->search_related('Medias');
+    @{$c->stash->{xmlrpc}} = map { 
         { 
             label => $_->label,
             group_label => $_->group_label,
             key => $_->d_media_key,
         } 
-        } $rs->all;
+    } $rs->all;
 }
 
 
@@ -51,7 +57,7 @@ sub content :XMLRPC {
 sub index :Path :Chained :Args(0)  {
     my ( $self, $c ) = @_;
 
-    $c->forward('content');
+    $c->forward('list');
 }
 
 =head release
@@ -60,12 +66,12 @@ sub index :Path :Chained :Args(0)  {
 
 sub list_release :Path :Args(1) {
     my ( $self, $c, $distribution ) = @_;
-    $c->forward('content', [ $distribution ]);
+    $c->forward('list', [ $distribution ]);
 }
 
 sub list_arch :Path :Args(2) {
     my ( $self, $c, $distribution, $release ) = @_;
-    $c->forward('content', [ $distribution, $release ]);
+    $c->forward('list', [ $distribution, $release ]);
 }
 
 
@@ -77,7 +83,7 @@ sub distrib_view :PathPrefix :Chained :CaptureArgs(3) {
 
 sub distrib :Chained('distrib_view') PathPart('') {
     my ( $self, $c ) = @_;
-    $c->forward('content', $c->stash->{distrib});
+    $c->forward('list', $c->stash->{distrib});
     $c->forward('rpms',    $c->stash->{distrib});
     # TODO store properly results
     # No call from json here
@@ -85,7 +91,7 @@ sub distrib :Chained('distrib_view') PathPart('') {
 
 sub media :Chained('distrib_view') PathPart('media') {
     my ( $self, $c ) = @_;
-    $c->forward('content', $c->stash->{distrib});
+    $c->forward('struct', $c->stash->{distrib});
 }
 
 sub rpms :XMLRPC {
@@ -156,7 +162,7 @@ sub media_rpms : XMLRPC {
 
 sub list_rpms :Chained('distrib_view') PathPart('rpms') {
     my ( $self, $c ) = @_;
-    $c->forward('srpms',    $c->stash->{distrib});
+    $c->forward('rpms',    $c->stash->{distrib});
 }
 
 sub list_srpms :Chained('distrib_view') PathPart('srpms') {
@@ -168,7 +174,7 @@ sub srpm_by_name :Chained('distrib_view') PathPart('srpms/by-name') Args(1) {
 }
 sub rpm_by_name :Chained('distrib_view') PathPart('rpms/by-name') Args(1) {
 }
-sub rpm_by_name :Chained('distrib_view') PathPart('rpms/by-pkgid') Args(1) {
+sub rpm_by_pkid :Chained('distrib_view') PathPart('rpms/by-pkgid') Args(1) {
 }
 
 sub _media_list_rpms :Chained('distrib_view') PathPart('media') CaptureArgs(1) {

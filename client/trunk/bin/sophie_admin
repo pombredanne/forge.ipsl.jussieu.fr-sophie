@@ -1,0 +1,23 @@
+#!/bin/env perl
+
+use Sophie::Cli;
+require RPC::XML;
+require RPC::XML::Client;
+
+require Data::Dumper;
+my $xmlcli = RPC::XML::Client->new('http://127.0.0.1:3000/rpc');
+
+my $res = $xmlcli->send_request('login', 'admin', 'toto');
+if (ref $res) {
+    $xmlcli->request->header('cookie', $$res);
+} else {
+    die "Can't login";
+}
+
+my $globalenv = Sophie::Cli::globalenv($xmlcli);
+
+if (@ARGV) {
+    $globalenv->run(@ARGV);
+} else {
+    $globalenv->cli;
+}

@@ -122,7 +122,7 @@ sub _add_header {
         $find->finish;
         if ($rows) {
             warn "Find";
-            return 1;
+            return $header->queryformat('%{PKGID}');
         }
     }
     my $tmp = File::Temp->new( UNLINK => 1, SUFFIX => '.hdr' );
