@@ -24,6 +24,7 @@ sub db {
        Sophie->config->{dbpassword},
        {
            AutoCommit => 0,
+           PrintError => 1,
        }
    ); 
 }

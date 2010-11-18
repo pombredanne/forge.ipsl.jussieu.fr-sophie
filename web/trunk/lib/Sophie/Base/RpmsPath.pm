@@ -69,7 +69,7 @@ sub update_content {
         $list{$_} = 1;
     }
 
-    foreach my $rpm (sort keys %list) {
+    foreach my $rpm (sort { $b cmp $a } keys %list) {
         if ($localrpms->{$rpm} && $baserpms->{$rpm}) {
             # nothing to do
         } elsif ($localrpms->{$rpm}) {
@@ -108,7 +108,11 @@ sub add_rpm {
 sub _add_header {
     my ($self, $rpm) = @_;
 
-    my $header = RPM4::Header->new($self->path . '/' . $rpm) or do {
+    my $header;
+    eval {
+        $header = RPM4::Header->new($self->path . '/' . $rpm) 
+    };
+    $header or do {
         warn "Cannot read " . $self->path . '/' . $rpm;
         return;
     };
@@ -127,7 +131,7 @@ sub _add_header {
     }
     my $tmp = File::Temp->new( UNLINK => 1, SUFFIX => '.hdr' );
     unlink($tmp->filename);
-    $header->write($tmp);
+    $header->write($tmp, 0);
     seek($tmp, 0, 0);
     my $string = '';
     while (read($tmp, my $str, 1024)) { $string .= $str }

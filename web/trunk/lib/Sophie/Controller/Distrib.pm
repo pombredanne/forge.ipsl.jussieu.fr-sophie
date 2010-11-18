@@ -17,8 +17,19 @@ Catalyst Controller.
 =cut
 
 sub list :XMLRPC {
-    my ( $self, $c, $distribution, $release ) = @_;
-    $c->session->{toto} = 1; 
+    my ( $self, $c, $distrib, $release, $arch ) = @_;
+
+    my $distribution;
+    if (ref $distrib) {
+        ($distribution, $release, $arch) = (
+            $distrib->{distribution},
+            $distrib->{release},
+            $distrib->{arch},
+        );
+    } else {
+        $distribution = $distrib;
+    }
+
     my $rs = $c->model('Base')->resultset('Distribution');
     if (!$distribution) {
         @{$c->stash->{xmlrpc}} = map { $_->name } $rs->all;
@@ -30,11 +41,29 @@ sub list :XMLRPC {
         return;
     }
     $rs = $rs->search(version => $release)->search_related('Arch');
-    @{$c->stash->{xmlrpc}} = map { $_->arch } $rs->all;
+    if (!$arch) {
+        @{$c->stash->{xmlrpc}} = map { $_->arch } $rs->all;
+        return;
+    }
+    $rs = $rs->search(arch => $arch)->search_related('Medias');
+    @{$c->stash->{xmlrpc}} = map { $_->label } $rs->all;
+
 }
 
 sub struct :XMLRPC {
-    my ( $self, $c, $distribution, $release, $arch ) = @_;
+    my ( $self, $c, $distrib, $release, $arch ) = @_;
+
+    my $distribution;
+    if (ref $distrib) {
+        ($distribution, $release, $arch) = (
+            $distrib->{distribution},
+            $distrib->{release},
+            $distrib->{arch},
+        );
+    } else {
+        $distribution = $distrib;
+    }
+
     my $rs = $c->model('Base')->resultset('Distribution')
         ->search(name => $distribution)
         ->search_related('Release', { version => $release })
@@ -42,6 +71,7 @@ sub struct :XMLRPC {
         ->search_related('Medias');
     @{$c->stash->{xmlrpc}} = map { 
         { 
+            dist_label => $_->dist_label,
             label => $_->label,
             group_label => $_->group_label,
             key => $_->d_media_key,
@@ -78,7 +108,6 @@ sub list_arch :Path :Args(2) {
 sub distrib_view :PathPrefix :Chained :CaptureArgs(3) {
     my ( $self, $c, $distribution, $release, $arch ) = @_;
     $c->stash->{distrib} = [ $distribution, $release, $arch ];
-    warn @{$c->req->args};
 }
 
 sub distrib :Chained('distrib_view') PathPart('') {
@@ -142,27 +171,9 @@ sub srpms :XMLRPC {
     $c->stash->{xmlrpc} = $c->stash->{rpm};
 }
 
-sub media_rpms : XMLRPC {
-    my ( $self, $c, $media_key ) = @_;
-    @{$c->stash->{rpm}} = map {
-            { 
-              pkgid => $_->pkgid,
-              filename => $_->filename,
-            }
-        }
-        $c->model('Base')
-        ->resultset('Medias')->search({ d_media_key => $media_key })
-        ->search_related('MediasPaths')
-        ->search_related('Paths')
-        ->search_related('Rpmfiles')->all;
-
-    $c->stash->{xmlrpc} = $c->stash->{rpm};
-}
-
-
 sub list_rpms :Chained('distrib_view') PathPart('rpms') {
     my ( $self, $c ) = @_;
-    $c->forward('rpms',    $c->stash->{distrib});
+    $c->forward('rpms', $c->stash->{distrib});
 }
 
 sub list_srpms :Chained('distrib_view') PathPart('srpms') {
@@ -177,6 +188,26 @@ sub rpm_by_name :Chained('distrib_view') PathPart('rpms/by-name') Args(1) {
 sub rpm_by_pkid :Chained('distrib_view') PathPart('rpms/by-pkgid') Args(1) {
 }
 
+sub media_rpms : XMLRPC {
+    my ( $self, $c, $distribution, $release, $arch, $media ) = @_;
+    @{$c->stash->{rpm}} = map {
+            { 
+              pkgid => $_->pkgid,
+              filename => $_->filename,
+            }
+        }
+        $c->model('Base')
+        ->resultset('Distribution')->search({ name => $distribution })
+        ->search_related('Release', { version => $release })
+        ->search_related('Arch',    { arch => $arch })
+        ->search_related('Medias', { label => $media })
+        ->search_related('MediasPaths')
+        ->search_related('Paths')
+        ->search_related('Rpmfiles')->all;
+
+    $c->stash->{xmlrpc} = $c->stash->{rpm};
+}
+
 sub _media_list_rpms :Chained('distrib_view') PathPart('media') CaptureArgs(1) {
     my ( $self, $c, $media ) = @_;
     $c->stash->{media} = $media;
@@ -184,7 +215,7 @@ sub _media_list_rpms :Chained('distrib_view') PathPart('media') CaptureArgs(1) {
 
 sub media_list_rpms :Chained('_media_list_rpms') PathPart('') {
     my ( $self, $c ) = @_;
-    $c->forward('media_rpms', [ $c->stash->{media} ]);
+    $c->forward('media_rpms', [ @{$c->stash->{distrib}}, $c->stash->{media} ]);
 }
 sub media_rpm_byname :Chained('_media_list_rpms') PathPart('rpms/by_name') {
     my ( $self, $c ) = @_;
