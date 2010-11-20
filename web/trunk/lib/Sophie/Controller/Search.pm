@@ -27,6 +27,42 @@ sub index :Path :Args(0) {
     $c->response->body('Matched Sophie::Controller::Search in Search.');
 }
 
+sub bytag : XMLRPCPath('/search/rpm/bytag') {
+    my ( $self, $c, $searchspec, $tag, $tagvalue ) = @_;
+
+    @{$c->stash->{xmlrpc}} = $c->model('Base')->resultset('Rpms')->search(
+        {
+            pkgid => { IN => $c->model('Base')->resultset('Tags')
+                ->search({ tagname => $tag, value => $tagvalue})
+                ->get_column('pkgid')->as_query }
+        }
+    )->get_column('pkgid')->all
+
+}
+
+sub bydep : XMLRPCPath('/search/rpm/bydep') {
+    my ( $self, $c, $searchspec, $deptype, $depname, $depsense, $depevr ) = @_;
+
+    @{$c->stash->{xmlrpc}} = $c->model('Base')->resultset('Rpms')->search(
+        {
+            pkgid => { IN => $c->model('Base')->resultset('Deps')
+                ->search({
+                        deptype => $deptype,
+                        depname => $depname,
+                        ($depsense
+                            ? (-nest => \[
+                                'rpmdepmatch(flags, evr, rpmsenseflag(?), ?)',
+                                     [ plain_text => $depsense],
+                                     [ plain_text => $depevr ]
+                                 ])
+                            : ()
+                        ),
+                })
+                ->get_column('pkgid')->as_query }
+        }
+    )->get_column('pkgid')->all
+
+}
 
 =head1 AUTHOR
 

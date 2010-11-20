@@ -56,7 +56,7 @@ sub local_ls_rpms {
     }
 }
 
-sub update_content {
+sub find_delta {
     my ($self) = @_;
 
     warn $self->path;
@@ -68,24 +68,43 @@ sub update_content {
     foreach (keys %{ $localrpms }, keys %{ $baserpms }) {
         $list{$_} = 1;
     }
+    my @delta;
 
     foreach my $rpm (sort { $b cmp $a } keys %list) {
         if ($localrpms->{$rpm} && $baserpms->{$rpm}) {
             # nothing to do
         } elsif ($localrpms->{$rpm}) {
-            warn "adding $rpm";
-            $self->add_rpm($rpm);
+            push(@delta, { rpm => $rpm, delta => 'A' });
         } elsif ($baserpms->{$rpm}) {
-            my $remove = $self->db->prepare_cached(
-                q{
-                DELETE FROM rpmfiles where d_path = ? and filename = ?
-                }
-            );
-            $remove->execute($$self, $rpm);
-            warn "deleting $rpm";
+            push(@delta, { rpm => $rpm, delta => 'R' });
         }
     }
+    @delta;
+}
+sub update_content {
+    my ($self, @delta) = @_;
+    foreach (@delta) {
+        if (!$_->{delta}) {
+        }
+        elsif ($_->{delta} eq 'A') {
+            $self->add_rpm($_->{rpm});
+        }
+        elsif ($_->{delta} eq 'R') {
+            $self->remove_rpm($_->{rpm});
+        }
+    }
+}
 
+sub remove_rpm {
+    my ($self, $rpm) = @_;
+    my $remove = $self->db->prepare_cached(
+        q{
+        DELETE FROM rpmfiles where d_path = ? and filename = ?
+        }
+    );
+    $remove->execute($$self, $rpm);
+    warn "deleting $rpm";
+    $self->db->commit;
 }
 
 sub add_rpm {
@@ -102,6 +121,7 @@ sub add_rpm {
 
     } else {
     }
+    warn "adding $rpm";
     $self->db->commit;
 }
 

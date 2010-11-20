@@ -1,0 +1,103 @@
+#!/bin/env perl
+
+use strict;
+use warnings;
+use Sophie::Base;
+use Sophie::Base::RpmsPath;
+use Linux::Inotify2;
+use POSIX ":sys_wait_h";
+
+$SIG{ALRM} = sub {};
+$SIG{CHLD} = sub { wait };
+
+my %modified_paths;
+
+while (1) {
+    alarm 100;
+    if (update_base(keys %modified_paths)) {
+        %modified_paths = ();
+    }
+    my $inotify = inotify_path();
+    $inotify->poll;
+}
+
+sub inotify_path {
+
+    my $i = Linux::Inotify2->new;
+    my $sophie = Sophie::Base->connect;
+    
+    foreach ($sophie->resultset('Paths')->get_column('path')->all) {
+        $i->watch(
+            $_,
+            IN_DELETE | IN_MODIFY | IN_CREATE,
+            sub {
+                my $e = shift;
+                warn $e->fullname;
+            }
+        )
+    }
+
+    $i;
+}
+
+sub update_base {
+    my @path = @_;
+
+    if (waitpid(-1, &WNOHANG) != -1) {
+        warn "child still running";
+        return;
+    }
+    warn "updating base";
+
+    my @pkey;
+    {
+        my $sophie = Sophie::Base->connect;
+        @pkey = $sophie->resultset('Paths')->search(
+            path => [ @path ],
+        )->get_column('d_path_key')->all;
+        push(@pkey, $sophie->resultset('Paths')->search({
+            updated => [ undef, 
+                \[ " > now() - '6 hours'::interval"],
+            ],
+        })->get_column('d_path_key')->all);
+        my %uniq = map { $_ => 1 } @pkey;
+        @pkey = keys %uniq;
+    }
+
+    return 1 if (!@pkey);
+
+    if (my $pid = fork()) {
+    } else {
+        foreach my $pathkey (@pkey) {
+            my @delta = Sophie::Base::RpmsPath->new($pathkey)
+                ->find_delta;
+            while (my @d = splice(@delta, 0, 25)) {
+                my $path = Sophie::Base::RpmsPath->new($pathkey);
+                $path->update_content(@d);
+                $path->db->disconnect;
+            }
+        }
+        exit(0);
+    }
+    return 1;
+}
+
+
+#
+#my $i = Linux::Inotify2->new;
+#$i->watch("/home/olivier", IN_DELETE | IN_MODIFY | IN_CREATE,
+#    sub {
+#        warn "rr";
+#        my $e = shift;
+#        warn $e->fullname;
+#    }
+#);
+#$i->watch("/tmp", IN_DELETE | IN_MODIFY | IN_CREATE,
+#    sub {
+#        warn "rr";
+#        my $e = shift;
+#        warn $e->fullname;
+#    }
+#);
+#
+#1 while $i->poll;
