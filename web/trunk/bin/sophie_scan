@@ -13,7 +13,7 @@ $SIG{CHLD} = sub { wait };
 my %modified_paths;
 
 while (1) {
-    alarm 100;
+    alarm 30;
     if (update_base(keys %modified_paths)) {
         %modified_paths = ();
     }
@@ -32,8 +32,8 @@ sub inotify_path {
             IN_DELETE | IN_MODIFY | IN_CREATE,
             sub {
                 my $e = shift;
-                warn $e->name;
-                $modified_paths{$e->name} = 1;
+                warn $e->w->name;
+                $modified_paths{$e->w->name} = 1;
             }
         )
     }
