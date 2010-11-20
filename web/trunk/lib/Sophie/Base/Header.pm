@@ -88,10 +88,13 @@ sub addfiles_content {
                 if ($enc && ref $enc) {
                     $content = $enc->decode($content);
 
+                    $self->db->pg_savepoint('FILECONTENT');
                     $add_content->execute(
                         $enc && ref $enc ? encode('utf8', $enc->decode($content)) : $content,
                         $$self,
-                        $entry->{count});
+                        $entry->{count}) or do {
+                        $self->db->pg_rollback_to('FILECONTENT');
+                    };
                 } else {
                 }
                 1;

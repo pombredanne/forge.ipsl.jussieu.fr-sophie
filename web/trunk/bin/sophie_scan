@@ -69,17 +69,36 @@ sub update_base {
 
     if (my $pid = fork()) {
     } else {
-        foreach my $pathkey (@pkey) {
-            my @delta = Sophie::Base::RpmsPath->new($pathkey)
-                ->find_delta;
-            while (my @d = splice(@delta, 0, 25)) {
-                my $path = Sophie::Base::RpmsPath->new($pathkey);
-                $path->update_content(@d);
-                $path->db->disconnect;
-            }
-            Sophie::Base::RpmsPath->new($pathkey)->set_updated;
+
+
+        my $NB_PAR = 2;
+        my @split;
+        my $div = @pkey / $NB_PAR;
+
+        for (my $i = 0; $i < $NB_PAR - 1; $i++) {
+            $split[$i] = [ splice(@pkey, 0, $div) ];
         }
-        exit(0);
+        $split[$NB_PAR -1] = [ @pkey ];
+        foreach my $job (@split) {
+            @{$job || []} or next;
+
+            if (fork()) {
+            } else {
+
+                foreach my $pathkey (@{ $job }) {
+                    my @delta = Sophie::Base::RpmsPath->new($pathkey)
+                    ->find_delta;
+                    while (my @d = splice(@delta, 0, 25)) {
+                        my $path = Sophie::Base::RpmsPath->new($pathkey);
+                        $path->update_content(@d);
+                        $path->db->disconnect;
+                    }
+                    Sophie::Base::RpmsPath->new($pathkey)->set_updated;
+                }
+                exit(0);
+            }
+        }
+        1 while(waitpid(-1, 0) <= 0);
     }
     return 1;
 }
