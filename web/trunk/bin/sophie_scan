@@ -32,7 +32,8 @@ sub inotify_path {
             IN_DELETE | IN_MODIFY | IN_CREATE,
             sub {
                 my $e = shift;
-                warn $e->fullname;
+                warn $e->name;
+                $modified_paths{$e->name} = 1;
             }
         )
     }
@@ -57,7 +58,7 @@ sub update_base {
         )->get_column('d_path_key')->all;
         push(@pkey, $sophie->resultset('Paths')->search({
             updated => [ undef, 
-                \[ " > now() - '6 hours'::interval"],
+                \[ " < now() - '6 hours'::interval"],
             ],
         })->get_column('d_path_key')->all);
         my %uniq = map { $_ => 1 } @pkey;
@@ -76,28 +77,10 @@ sub update_base {
                 $path->update_content(@d);
                 $path->db->disconnect;
             }
+            Sophie::Base::RpmsPath->new($pathkey)->set_updated;
         }
         exit(0);
     }
     return 1;
 }
 
-
-#
-#my $i = Linux::Inotify2->new;
-#$i->watch("/home/olivier", IN_DELETE | IN_MODIFY | IN_CREATE,
-#    sub {
-#        warn "rr";
-#        my $e = shift;
-#        warn $e->fullname;
-#    }
-#);
-#$i->watch("/tmp", IN_DELETE | IN_MODIFY | IN_CREATE,
-#    sub {
-#        warn "rr";
-#        my $e = shift;
-#        warn $e->fullname;
-#    }
-#);
-#
-#1 while $i->poll;

@@ -95,6 +95,16 @@ sub update_content {
     }
 }
 
+sub set_updated {
+    my ($self) = @_;
+    warn "UPD";
+    $self->db->prepare_cached(q{
+        update d_path set updated = now() where d_path_key = ?
+        })->execute($$self);
+    $self->db->commit;
+}
+
+
 sub remove_rpm {
     my ($self, $rpm) = @_;
     my $remove = $self->db->prepare_cached(
