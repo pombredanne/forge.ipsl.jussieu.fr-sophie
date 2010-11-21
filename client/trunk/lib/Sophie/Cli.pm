@@ -27,14 +27,16 @@ sub denv {
         {
             prompt => sub {
                 sprintf('%s - %s - %s > ',
-                    $_[0]->{dist},
-                    $_[0]->{vers},
-                    $_[0]->{arch},
+                    $_[0]->{dist}{distribution},
+                    $_[0]->{dist}{release},
+                    $_[0]->{dist}{arch},
                 );
             },
-            dist => $dist,
-            vers => $vers,
-            arch => $arch,
+            dist => {
+                distribution => $dist,
+                release => $vers,
+                arch => $arch,
+            },
         },
         $base,
     );
@@ -43,9 +45,9 @@ sub denv {
             code => sub {
                 my ($self) = @_;
 
-                my $res = $self->xmlreq('distrib.struct', $self->{dist},
-                    $self->{vers},
-                    $self->{arch});
+                my $res = $self->xmlreq('distrib.struct',
+                    $self->{dist},
+                );
                 print $OUT join ('', map { "$_->{label}\n" } @{ $res->value });
             }
         }
@@ -54,9 +56,8 @@ sub denv {
     $env->add_func('setpath', {
             code => sub {
                 my ($self, $media, $path) = @_;
-                my $res = $self->xmlreq('admin.media_path', $self->{dist},
-                    $self->{vers},
-                    $self->{arch},
+                my $res = $self->xmlreq('admin.media_path',
+                    $self->{dist},
                     $media,
                     $path,
                 );
@@ -66,30 +67,46 @@ sub denv {
                 if ($media) {
                     return (<$start*>)
                 } else {
-                my $res = $self->xmlreq('distrib.struct', $self->{dist},
-                    $self->{vers},
-                    $self->{arch});
+                my $res = $self->xmlreq('distrib.struct',
+                    $self->{dist},
+                );
                 return map { $_->{label} } @{ $res->value };
                 }
+            },
+        }
+    );
+    $env->add_func('listpath', {
+            code => sub {
+                my ($self, $media) = @_;
+                my $res = $self->xmlreq('admin.list_path',
+                    $self->{dist},
+                    $media,
+                );
+                print $OUT join ('', map { "$_\n" } @{ $res->value });
+            },
+            completion => sub {
+                my ($self, $start) = @_;
+                my $res = $self->xmlreq('distrib.struct',
+                    $self->{dist},
+                );
+                return map { $_->{label} } @{ $res->value };
             },
         }
     );
     $env->add_func('addmedia', {
             code => sub {
                 my ($self, $media, $group) = @_;
-                my $res = $self->xmlreq('admin.add_media', $self->{dist},
-                    $self->{vers},
-                    $self->{arch},
-                    $media,
-                    $group,
+                my $res = $self->xmlreq('admin.add_media',$self->{dist},
+                    { dist_label => $media,
+                      group_label => $group },
                 );
                 print $OUT join ('', map { "$_->{label}\n" } @{ $res->value });
             },
             completion => sub {
                 my ($self) = @_;
-                my $res = $self->xmlreq('distrib.struct', $self->{dist},
-                    $self->{vers},
-                    $self->{arch});
+                my $res = $self->xmlreq('distrib.struct',
+                    $self->{dist},
+                );
                 return map { $_->{label} } @{ $res->value };
             },
         }
@@ -107,6 +124,10 @@ sub globalenv {
         {
             code => sub {
                 my ($self, $dist, $ver, $arch) = @_;
+                if (!($dist && $ver && $arch)) {
+                    print $OUT "missing argument\n";
+                    return;
+                }
                 denv($self->base, $dist, $ver, $arch)->cli();
             },
             completion => sub {
