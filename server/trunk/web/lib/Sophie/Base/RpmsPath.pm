@@ -112,27 +112,37 @@ sub remove_rpm {
         DELETE FROM rpmfiles where d_path = ? and filename = ?
         }
     );
-    $remove->execute($$self, $rpm);
-    warn "deleting $rpm";
-    $self->db->commit;
+    for (1 .. 3) {
+        if ($remove->execute($$self, $rpm)) { 
+            warn "deleting $rpm";
+            $self->db->commit;
+            return 1;
+        }
+        $self->db->rollback;
+    }
 }
 
 sub add_rpm {
     my ($self, $rpm) = @_;
 
-    if (my $pkgid = $self->_add_header($rpm)) {
-        my $register = $self->db->prepare_cached(
-            q{
-            INSERT INTO rpmfiles (d_path, filename, pkgid)
-            values (?,?,?)
+    for (1 .. 3) {
+        if (defined(my $pkgid = $self->_add_header($rpm))) {
+            $pkgid or return;
+            my $register = $self->db->prepare_cached(
+                q{
+                INSERT INTO rpmfiles (d_path, filename, pkgid)
+                values (?,?,?)
+                }
+            );
+            if ($register->execute($$self, $rpm, $pkgid)) {
+                warn "adding $rpm";
+                $self->db->commit;
+                return;
             }
-        );
-        $register->execute($$self, $rpm, $pkgid);
 
-    } else {
+        }
+        $self->db->rollback;
     }
-    warn "adding $rpm";
-    $self->db->commit;
 }
 
 sub _add_header {
@@ -144,7 +154,7 @@ sub _add_header {
     };
     $header or do {
         warn "Cannot read " . $self->path . '/' . $rpm;
-        return;
+        return "";
     };
 
     {
@@ -196,10 +206,10 @@ sub _add_header {
         select index_rpms(?);
         }
     );
-    $index_tag->execute($header->queryformat('%{PKGID}'));
+    $index_tag->execute($header->queryformat('%{PKGID}')) or return;
     $index_tag->finish;
     Sophie::Base::Header->new($header->queryformat('%{PKGID}'))
-        ->addfiles_content({ path => $self->path, filename => $rpm});
+        ->addfiles_content({ path => $self->path, filename => $rpm}) or return;
 
     $header->queryformat('%{PKGID}');
 }

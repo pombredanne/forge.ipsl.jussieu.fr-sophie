@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use DBI;
 use base qw/DBIx::Class::Schema/;
+use FindBin qw($Bin);
 
 __PACKAGE__->load_namespaces();
 
@@ -16,12 +17,14 @@ sub connection {
 
 sub db {
    my ($self) = @_;
-   require Sophie;
+   require Config::General;
+   my $cg = Config::General->new("$Bin/../sophie.conf");
+   my $config = { $cg->getall() };
 
    DBI->connect_cached(
-       'dbi:Pg:' . Sophie->config->{dbconnect},
-       Sophie->config->{dbuser},
-       Sophie->config->{dbpassword},
+       'dbi:Pg:' . $config->{dbconnect},
+       $config->{dbuser},
+       $config->{dbpassword},
        {
            AutoCommit => 0,
            PrintError => 1,

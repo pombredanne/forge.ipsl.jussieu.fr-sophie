@@ -6,18 +6,36 @@ use Sophie::Base;
 use Sophie::Base::RpmsPath;
 use Linux::Inotify2;
 use POSIX ":sys_wait_h";
+use Getopt::Long;
 
-$SIG{ALRM} = sub {};
+GetOptions(
+    'bdelay=i' =>  \my $updated_inotify,
+    'd|daemon'  => \my $daemon,
+) or die "Wrong options";
+
 $SIG{CHLD} = sub { wait };
 
 my %modified_paths;
+my $inotify = undef;
+$updated_inotify ||= 300;
 
+if ($daemon) {
+    if (fork()) {
+        exit(0);
+    }
+}
+
+alarm($updated_inotify);
 while (1) {
-    alarm 30;
+    local $SIG{ALRM} = sub {
+        $inotify = undef;
+        warn "reparse paths";
+        alarm($updated_inotify);
+    };
     if (update_base(keys %modified_paths)) {
         %modified_paths = ();
     }
-    my $inotify = inotify_path();
+    $inotify ||= inotify_path();
     $inotify->poll;
 }
 
@@ -34,6 +52,7 @@ sub inotify_path {
                 my $e = shift;
                 warn $e->w->name;
                 $modified_paths{$e->w->name} = 1;
+                1;
             }
         )
     }
@@ -52,7 +71,9 @@ sub update_base {
 
     my @pkey;
     {
-        my $sophie = Sophie::Base->connect;
+        my $sophie = Sophie::Base->connect or do {
+            die "cannot read config file\n";
+        };
         @pkey = $sophie->resultset('Paths')->search(
             path => [ @path ],
         )->get_column('d_path_key')->all;
@@ -99,6 +120,7 @@ sub update_base {
             }
         }
         1 while(waitpid(-1, 0) <= 0);
+        exit(0);
     }
     return 1;
 }

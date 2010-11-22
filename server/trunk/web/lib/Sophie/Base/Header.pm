@@ -103,6 +103,7 @@ sub addfiles_content {
     };
 
     $tmp = undef;
+    return 1;
 }
 
 1;

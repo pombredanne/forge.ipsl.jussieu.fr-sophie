@@ -19,8 +19,6 @@ use Catalyst qw/
     Session::Store::DBI
     Session::State::Cookie
     Compress::Zlib
-    Server
-    Server::XMLRPC
     Authentication
 /;
 
