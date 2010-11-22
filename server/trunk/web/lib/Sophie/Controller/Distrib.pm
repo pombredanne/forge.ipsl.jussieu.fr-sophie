@@ -247,7 +247,7 @@ sub _media_list_rpms :Chained('distrib_view') PathPart('media') CaptureArgs(1) {
 
 sub media_list_rpms :Chained('_media_list_rpms') PathPart('') {
     my ( $self, $c ) = @_;
-    $c->forward('media_rpms', [ @{$c->stash->{dist}}, $c->stash->{media} ]);
+    $c->forward('media_rpms', [ $c->stash->{dist}, $c->stash->{media} ]);
 }
 sub media_rpm_byname :Chained('_media_list_rpms') PathPart('rpms/by_name') {
     my ( $self, $c ) = @_;
