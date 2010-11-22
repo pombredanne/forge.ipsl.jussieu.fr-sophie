@@ -1,8 +1,13 @@
+<ol>
+[% FOREACH release = xmlrpc %]
+<li><a href="[% c.uri_for('/', c.req.path, release) %]">[% release %]</a></li>
 [% FOREACH f = c.forward('/distrib/list', [ 
     {
-        'distribution' => 'Mandriva',
-        'release' => 'cooker'
+        'distribution' => dist.distribution,
+        'release' => release,
     } 
 ]) %]
 [% f %]
 [% END %]
+[% END %]
+</ol>

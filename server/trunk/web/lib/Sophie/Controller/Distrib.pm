@@ -36,16 +36,15 @@ sub list :XMLRPC {
     }
     $rs = $rs->search(name => $distribution)->search_related('Release');
     if (!$release) {
-        @{$c->stash->{xmlrpc}} = map { $_->version } $rs->all;
-        return $c->stash->{xmlrpc};
+        return $c->stash->{xmlrpc} = [ map { $_->version } $rs->all ];
+        
     }
     $rs = $rs->search(version => $release)->search_related('Arch');
     if (!$arch) {
-        @{$c->stash->{xmlrpc}} = map { $_->arch } $rs->all;
-        return $c->stash->{xmlrpc};
+        return $c->stash->{xmlrpc} = [ map { $_->arch } $rs->all ];
     }
     $rs = $rs->search(arch => $arch)->search_related('Medias');
-    @{$c->stash->{xmlrpc}} = map { $_->label } $rs->all;
+    $c->stash->{xmlrpc} = [ map { $_->label } $rs->all ];
     $c->stash->{xmlrpc}
 }
 
@@ -95,35 +94,50 @@ sub index :Path :Chained :Args(0)  {
 
 sub list_release :Path :Args(1) {
     my ( $self, $c, $distribution ) = @_;
-    $c->forward('list', [ $distribution ]);
+    $c->stash->{dist}{distribution} = $distribution;
+    $c->forward('list', [ $c->stash->{dist} ] );
 }
 
 sub list_arch :Path :Args(2) {
     my ( $self, $c, $distribution, $release ) = @_;
-    $c->forward('list', [ $distribution, $release ]);
+    $c->stash->{dist}{distribution} = $distribution;
+    $c->stash->{dist}{release} = $release;
+    $c->forward('list', [ $c->stash->{dist} ] );
 }
 
 
 sub distrib_view :PathPrefix :Chained :CaptureArgs(3) {
     my ( $self, $c, $distribution, $release, $arch ) = @_;
-    $c->stash->{distrib} = [ $distribution, $release, $arch ];
+    $c->stash->{dist}{distribution} = $distribution;
+    $c->stash->{dist}{release} = $release;
+    $c->stash->{dist}{arch} = $arch;
+    $c->stash->{distrib} = $c->stash->{dist};
 }
 
 sub distrib :Chained('distrib_view') PathPart('') {
     my ( $self, $c ) = @_;
-    $c->forward('list', $c->stash->{distrib});
-    $c->forward('rpms',    $c->stash->{distrib});
+    $c->forward('list', $c->stash->{dist});
+    $c->forward('rpms', $c->stash->{dist});
     # TODO store properly results
     # No call from json here
 }
 
 sub media :Chained('distrib_view') PathPart('media') {
     my ( $self, $c ) = @_;
-    $c->forward('struct', $c->stash->{distrib});
+    $c->forward('struct', [ $c->stash->{dist} ]);
 }
 
 sub rpms :XMLRPC {
     my ( $self, $c, $distribution, $release, $arch ) = @_;
+
+    if (ref $distribution) {
+        ($distribution, $release, $arch) = (
+            $distribution->{distribution},
+            $distribution->{release},
+            $distribution->{arch},
+        );
+    }
+    
     @{$c->stash->{rpm}} = map {
             { 
               pkgid => $_->pkgid,
@@ -148,6 +162,15 @@ sub rpms :XMLRPC {
 
 sub srpms :XMLRPC {
     my ( $self, $c, $distribution, $release, $arch ) = @_;
+
+    if (ref $distribution) {
+        ($distribution, $release, $arch) = (
+            $distribution->{distribution},
+            $distribution->{release},
+            $distribution->{arch},
+        );
+    }
+
     @{$c->stash->{rpm}} = map {
             { 
               pkgid => $_->pkgid,
@@ -172,12 +195,12 @@ sub srpms :XMLRPC {
 
 sub list_rpms :Chained('distrib_view') PathPart('rpms') {
     my ( $self, $c ) = @_;
-    $c->forward('rpms', $c->stash->{distrib});
+    $c->forward('rpms', $c->stash->{dist});
 }
 
 sub list_srpms :Chained('distrib_view') PathPart('srpms') {
     my ( $self, $c ) = @_;
-    $c->forward('srpms',    $c->stash->{distrib});
+    $c->forward('srpms', $c->stash->{dist});
 }
 
 sub srpm_by_name :Chained('distrib_view') PathPart('srpms/by-name') Args(1) {
@@ -189,6 +212,16 @@ sub rpm_by_pkid :Chained('distrib_view') PathPart('rpms/by-pkgid') Args(1) {
 
 sub media_rpms : XMLRPC {
     my ( $self, $c, $distribution, $release, $arch, $media ) = @_;
+    
+    if (ref $distribution) {
+        ($distribution, $release, $arch, $media) = (
+            $distribution->{distribution},
+            $distribution->{release},
+            $distribution->{arch},
+            $release,
+        );
+    }
+    
     @{$c->stash->{rpm}} = map {
             { 
               pkgid => $_->pkgid,
@@ -214,7 +247,7 @@ sub _media_list_rpms :Chained('distrib_view') PathPart('media') CaptureArgs(1) {
 
 sub media_list_rpms :Chained('_media_list_rpms') PathPart('') {
     my ( $self, $c ) = @_;
-    $c->forward('media_rpms', [ @{$c->stash->{distrib}}, $c->stash->{media} ]);
+    $c->forward('media_rpms', [ @{$c->stash->{dist}}, $c->stash->{media} ]);
 }
 sub media_rpm_byname :Chained('_media_list_rpms') PathPart('rpms/by_name') {
     my ( $self, $c ) = @_;

@@ -2,6 +2,7 @@ package Sophie::View::TT;
 
 use strict;
 use warnings;
+use Sophie;
 
 use base 'Catalyst::View::TT';
 

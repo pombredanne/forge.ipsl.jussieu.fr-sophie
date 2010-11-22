@@ -2,19 +2,17 @@ package Sophie::View::Ajax;
 
 use strict;
 use warnings;
+use Sophie;
 
 use base 'Catalyst::View::TT';
 
 __PACKAGE__->config(
     TEMPLATE_EXTENSION => '.tt',
     render_die => 1,
-    __PACKAGE__->config(
-        TEMPLATE_EXTENSION => '.tt',
-        render_die => 1,
-        INCLUDE_PATH => [
-            Sophie->path_to( 'root', 'templates', 'html' ),
-        ],
-    )
+    INCLUDE_PATH => [
+        Sophie->path_to( 'root', 'templates', 'includes' ),
+        Sophie->path_to( 'root', 'templates', 'html' ),
+    ],
 );
 
 =head1 NAME

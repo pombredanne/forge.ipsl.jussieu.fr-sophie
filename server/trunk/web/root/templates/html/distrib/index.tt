@@ -1,7 +1,7 @@
 <!-- $Id$ -->
 
 <ol>
-[% FOREACH k = xmlrpc %]
+[% FOREACH k = data %]
 <li><a href="[% c.uri_for('/', c.req.path, k) %]">[% k %]</a></li>
 [% END %]
 </ol>

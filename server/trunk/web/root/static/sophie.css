@@ -1,1 +1,9 @@
-// $Id$
+/* $Id$ */
+
+div#sophie_header {
+    border: outset;
+}
+
+#sophie_header p {
+    padding-left: 1em;
+}

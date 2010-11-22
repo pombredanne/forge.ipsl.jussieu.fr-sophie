@@ -25,6 +25,13 @@ Sophie::Controller::Root - Root Controller for Sophie
 sub begin : Private {
     my ( $self, $c ) = @_;
 
+    if ($c->req->path =~ m:[^/]+\/$:) {
+        my $path = $c->req->path;
+        $path =~ s:/*$::;
+        $c->res->redirect($c->uri_for("/$path"));
+        return;
+    }
+
     if (($c->req->query_keywords || '') =~ /([^\w]|^)json([^\w]|$)/ ||
         exists($c->req->params ->{json})) {
         $c->stash->{current_view} = 'Json';
@@ -79,7 +86,7 @@ sub  end : Private {
         $c->forward('_end');
     } elsif (!$c->stash->{current_view}) {
     }
-    $c->stash->{$c->action} = $c->stash->{xmlrpc};
+    $c->stash->{data} = $c->stash->{xmlrpc};
     $c->model('Base')->storage->dbh->rollback;
 }
 

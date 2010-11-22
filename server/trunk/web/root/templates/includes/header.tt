@@ -9,6 +9,15 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="KEYWORDS" content="Sophie, rpm[% IF keywords.size -%], [%- keywords.join(', ') | html -%][% END %]">
     <meta name="REVISIT-AFTER" content="[% IF metarevisite %][% metarevisite %][% ELSE %]15[% END %] days">
-    <link rel="icon" href="[%- c.uri_for('/static', 'images', 'favicon.ico') -%]" type="image/x-icon">
+    <link rel="icon" href="[%- c.uri_for('/static', 'sophie.ico') -%]" type="image/x-icon">
 </head>
 <body>
+
+    <div id="sophie_header">
+    <img src="[% c.uri_for('/static', 'sophie.png') -%]" style="float:left">
+    <div style="float:left">
+        <p id="sitename">Sophie</p>
+        <p id="sophie_menu">fff</p>
+    </div>
+    <div style="clear:both"></div>
+    </div>
