@@ -32,22 +32,21 @@ sub list :XMLRPC {
 
     my $rs = $c->model('Base')->resultset('Distribution');
     if (!$distribution) {
-        @{$c->stash->{xmlrpc}} = map { $_->name } $rs->all;
-        return;
+        return $c->stash->{xmlrpc} = [ map { $_->name } $rs->all ];
     }
     $rs = $rs->search(name => $distribution)->search_related('Release');
     if (!$release) {
         @{$c->stash->{xmlrpc}} = map { $_->version } $rs->all;
-        return;
+        return $c->stash->{xmlrpc};
     }
     $rs = $rs->search(version => $release)->search_related('Arch');
     if (!$arch) {
         @{$c->stash->{xmlrpc}} = map { $_->arch } $rs->all;
-        return;
+        return $c->stash->{xmlrpc};
     }
     $rs = $rs->search(arch => $arch)->search_related('Medias');
     @{$c->stash->{xmlrpc}} = map { $_->label } $rs->all;
-
+    $c->stash->{xmlrpc}
 }
 
 sub struct :XMLRPC {

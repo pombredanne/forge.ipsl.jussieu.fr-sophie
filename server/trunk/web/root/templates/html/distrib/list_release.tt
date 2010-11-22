@@ -1,0 +1,8 @@
+[% FOREACH f = c.forward('/distrib/list', [ 
+    {
+        'distribution' => 'Mandriva',
+        'release' => 'cooker'
+    } 
+]) %]
+[% f %]
+[% END %]

@@ -25,8 +25,13 @@ Sophie::Controller::Root - Root Controller for Sophie
 sub begin : Private {
     my ( $self, $c ) = @_;
 
-    if ($c->req->param('json')) {
+    if (($c->req->query_keywords || '') =~ /([^\w]|^)json([^\w]|$)/ ||
+        exists($c->req->params ->{json})) {
         $c->stash->{current_view} = 'Json';
+    }
+    if (($c->req->query_keywords || '') =~ /([^\w]|^)ajax([^\w]|$)/ ||
+        exists($c->req->params ->{ajax})) {
+        $c->stash->{current_view} = 'Ajax';
     }
 
     if ($c->action =~ m/^admin\//) {
@@ -74,6 +79,7 @@ sub  end : Private {
         $c->forward('_end');
     } elsif (!$c->stash->{current_view}) {
     }
+    $c->stash->{$c->action} = $c->stash->{xmlrpc};
     $c->model('Base')->storage->dbh->rollback;
 }
 

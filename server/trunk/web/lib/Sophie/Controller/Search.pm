@@ -64,6 +64,24 @@ sub bydep : XMLRPCPath('/search/rpm/bydep') {
 
 }
 
+sub byfile : XMLRPCPath('/search/rpm/byfile') {
+    my ( $self, $c, $searchspec, $file) = @_;
+    my ($dirname, $basename) = $file =~ m:^(.*/)?([^/]+)$:;
+
+    @{$c->stash->{xmlrpc}} = $c->model('Base')->resultset('Rpms')->search(
+        {
+            pkgid => { IN => $c->model('Base')->resultset('Files')
+                ->search({
+                        ($dirname
+                            ? (dirname => $dirname)
+                            : ()),
+                        basename => $basename,
+                })
+                ->get_column('pkgid')->as_query }
+        }
+    )->get_column('pkgid')->all
+}
+
 =head1 AUTHOR
 
 Olivier Thauvin

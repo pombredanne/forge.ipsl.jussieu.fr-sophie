@@ -12,7 +12,7 @@ __PACKAGE__->config(
         TEMPLATE_EXTENSION => '.tt',
         render_die => 1,
         INCLUDE_PATH => [
-            Sophie->path_to( 'root', 'templates', 'includes' ),
+            Sophie->path_to( 'root', 'templates', 'html' ),
         ],
     )
 );

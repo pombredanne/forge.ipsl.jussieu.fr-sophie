@@ -31,8 +31,11 @@ sub queryformat : XMLRPCLocal {
     my ( $self, $c, $pkgid, $qf ) = @_;
     @{$c->stash->{xmlrpc}} = map { $_->get_column('qf') } $c->model('Base')->resultset('Rpms')->search(
         { pkgid => $pkgid },
-        { select => [ qq{rpmqueryformat("header", '$qf')} ], as => [ 'qf'
-                ] }
+        { 
+            select => [ qq{rpmqueryformat("header", ?)} ],
+            as => [ 'qf' ],
+            bind => [ $qf ],
+        }
     )->all;
 }
 
@@ -40,10 +43,86 @@ sub tag : XMLRPCLocal {
     my ( $self, $c, $pkgid, $tag ) = @_;
     @{$c->stash->{xmlrpc}} = map { $_->get_column('tag') } $c->model('Base')->resultset('Rpms')->search(
         { pkgid => $pkgid },
-        { select => [ qq{rpmquery("header", rpmtag('$tag'))} ], as => [ 'tag'
-                ] }
+        { 
+            select => [ qq{rpmquery("header", rpmtag(?))} ],
+            as => [ 'tag' ],
+            bind => [ $tag ], 
+        }
     )->all;
 }
+
+sub deps : XMLRPCLocal {
+    my ($self, $c, $pkgid, $deptype) = @_;
+
+    @{ $c->stash->{xmlrpc}{deps}{$deptype} } = 
+        map { 
+            { 
+                name => $_->get_column('depname'),
+                flags => $_->get_column('flags'),
+                evr => $_->get_column('evr'),
+                sense => $_->get_column('sense'),
+            }
+        } 
+        $c->model('Base')->resultset('Deps')->search(
+            { 
+                pkgid => $pkgid,
+                deptype => $deptype,
+            },
+            { 
+                order_by => [ 'count' ],
+                select => [ 'rpmsenseflag("flags")', qw(depname flags evr) ],
+                as => [ qw'sense depname flags evr' ],
+
+            },
+        )->all;
+}
+
+sub alldeps : XMLRPCLocal {
+    my ($self, $c, $pkgid) = @_;
+
+    foreach (
+        $c->model('Base')->resultset('Deps')->search(
+            { 
+                pkgid => $pkgid,
+            },
+            { 
+                order_by => [ 'count' ],
+                select => [ 'rpmsenseflag("flags")',
+                    qw(depname flags evr deptype) ],
+                as => [ qw'sense depname flags evr deptype' ],
+
+            },
+        )->all) {
+        push( @{ $c->stash->{xmlrpc}{deps}{$_->get_column('deptype')} },
+            {
+                name => $_->get_column('depname'),
+                flags => $_->get_column('flags'),
+                evr => $_->get_column('evr'),
+                sense => $_->get_column('sense'),
+            }
+        );
+    }
+}
+
+sub files : XMLRPCLocal {
+    my ($self, $c, $pkgid) = @_;
+
+    @{ $c->stash->{xmlrpc}{files} } = map {
+        {
+            filename => $_->get_column('dirname') . $_->get_column('basename'),
+            md5 => $_->get_column('md5'),
+        }
+    } $c->model('Base')->resultset('Files')->search(
+            { 
+                pkgid => $pkgid,
+            },
+            { 
+                order_by => [ 'count' ],
+
+            },
+        )->all;
+}
+
 
 sub rpms : Chained : PathPart {
     my ( $self, $c, $pkgid ) = @_;
