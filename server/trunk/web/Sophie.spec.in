@@ -27,6 +27,7 @@ BuildRequires: perl(Catalyst::View::TT)
 BuildRequires: perl(DBIx::Class)
 BuildRequires: perl(Catalyst::Plugin::Compress::Zlib)
 BuildRequires: perl-Catalyst-Plugin-Server
+BuildRequires: perl(Catalyst::Plugin::Session::Store::DBI)
 
 Requires: perl(Catalyst)
 Requires: perl(Catalyst::Plugin::ConfigLoader)
@@ -40,6 +41,7 @@ Requires: perl(Catalyst::Plugin::Prototype)
 Requires: perl(Catalyst::View::TT)
 Requires: perl(Catalyst::Plugin::Compress::Zlib)
 Requires: perl-Catalyst-Plugin-Server
+Requires: perl(Catalyst::Plugin::Session::Store::DBI)
 # Requires: apache-mod_fastcgi
 # Requires: perl(FCGI)
 # Requires: apache-mod_proxy

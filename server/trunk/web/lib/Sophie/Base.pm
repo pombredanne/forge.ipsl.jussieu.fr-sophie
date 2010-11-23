@@ -5,6 +5,7 @@ use warnings;
 use DBI;
 use base qw/DBIx::Class::Schema/;
 use FindBin qw($Bin);
+use Config::General;
 
 __PACKAGE__->load_namespaces();
 
@@ -17,7 +18,6 @@ sub connection {
 
 sub db {
    my ($self) = @_;
-   require Config::General;
    my $config;
    foreach my $file ('sophie.conf', "$Bin/../sophie.conf",
        '/etc/sophie/sophie.conf') {
