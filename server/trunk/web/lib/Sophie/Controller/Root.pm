@@ -48,6 +48,11 @@ sub begin : Private {
     }
 }
 
+sub toto : LocalPath  {
+    my ($self, $c) = @_;
+    $c->detach('index');
+}
+
 =head2 index
 
 The root page (/)
