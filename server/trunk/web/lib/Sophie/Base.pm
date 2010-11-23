@@ -18,8 +18,13 @@ sub connection {
 sub db {
    my ($self) = @_;
    require Config::General;
-   my $cg = Config::General->new("$Bin/../sophie.conf");
-   my $config = { $cg->getall() };
+   my $config;
+   foreach my $file ('sophie.conf', "$Bin/../sophie.conf") {
+       -f $file or next;
+        my $cg = Config::General->new($file);
+        $config = { $cg->getall() };
+    }
+    $config or die "No config found";
 
    DBI->connect_cached(
        'dbi:Pg:' . $config->{dbconnect},

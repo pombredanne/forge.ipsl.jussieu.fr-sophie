@@ -1,6 +1,8 @@
 package Sophie::Controller::Rpms;
 use Moose;
 use namespace::autoclean;
+use Encode::Guess;
+use Encode;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -121,6 +123,32 @@ sub files : XMLRPCLocal {
 
             },
         )->all;
+}
+
+sub changelog : XMLRPCLocal {
+    my ($self, $c, $pkgid) = @_;
+
+    my @ch;
+    foreach ($c->model('Base')->resultset('RpmsChangelog')->search({},
+            { 
+                bind => [ $pkgid ],
+                order_by => [ 'time::int desc' ],
+            },
+        )->all) {
+        my $chentry;
+        my $enc = guess_encoding($_->get_column('text'), qw/latin1/);
+        $chentry->{text} = $enc && ref $enc
+            ? encode('utf8', $_->get_column('text'))
+            : $_->get_column('text');
+        $enc = guess_encoding($_->get_column('name'), qw/latin1/);
+        $chentry->{name} = $enc && ref $enc
+            ? encode('utf8', $_->get_column('name'))
+            : $_->get_column('name');
+        $chentry->{time} = $_->get_column('time');
+        push(@ch, $chentry);
+    }
+
+    $c->stash->{xmlrpc}{changelog} = \@ch;
 }
 
 

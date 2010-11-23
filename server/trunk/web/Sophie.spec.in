@@ -1,0 +1,66 @@
+%define realname   Sophie
+%define name       Sophie
+%define version    @VERSION@
+%define release    %mkrel %{?svnrelease:0.%{svnrelease}}%{?!svnrelease:1}
+
+Name:       %{name}
+Version:    %{version}
+Release:    %{release}
+License:    GPL or Artistic
+Group:      Development/Perl
+Summary:    Sophie Web Site
+Source:     %{realname}-%{version}.tar.gz
+Url:        http://search.cpan.org/dist/%{realname}
+BuildRoot:  %{_tmppath}/%{name}-%{version}-%{release}-buildroot
+BuildArch:  noarch
+
+BuildRequires: perl(Catalyst)
+BuildRequires: perl(Catalyst::Plugin::ConfigLoader)
+BuildRequires: perl(Catalyst::Plugin::Static::Simple)
+BuildRequires: perl(Catalyst::Action::RenderView)
+BuildRequires: perl(YAML)
+BuildRequires: perl(Catalyst::Plugin::Authentication)
+BuildRequires: perl(Catalyst::Plugin::Session)
+BuildRequires: perl(Catalyst::Plugin::Session::State::Cookie)
+BuildRequires: perl(Catalyst::Plugin::Prototype)
+BuildRequires: perl(Catalyst::View::TT)
+
+Requires: perl(Catalyst)
+Requires: perl(Catalyst::Plugin::ConfigLoader)
+Requires: perl(Catalyst::Plugin::Static::Simple)
+Requires: perl(Catalyst::Action::RenderView)
+Requires: perl(YAML)
+Requires: perl(Catalyst::Plugin::Authentication)
+Requires: perl(Catalyst::Plugin::Session)
+Requires: perl(Catalyst::Plugin::Session::State::Cookie)
+Requires: perl(Catalyst::Plugin::Prototype)
+Requires: perl(Catalyst::View::TT)
+# Requires: apache-mod_fastcgi
+# Requires: perl(FCGI)
+# Requires: apache-mod_proxy
+
+%description
+Sophie Web Site
+
+%prep
+%setup -q -n %{realname}-%{version} 
+
+%build
+%{__perl} Makefile.PL INSTALLDIRS=vendor
+%make
+
+%install
+rm -rf %buildroot
+%makeinstall_std
+
+%clean
+rm -rf %buildroot
+
+%files
+%defattr(-,root,root)
+%doc Changes README
+%_bindir/*
+%{_mandir}/man3/*
+%{_mandir}/man1/*
+%perl_vendorlib/*
+
