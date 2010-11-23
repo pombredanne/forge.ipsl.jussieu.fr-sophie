@@ -19,7 +19,8 @@ sub db {
    my ($self) = @_;
    require Config::General;
    my $config;
-   foreach my $file ('sophie.conf', "$Bin/../sophie.conf") {
+   foreach my $file ('sophie.conf', "$Bin/../sophie.conf",
+       '/etc/sophie/sophie.conf') {
        -f $file or next;
         my $cg = Config::General->new($file);
         $config = { $cg->getall() };

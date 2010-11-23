@@ -24,6 +24,9 @@ BuildRequires: perl(Catalyst::Plugin::Session)
 BuildRequires: perl(Catalyst::Plugin::Session::State::Cookie)
 BuildRequires: perl(Catalyst::Plugin::Prototype)
 BuildRequires: perl(Catalyst::View::TT)
+BuildRequires: perl(DBIx::Class)
+BuildRequires: perl(Catalyst::Plugin::Compress::Zlib)
+BuildRequires: perl-Catalyst-Plugin-Server
 
 Requires: perl(Catalyst)
 Requires: perl(Catalyst::Plugin::ConfigLoader)
@@ -35,6 +38,8 @@ Requires: perl(Catalyst::Plugin::Session)
 Requires: perl(Catalyst::Plugin::Session::State::Cookie)
 Requires: perl(Catalyst::Plugin::Prototype)
 Requires: perl(Catalyst::View::TT)
+Requires: perl(Catalyst::Plugin::Compress::Zlib)
+Requires: perl-Catalyst-Plugin-Server
 # Requires: apache-mod_fastcgi
 # Requires: perl(FCGI)
 # Requires: apache-mod_proxy
@@ -59,6 +64,8 @@ rm -rf %buildroot
 %files
 %defattr(-,root,root)
 %doc Changes README
+%dir %_sysconfdir/sophie
+%config(noreplace) %_sysconfdir/sophie/*
 %_bindir/*
 %{_mandir}/man3/*
 %{_mandir}/man1/*

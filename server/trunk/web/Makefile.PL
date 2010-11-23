@@ -9,6 +9,9 @@ use Module::Install::Catalyst; # Complain loudly if you don't have
 name 'Sophie';
 all_from 'lib/Sophie.pm';
 
+requires 'DBD::Pg';
+requires 'DBIx::Class';
+
 requires 'Catalyst::Runtime' => '5.80025';
 requires 'Catalyst::Plugin::ConfigLoader';
 requires 'Catalyst::Plugin::Static::Simple';
@@ -21,7 +24,9 @@ requires 'Catalyst::Plugin::Session::Store::DBI' => '0';
 requires 'Catalyst::Plugin::Session::State::Cookie' => '0';
 requires 'Catalyst::Plugin::Prototype' => '0';
 requires 'Catalyst::View::TT' => '0';
-requires 'DBD::Pg';
+requires 'Catalyst::Plugin::Compress::Zlib';
+requires 'Catalyst::Plugin::Server';
+requires 'Catalyst::Plugin::Server::XMLRPC';
 requires 'Config::General'; # This should reflect the config file format you've chosen
                  # See Catalyst::Plugin::ConfigLoader for supported formats
 test_requires 'Test::More' => '0.88';
@@ -36,6 +41,23 @@ WriteMakefile(
 );
 
 package MY;
+
+sub install {
+    my ($self) = @_;
+    my $section = $self->SUPER::install();
+
+    $section =~ s/(^install ::.*)/$1 install_config/m;
+
+    $section .= qq[
+install_config: sophie.conf.in
+\tinstall -d \$(DESTDIR)/etc
+\tinstall -d \$(DESTDIR)/etc/sophie
+\tinstall sophie.conf.in \$(DESTDIR)/etc/sophie/sophie.conf
+
+    ];
+
+    $section
+}
 
 sub postamble {
     <<EOF;
