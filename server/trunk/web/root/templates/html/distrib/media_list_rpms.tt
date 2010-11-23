@@ -1,0 +1,12 @@
+<!-- $Id$ -->
+[% FOREACH rpm = xmlrpc %]
+[% IF loop.first %]
+<ul>
+[% END %]
+<li>
+    <a href="[% c.uri_for('/', c.req.path, 'by-pkgid', rpm.pkgid) %]">[% rpm.filename | html %]</a>
+</li>
+[% IF loop.last %]
+</ul>
+[% END %]
+[% END %]

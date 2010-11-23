@@ -1,0 +1,7 @@
+<!-- $Id$ -->
+
+<ol>
+[% FOREACH arch = xmlrpc %]
+<li><a href="[% c.uri_for('/', c.req.path, arch ) %]">[% arch %]</a></li>
+[% END %]
+<ol>
