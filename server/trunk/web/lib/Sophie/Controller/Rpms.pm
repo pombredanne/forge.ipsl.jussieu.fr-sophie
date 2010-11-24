@@ -31,27 +31,51 @@ sub index :Path :Args(0) {
 
 sub queryformat : XMLRPCLocal {
     my ( $self, $c, $pkgid, $qf ) = @_;
-    @{$c->stash->{xmlrpc}} = map { $_->get_column('qf') } $c->model('Base')->resultset('Rpms')->search(
+    $c->stash->{xmlrpc} = $c->model('base')->resultset('Rpms')->search(
         { pkgid => $pkgid },
         { 
             select => [ qq{rpmqueryformat("header", ?)} ],
             as => [ 'qf' ],
             bind => [ $qf ],
         }
-    )->all;
+    )->next->get_column('qf');
 }
 
 sub tag : XMLRPCLocal {
     my ( $self, $c, $pkgid, $tag ) = @_;
-    @{$c->stash->{xmlrpc}} = map { $_->get_column('tag') } $c->model('Base')->resultset('Rpms')->search(
+    $c->stash->{xmlrpc} = [ map { $_->get_column('tag') } $c->model('Base')->resultset('Rpms')->search(
         { pkgid => $pkgid },
         { 
             select => [ qq{rpmquery("header", rpmtag(?))} ],
             as => [ 'tag' ],
             bind => [ $tag ], 
         }
-    )->all;
+    )->all ]
 }
+
+
+sub info : XMLRPCLocal {
+    my ($self, $c, $pkgid, $deptype) = @_;
+
+    my %info;
+    foreach (qw(name version release epoch url group size packager
+                url summary description sourcerpm license buildhost
+                pkgid builddate)) {
+        if (my $r = $c->model('base')->resultset('Rpms')->search(
+            { pkgid => $pkgid },
+            { 
+                select => [ qq{rpmqueryformat("header", ?)} ],
+                as => [ 'qf' ],
+                bind => [ "%{$_}" ],
+            }
+            )->next) { 
+            $info{$_} = $r->get_column('qf');
+        }
+    }
+
+    return $c->stash->{xmlrpc} = \%info;
+}
+
 
 sub deps : XMLRPCLocal {
     my ($self, $c, $pkgid, $deptype) = @_;
@@ -82,6 +106,7 @@ sub deps : XMLRPCLocal {
 sub alldeps : XMLRPCLocal {
     my ($self, $c, $pkgid) = @_;
 
+    my %deps;
     foreach (
         $c->model('Base')->resultset('Deps')->search(
             { 
@@ -95,7 +120,7 @@ sub alldeps : XMLRPCLocal {
 
             },
         )->all) {
-        push( @{ $c->stash->{xmlrpc}{deps}{$_->get_column('deptype')} },
+        push( @{ $deps{$_->get_column('deptype')} },
             {
                 name => $_->get_column('depname'),
                 flags => $_->get_column('flags'),
@@ -104,12 +129,13 @@ sub alldeps : XMLRPCLocal {
             }
         );
     }
+    $c->stash->{xmlrpc} = \%deps;
 }
 
 sub files : XMLRPCLocal {
     my ($self, $c, $pkgid) = @_;
 
-    @{ $c->stash->{xmlrpc}{files} } = map {
+    $c->stash->{xmlrpc} = [ map {
         {
             filename => $_->get_column('dirname') . $_->get_column('basename'),
             md5 => $_->get_column('md5'),
@@ -122,7 +148,7 @@ sub files : XMLRPCLocal {
                 order_by => [ 'count' ],
 
             },
-        )->all;
+        )->all ];
 }
 
 sub changelog : XMLRPCLocal {
@@ -148,14 +174,19 @@ sub changelog : XMLRPCLocal {
         push(@ch, $chentry);
     }
 
-    $c->stash->{xmlrpc}{changelog} = \@ch;
+    $c->stash->{xmlrpc} = \@ch;
 }
 
 
 sub rpms : Chained : PathPart {
     my ( $self, $c, $pkgid ) = @_;
-    $c->stash->{pkgid} = $c->model('Base::Rpms')->search(pkgid => $pkgid)->next;
-    $c->log->debug('rpms ' . $c->stash->{pkgid});
+    $c->stash->{pkgid} = $c->model('Base')->resultset('Rpms')->search(pkgid => $pkgid)->next;
+    $c->stash->{xmlrpc} = {
+        info      => $c->forward('info', [ $pkgid ]),
+        changelog => $c->forward('changelog', [ $pkgid ]),
+        files     => $c->forward('files', [ $pkgid ]),
+        deps      => $c->forward('alldeps', [ $pkgid ]),
+    };
 }
 
 =head1 AUTHOR

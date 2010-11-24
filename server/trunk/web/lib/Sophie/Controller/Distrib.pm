@@ -259,7 +259,7 @@ sub media_srpm_byname :Chained('_media_list_rpms') PathPart('srpms/by-name') {
 }
 sub media_rpm_bypkgid :Chained('_media_list_rpms') PathPart('by-pkgid') {
     my ( $self, $c, $pkgid ) = @_;
-    $c->forward('/rpms/queryformat', [ $pkgid, '%{name}' ]);
+    $c->forward('/rpms/rpms', [ $pkgid ]);
 }
 
 =head1 AUTHOR
