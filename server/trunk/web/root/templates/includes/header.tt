@@ -17,7 +17,9 @@
     <img src="[% c.uri_for('/static', 'sophie.png') -%]" style="float:left">
     <div style="float:left">
         <p id="sitename">Sophie</p>
-        <p id="sophie_menu">fff</p>
+        <p id="sophie_menu">
+        <span><a href="[% c.uri_for('/distrib') %]">Distribution</a></span>
+        </p>
     </div>
     <div style="clear:both"></div>
     </div>
