@@ -60,7 +60,7 @@ sub info : XMLRPCLocal {
     my %info;
     foreach (qw(name version release epoch url group size packager
                 url summary description sourcerpm license buildhost
-                pkgid builddate)) {
+                pkgid builddate arch distribution)) {
         if (my $r = $c->model('base')->resultset('Rpms')->search(
             { pkgid => $pkgid },
             { 

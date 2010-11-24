@@ -1,3 +1,61 @@
 <!-- $Id$ -->
 
-Name: [% xmlrpc.info.name | html %]
+<div id="sophie_tags">
+<ul id="sophie_tag">
+<li class="tag">Name: [% xmlrpc.info.name | html %]</li>
+<li class="tag">Version: [% xmlrpc.info.version | html %]</li>
+<li class="tag">Release: [% xmlrpc.info.release | html %]</li>
+<li class="tag">Epoch: [% xmlrpc.info.epoch | html %]</li>
+<li class="tag">Architecture: [% xmlrpc.info.arch | html %]</li>
+<li class="tag">Distribution: [% xmlrpc.info.distribution | html %]</li>
+<li class="tag">Group: [% xmlrpc.info.group | html %]</li>
+<li class="tag">Url: <a href="[% xmlrpc.info.url | html %]">[% xmlrpc.info.url | html %]</a></li>
+<li class="tag">Summary: [% xmlrpc.info.summary | html %]</li>
+</ul>
+
+Description:
+<p>[% xmlrpc.info.description | html %]</p>
+</div>
+
+<div id="sophie_deps">
+
+[% BLOCK deps %]
+[% FOREACH dep = deplist %]
+[% '<ul class="sophie_deps">' IF loop.first %]
+<li>
+    [% dep.name | html %]
+    [% IF dep.evr %][% dep.sense | html %] [% dep.evr | html %][% END %]
+</li>
+[% '</ul>' IF loop.last %]
+[% END %]
+[% END %]
+
+[% IF xmlrpc.deps.P.size %]
+Provides:
+[% PROCESS deps deplist = xmlrpc.deps.P %]
+[% END %]
+
+[% IF xmlrpc.deps.R.size %]
+Requires:
+[% PROCESS deps deplist = xmlrpc.deps.R %]
+[% END %]
+
+[% IF xmlrpc.deps.C.size %]
+Conflict:
+[% PROCESS deps deplist = xmlrpc.deps.C %]
+[% END %]
+
+[% IF xmlrpc.deps.O.size %]
+Obsoletes:
+[% PROCESS deps deplist = xmlrpc.deps.O %]
+[% END %]
+
+[% IF xmlrpc.deps.E.size %]
+Enhanced:
+[% PROCESS deps deplist = xmlrpc.deps.E %]
+[% END %]
+
+[% IF xmlrpc.deps.S.size %]
+Suggest:
+[% PROCESS deps deplist = xmlrpc.deps.S %]
+[% END %]
