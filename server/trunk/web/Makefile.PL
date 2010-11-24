@@ -24,6 +24,7 @@ requires 'Catalyst::Plugin::Session::Store::DBI' => '0';
 requires 'Catalyst::Plugin::Session::State::Cookie' => '0';
 requires 'Catalyst::Plugin::Prototype' => '0';
 requires 'Catalyst::View::TT' => '0';
+requires 'Catalyst::View::JSON' => '0';
 requires 'Catalyst::Plugin::Compress::Zlib';
 requires 'Catalyst::Plugin::Server';
 requires 'Catalyst::Plugin::Server::XMLRPC';
