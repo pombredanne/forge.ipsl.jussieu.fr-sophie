@@ -3,9 +3,14 @@
 use Sophie::Cli;
 require RPC::XML;
 require RPC::XML::Client;
+use Getopt::Long;
+
+GetOptions(
+	's=s' => \my $server,
+) or die "Wrong options";
 
 require Data::Dumper;
-my $xmlcli = RPC::XML::Client->new('http://127.0.0.1:3000/rpc');
+my $xmlcli = RPC::XML::Client->new($server || 'http://127.0.0.1:3000/rpc');
 
 my $res = $xmlcli->send_request('login', 'admin', 'toto');
 if (ref $res) {
