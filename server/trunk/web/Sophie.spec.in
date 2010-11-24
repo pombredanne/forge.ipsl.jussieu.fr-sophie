@@ -24,6 +24,7 @@ BuildRequires: perl(Catalyst::Plugin::Session)
 BuildRequires: perl(Catalyst::Plugin::Session::State::Cookie)
 BuildRequires: perl(Catalyst::Plugin::Prototype)
 BuildRequires: perl(Catalyst::View::TT)
+BuildRequires: perl(Catalyst::View::JSON)
 BuildRequires: perl(DBIx::Class)
 BuildRequires: perl(Catalyst::Plugin::Compress::Zlib)
 BuildRequires: perl-Catalyst-Plugin-Server
