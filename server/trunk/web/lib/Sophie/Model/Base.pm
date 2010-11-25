@@ -1,17 +1,19 @@
 package Sophie::Model::Base;
 
 use strict;
-use base 'Sophie::Base';
-use base 'Catalyst::Model';
+use base 'Catalyst::Model::DBIC::Schema';
 
-sub new {
-    my ($class) = @_;
-    bless($class->connect, $class);
-}
+__PACKAGE__->config(
+    schema_class => 'Sophie::Base',
+    connect_info => {
+        dsn => 'toto',
+    },    
+    
+);
 
 =head1 NAME
 
-Sophie::Model::Base - Catalyst DBIC Schema Model
+Sophie::Model::Sophie - Catalyst DBIC Schema Model
 
 =head1 SYNOPSIS
 

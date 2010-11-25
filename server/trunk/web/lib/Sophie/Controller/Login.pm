@@ -25,7 +25,7 @@ sub index :Path :Args(0) :XMLRPCPath('/login') {
     my ( $self, $c, $login, $password ) = @_;
 
     if ($c->authenticate({
-            id => $login || $c->req->param('username'),
+            mail => $login || $c->req->param('username'),
             password => $password || $c->req->param('password'),
         }
     )) {

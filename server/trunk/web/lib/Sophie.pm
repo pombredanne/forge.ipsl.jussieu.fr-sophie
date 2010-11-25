@@ -57,15 +57,14 @@ __PACKAGE__->config(
                 credential => {
                     class => 'Password',
                     password_field => 'password',
-                    password_type => 'clear'
+                    password_type => 'crypted'
                 },
                 store => {
-                    class => 'Minimal',
-                    users => {
-                        admin => {
-                            password => 'toto',
-                        }
-                    }
+                    class => 'DBIx::Class',
+                    user_model => 'Base::Users',
+                    role_relation => 'UsersRoles',
+                    role_field => 'rolename',
+                    id_field => 'mail',
                 },
             },
         },
@@ -74,21 +73,12 @@ __PACKAGE__->config(
 
 __PACKAGE__->config->{session} = {
     expires   => 3600,
-    dbi_dsn   => 'noo',
+    dbi_dbh   => 'Base',
     dbi_table => 'sessions',
 };
 
 # Start the application
 __PACKAGE__->setup();
-
-# This is after because db config is in config file
-__PACKAGE__->config->{session}{dbi_dsn} =
-    'dbi:Pg:' . __PACKAGE__->config->{dbconnect};
-__PACKAGE__->config->{session}{dbi_user} =
-    __PACKAGE__->config->{dbuser};
-__PACKAGE__->config->{session}{dbi_pass} =
-    __PACKAGE__->config->{dbpassword};
-
 
 =head1 NAME
 
