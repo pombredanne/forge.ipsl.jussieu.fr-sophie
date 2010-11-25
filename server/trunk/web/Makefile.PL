@@ -23,11 +23,13 @@ requires 'Catalyst::Plugin::Session' => '0';
 requires 'Catalyst::Plugin::Session::Store::DBI' => '0';
 requires 'Catalyst::Plugin::Session::State::Cookie' => '0';
 requires 'Catalyst::Plugin::Prototype' => '0';
-requires 'Catalyst::View::TT' => '0';
-requires 'Catalyst::View::JSON' => '0';
 requires 'Catalyst::Plugin::Compress::Zlib';
 requires 'Catalyst::Plugin::Server';
 requires 'Catalyst::Plugin::Server::XMLRPC';
+requires 'Catalyst::View::TT' => '0';
+requires 'Catalyst::View::JSON' => '0';
+requires 'Catalyst::Model::DBIC::Schema';
+requires 'Catalyst::Authentication::Store::DBIx::Class';
 requires 'Config::General'; # This should reflect the config file format you've chosen
                  # See Catalyst::Plugin::ConfigLoader for supported formats
 test_requires 'Test::More' => '0.88';
