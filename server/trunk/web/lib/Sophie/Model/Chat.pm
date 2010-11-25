@@ -1,6 +1,8 @@
 package Sophie::Model::Chat;
 use Moose;
 use namespace::autoclean;
+use Getopt::Long;
+use Text::ParseWords;
 
 extends 'Catalyst::Model';
 
@@ -30,14 +32,23 @@ my $cmds = {
         code => sub { return 'Sophie Bot version: ' . $VERSION },
     },
     t => {
-        code => sub { $_[0]->forward('/distrib/list') },
+        code => sub { 
+            my ($c, $context, @args) = @_;
+            local @ARGV = @args;
+            join(', ', @{ $_[0]->forward('/distrib/list', [ { 
+                distribution => $args[0],
+                release => $args[1],
+                arch => $args[2],
+                }, ]
+            ) });;
+        },
     },
 };
 
 sub process {
-    my ( $self, $c, $context, $cmd, @args) = @_;
+    my ( $self, $c, $context, $message) = @_;
 
-    warn keys %$context;
+    my ($cmd, @args) = Text::ParseWords::shellwords($message);
 
     my $msg;
     if ($cmd) {

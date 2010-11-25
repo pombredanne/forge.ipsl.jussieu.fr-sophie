@@ -1,8 +1,6 @@
 package Sophie::Controller::Chat;
 use Moose;
 use namespace::autoclean;
-use Getopt::Long;
-use Text::ParseWords;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -26,7 +24,7 @@ Catalyst Controller.
 sub index :Path :Args(0) {
     my ( $self, $c ) = @_;
 
-    $c->response->body('Matched Sophie::Controller::Chat in Chat.');
+
 }
 
 
@@ -36,13 +34,12 @@ sub message : XMLRPC {
     my $reqspec = {};
 
     foreach my $co (ref $contexts ? @$contexts : $contexts) {
-        warn $co;
-        if (ref $co) {
+        if (ref($co) eq 'HASH') {
             foreach (keys %$co) {
                 $reqspec->{$_} = $co->{$_};
             }
         } else {
-            if (my $coo = $c->forward('/user/fetchdata', $co)) {
+            if (my $coo = $c->forward('/user/fetchdata', [ $co ])) {
                 foreach (keys %$coo) { 
                     $reqspec->{$_} = $coo->{$_};
                 }

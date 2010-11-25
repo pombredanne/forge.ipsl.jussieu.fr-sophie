@@ -49,7 +49,7 @@ sub fetch_user_data : Private {
 sub fetchdata : XMLRPC {
     my ( $self, $c, $dataname ) = @_;
 
-    return $c->forward('fetch_user_data', [ $c->user, $dataname ]);
+    return $c->forward('fetch_user_data', [ $c->user || '', $dataname ]);
 }
 
 sub set_user_data : Private {
