@@ -1,0 +1,22 @@
+
+<p>[% path %]</p>
+
+<div id="exp_dir" style="float: left; border: outset; width: 30%">
+    Loading...
+</div>
+<div id="exp_file" style="float: left; border: outset; width: 30%">
+    Loading...
+</div>
+
+<script type="text/javascript">
+    new Ajax.Updater(
+        'exp_dir',
+        '[% dirurl %]',
+        { asynchronous: 1, parameters: 'ajax=1' }
+    );
+    new Ajax.Updater(
+        'exp_file',
+        '[% fileurl %]',
+        { asynchronous: 1, parameters: 'ajax=1' }
+    );
+</script>

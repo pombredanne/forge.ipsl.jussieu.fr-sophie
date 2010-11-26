@@ -1,6 +1,8 @@
 package Sophie::Controller::Chat;
 use Moose;
 use namespace::autoclean;
+use Getopt::Long;
+use Text::ParseWords;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -27,7 +29,6 @@ sub index :Path :Args(0) {
 
 }
 
-
 sub message : XMLRPC {
     my ($self, $c, $contexts, $message) = @_;
     
@@ -47,8 +48,11 @@ sub message : XMLRPC {
         }
     }
 
-    $c->stash->{xmlrpc} = $c->forward($c->model('Chat'), [ $reqspec, $message ]); 
-    
+    my ($cmd, @args) = Text::ParseWords::shellwords($message);
+
+    if ($c->get_action( $cmd, '/chat/cmd' )) {
+        $c->forward('/chat/cmd/' . $cmd, [ $reqspec, @args ]);
+    }
 }
 
 =head1 AUTHOR

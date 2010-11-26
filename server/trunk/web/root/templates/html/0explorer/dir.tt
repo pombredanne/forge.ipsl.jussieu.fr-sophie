@@ -1,0 +1,10 @@
+<!-- $Id -->
+
+[% IF xmlrpc.size %]
+[% FOREACH dir = xmlrpc %]
+<a href="[% c.uri_for(explorerurl, dir) %]">[% dir %]</a><br>
+[% END %]
+
+[% ELSE %]
+No sub directories
+[% END %]

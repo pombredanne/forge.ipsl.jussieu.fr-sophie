@@ -1,0 +1,13 @@
+<!-- $Id -->
+
+[% IF xmlrpc.size %]
+
+[% FOREACH file = xmlrpc %]
+<a href="[% c.uri_for('/rpms', file.pkgid) %]">
+    [% c.forward('/rpms/info', [ file.pkgid ]).name | html %]
+</a><br>
+[% END %]
+
+[% ELSE %]
+No rpm own this file
+[% END %]
