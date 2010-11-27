@@ -178,7 +178,7 @@ sub changelog : XMLRPCLocal {
 }
 
 
-sub rpms : Chained : PathPart {
+sub rpms : Chained : PathPart :XMLRPCLocal {
     my ( $self, $c, $pkgid ) = @_;
     $c->stash->{pkgid} = $c->model('Base')->resultset('Rpms')->search(pkgid => $pkgid)->next;
     $c->stash->{xmlrpc} = {

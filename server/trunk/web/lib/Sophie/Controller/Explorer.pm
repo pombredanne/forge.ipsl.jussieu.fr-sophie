@@ -25,6 +25,10 @@ sub index :Path {
     my ( $self, $c, @args ) = @_;
 
     $c->stash->{path} = join('/', grep { $_  } @args);
+    for(my $i=0; $i < @args; $i++) {
+        push(@{$c->stash->{eachpath}}, { dir=>$args[$i], path =>join('/',
+                    @args[0 .. $i] ) });
+    }
     $c->stash->{dirurl} = $c->uri_for('/0explorer/dir',
         $c->stash->{path} ?
             ($c->stash->{path})

@@ -1,10 +1,15 @@
 
-<p>[% path %]</p>
+<p>
+<a href="[% c.uri_for('/explorer') %]">/</a>
+[% FOREACH p = eachpath %]
+<a href="[% c.uri_for('/explorer', p.path) %]">[% p.dir | html %]</a>
+[% END %]
+</p>
 
 <div id="exp_dir" style="float: left; border: outset; width: 30%">
     Loading...
 </div>
-<div id="exp_file" style="float: left; border: outset; width: 30%">
+<div id="exp_file" style="float: left; border: outset; width: 60%">
     Loading...
 </div>
 

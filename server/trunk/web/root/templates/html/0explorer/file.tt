@@ -3,8 +3,9 @@
 [% IF xmlrpc.size %]
 
 [% FOREACH file = xmlrpc %]
+[% info = c.forward('/rpms/info', [ file.pkgid ]) %]
 <a href="[% c.uri_for('/rpms', file.pkgid) %]">
-    [% c.forward('/rpms/info', [ file.pkgid ]).name | html %]
+    [% info.name | html %]-[% info.version %]-[% info.release %].[% info.arch %]
 </a><br>
 [% END %]
 

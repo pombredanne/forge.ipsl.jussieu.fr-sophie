@@ -24,6 +24,7 @@
         <p id="sitename">Sophie</p>
         <p id="sophie_menu">
         <span><a href="[% c.uri_for('/distrib') %]">Distribution</a></span>
+        <span><a href="[% c.uri_for('/explorer') %]">Explorer</a></span>
         </p>
     </div>
     <div style="clear:both"></div>

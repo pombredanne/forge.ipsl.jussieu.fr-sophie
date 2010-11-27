@@ -4,3 +4,4 @@ name Sophie
 dbconnect dbname=sophie;host=pgsql
 dbuser sophie
 dbpassword ****
+# max_reply 10000
