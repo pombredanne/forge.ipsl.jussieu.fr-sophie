@@ -178,8 +178,8 @@ sub _add_header {
     $tmp = undef;
     my $add_header = $self->db->prepare_cached(
         q{
-        INSERT into rpms (pkgid, header, evr, issrc, description, summary)
-        values (?,rpmheader_in(decode(?, 'hex')::bytea),?,?,?,?)
+        INSERT into rpms (pkgid, name, header, evr, issrc, description, summary)
+        values (?,?,rpmheader_in(decode(?, 'hex')::bytea),?,?,?,?)
         }
     );
     my $description = $header->queryformat('%{DESCRIPTION}');
@@ -195,6 +195,7 @@ sub _add_header {
 
     $add_header->execute(
         $header->queryformat('%{PKGID}'),
+        $header->queryformat('%{name}'),
         unpack('H*', $string),
         $header->queryformat('%|EPOCH?{%{EPOCH}:}:{}|%{VERSION}-%{RELEASE}'),
         $header->hastag('SOURCERPM') ? 'f' : 't',
