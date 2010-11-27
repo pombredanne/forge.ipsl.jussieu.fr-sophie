@@ -59,11 +59,14 @@ sub add_media :XMLRPC {
         ->search_related('Release', version => $distribspec->{release})
         ->search_related('Arch', arch => $distribspec->{arch})->next;
     if ($d) {
-        my $new = my $rs = $c->model('Base')->resultset('Medias')->new({
+        my $new = my $rs = $c->model('Base')->resultset('Medias')
+            ->update_or_create({
                 %{ $mediaspec },
                 Arch => $d,
-            });
-        if ($new->insert) {
+            },
+            { key => 'label' }
+        );
+        if ($new) {
             $c->stash->{xmlrpc} = 'OK';
             $c->model('Base')->storage->dbh->commit;
         } else {
@@ -131,6 +134,47 @@ sub media_path :XMLRPC {
     $c->model('Base')->storage->dbh->commit;
 }
 
+sub media_remove_path :XMLRPC {
+    my ( $self, $c, $distribution, $version, $arch, $label, $path ) = @_;
+
+    if (ref $distribution) {
+        ($distribution, $version, $arch, $label, $path) = 
+        (
+            $distribution->{distribution},
+            $distribution->{release},
+            $distribution->{arch},
+            $version,
+            $arch,
+        );
+    }
+
+    $path =~ s/\/*$//;
+    $path =~ s/\/+/\//g;
+
+    my $med = $c->model('Base')->resultset('Distribution')
+        ->search(name => $distribution)
+        ->search_related('Release', version => $version)
+        ->search_related('Arch', arch => $arch)
+        ->search_related('Medias', label => $label)->next or return;
+
+    my $rspath = $c->model('Base')->resultset('Paths')
+        ->find({ path => $path }) or do {
+            return;
+    };
+    my $new = $c->model('Base')->resultset('MediasPaths')->new({
+            Medias => $med,
+            Paths =>  $rspath,
+        });
+    $new->delete;
+
+    $c->model('Base')->storage->dbh->commit;
+}
+
+sub ls_local : XMLRPC {
+    my ($self, $c, $path) = @_;
+
+    $c->stash->{xmlrpc} = [ <$path*> ];
+}
 
 =head1 AUTHOR
 

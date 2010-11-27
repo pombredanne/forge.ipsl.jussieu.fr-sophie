@@ -8,7 +8,6 @@ __PACKAGE__->config(
     connect_info => {
         dsn => 'toto',
     },    
-    
 );
 
 =head1 NAME

@@ -68,15 +68,14 @@ sub struct :XMLRPC {
         ->search(name => $distribution)
         ->search_related('Release', { version => $release })
         ->search_related('Arch', { arch => $arch })
-        ->search_related('Medias');
-    @{$c->stash->{xmlrpc}} = map { 
+        ->search_related('Medias')->search({}, { order_by => 'label' });
+    $c->stash->{xmlrpc} = [ map { 
         { 
-            dist_label => $_->dist_label,
             label => $_->label,
             group_label => $_->group_label,
             key => $_->d_media_key,
         } 
-    } $rs->all;
+    } $rs->all ];
 }
 
 
