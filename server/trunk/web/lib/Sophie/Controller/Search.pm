@@ -177,9 +177,6 @@ sub byfile : XMLRPCPath('/search/rpm/byfile') {
 sub fuzzy : XMLRPCPath('/search/rpm/fuzzy') {
     my ($self, $c, $searchspec, $name) = @_;
 
-    my $namers = $c->model('Base')->resultset('Tags')->search(
-        { tagname => 'name', value => { '~*' => $name } }
-    )->get_column('pkgid');
     my $deprs = $c->model('Base')->resultset('Deps')->search(
         { deptype => 'P', depname => { '~*' => $name } }
     )->get_column('pkgid');
@@ -193,8 +190,8 @@ sub fuzzy : XMLRPCPath('/search/rpm/fuzzy') {
                     ? { issrc => $searchspec->{src} ? 1 : 0 }
                     : ()),
                 { -or => [
-                    { pkgid => 
-                        { IN => $namers->as_query, },
+                    { name => 
+                        { '~*' => $name, },
                     },
                     { pkgid =>
                         { IN => $deprs->as_query, },
