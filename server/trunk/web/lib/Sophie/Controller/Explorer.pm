@@ -24,6 +24,15 @@ Catalyst Controller.
 sub index :Path {
     my ( $self, $c, @args ) = @_;
 
+    if (grep { exists($c->req->params->{$_}) } qw(distribution release arch)) {
+        $c->session->{explorer} = {
+            distribution => $c->req->param('distribution') || undef,
+            release => $c->req->param('release') || undef,
+            arch => $c->req->param('arch') || undef,
+        };
+    }
+    $c->session->{__explorer} = $c->session->{explorer};
+
     $c->stash->{path} = join('/', grep { $_  } @args);
     for(my $i=0; $i < @args; $i++) {
         push(@{$c->stash->{eachpath}}, { dir=>$args[$i], path =>join('/',

@@ -22,16 +22,36 @@ Catalyst Controller.
 
 =cut
 
-my $search_param = {
-    rows => Sophie->config()->{'max_reply'} || 20000,
-    order_by => [ 'name', 'evr using >>', 'issrc' ],
-    select => [ 'pkgid' ],
-};
-
 sub index :Path :Args(0) {
     my ( $self, $c ) = @_;
 
-    $c->response->body('Matched Sophie::Controller::Search in Search.');
+    if ($c->req->param('page')) {
+        $c->req->params->{search} = $c->session->{search};
+    }
+
+    if ($c->req->param('search')) {
+        $c->session->{search} = $c->req->param('search');
+        $c->forward('fuzzy', [ undef, $c->req->param('search') ]);
+        my $pager = $c->stash->{rs}->pager;
+        $c->stash->{pager} = $pager;
+        $c->stash->{xmlrpc} = [
+            $c->stash->{rs}->get_column('pkgid')->all
+        ];
+    }
+}
+
+sub search_param : Private {
+    my ($self, $c) = @_;
+    my $r = {
+        rows => Sophie->config()->{'max_reply'} || 20000,
+        order_by => [ 'name', 'evr using >>', 'issrc' ],
+        select => [ 'pkgid' ],
+    };
+    if (!$c->req->xmlrpc->method) {
+        $r->{page} = $c->req->param('page') || 1;
+        $r->{rows} = 25;
+    }
+    return $r;
 }
 
 sub distrib_search : Private {
@@ -47,7 +67,7 @@ sub distrib_search : Private {
         )->search_related('Release',
             {
                 $searchspec->{release}
-                    ? (release => $searchspec->{release})
+                    ? (version => $searchspec->{release})
                     : ()
             }
         )->search_related('Arch',
@@ -83,7 +103,7 @@ sub bytag : XMLRPCPath('/search/rpm/bytag') {
                 },
             ]     
         },
-        $search_param,
+        $c->forward('search_param'),
     )->get_column('pkgid')->all ]
 
 }
@@ -119,7 +139,7 @@ sub bydep : XMLRPCPath('/search/rpm/bydep') {
                 },
             ]     
         },
-        $search_param,
+        $c->forward('search_param'),
     )->get_column('pkgid')->all ]
 }
 
@@ -150,7 +170,7 @@ sub byfile : XMLRPCPath('/search/rpm/byfile') {
                 },
             ]     
         },
-        $search_param,
+        $c->forward('search_param'),
     )->get_column('pkgid')->all ]
 }
 
@@ -164,7 +184,9 @@ sub fuzzy : XMLRPCPath('/search/rpm/fuzzy') {
         { deptype => 'P', depname => { '~*' => $name } }
     )->get_column('pkgid');
 
-    $c->stash->{xmlrpc} = [ $c->model('Base')->resultset('Rpms')->search(
+    $c->stash->{rs} = 
+
+        $c->model('Base')->resultset('Rpms')->search(
         {
             -and => [
                 (exists($searchspec->{src})
@@ -184,8 +206,14 @@ sub fuzzy : XMLRPCPath('/search/rpm/fuzzy') {
                 },
             ]     
         },
-        $search_param,
-    )->get_column('pkgid')->all ]
+        $c->forward('search_param'),
+    );
+    
+    if ($c->req->xmlrpc->method) {
+        $c->stash->{xmlrpc} = [ 
+            $c->stash->{rs}->get_column('pkgid')->all
+        ];
+    }
 }
 
 sub description : XMLRPCPath('/search/rpm/description') {
@@ -207,7 +235,7 @@ sub description : XMLRPCPath('/search/rpm/description') {
           
         },
         {
-            %$search_param,
+            %{$c->forward('search_param')},
             select => [ 
                 "ts_rank_cd(to_tsvector('english', description),to_tsquery(?)) as rank",
                 'pkgid'

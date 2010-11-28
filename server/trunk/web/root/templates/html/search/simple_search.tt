@@ -1,0 +1,6 @@
+<div id="sophie_search">
+    <form action="[% c.uri_for('/search') %]">
+        <input type="text" name="search" value="[% c.req.param('search') %]">
+        <input type="submit">
+    </form>
+</div>

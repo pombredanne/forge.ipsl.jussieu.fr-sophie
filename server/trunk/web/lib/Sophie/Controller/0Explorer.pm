@@ -26,10 +26,15 @@ sub dir :Local {
     my $dir = join('/', map { "$_" } grep { $_ } @args);
     $c->stash->{path} = $dir;
     $c->stash->{explorerurl} = '/explorer' . ($dir ? "/$dir" : '');
+
+    my $rsdist = $c->forward('/search/distrib_search', [ $c->session->{__explorer} ]);
     $c->stash->{xmlrpc} = [ $c->model('Base')
       ->resultset('Files')
       ->search(
-          { dirname => '/' . ($dir ? "$dir/" : '') },
+          {
+              dirname => '/' . ($dir ? "$dir/" : ''),
+              pkgid => { IN => $rsdist->get_column('pkgid')->as_query, },
+          },
           {
               order_by => [ 'basename' ],
               group_by => [ 'basename' ], 
@@ -44,12 +49,16 @@ sub file :Local {
     my $dir = join('/', map { "$_" } grep { $_ } @args);
     $c->stash->{path} = $dir;
     $c->stash->{explorerurl} = '/explorer' . ($dir ? "/$dir" : '');
+
+    my $rsdist = $c->forward('/search/distrib_search', [ $c->session->{__explorer} ]);
+
     $c->stash->{xmlrpc} = [ 
         map { { pkgid => $_->get_column('pkgid') } }
         $c->model('Base')
       ->resultset('Files')
       ->search({
-              dirname => '/' . ($dir ? "$dir/" : ''), basename => $basename
+              dirname => '/' . ($dir ? "$dir/" : ''), basename => $basename,
+              pkgid => { IN => $rsdist->get_column('pkgid')->as_query, },
           },
           { 
               'select' => [
