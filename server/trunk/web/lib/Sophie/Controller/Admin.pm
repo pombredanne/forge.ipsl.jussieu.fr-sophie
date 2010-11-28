@@ -1,6 +1,7 @@
 package Sophie::Controller::Admin;
 use Moose;
 use namespace::autoclean;
+use YAML qw/freeze thaw/;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -88,7 +89,7 @@ sub list_path :XMLRPC {
         );
     }
 
-    @{ $c->stash->{xmlrpc} } =
+    $c->stash->{xmlrpc}  = [
     $c->model('Base')->resultset('Distribution')
         ->search($distribution ? (name => $distribution) : ())
         ->search_related('Release', $version ? (version => $version) : ())
@@ -96,7 +97,7 @@ sub list_path :XMLRPC {
         ->search_related('Medias', $media ? (label => $media) : ())
         ->search_related('MediasPaths')
         ->search_related('Paths')->get_column('path')
-        ->all;
+        ->all ];
 }
 
 sub media_path :XMLRPC {
@@ -155,17 +156,16 @@ sub media_remove_path :XMLRPC {
         ->search(name => $distribution)
         ->search_related('Release', version => $version)
         ->search_related('Arch', arch => $arch)
-        ->search_related('Medias', label => $label)->next or return;
+        ->search_related('Medias', label => $label)->find or return;
 
     my $rspath = $c->model('Base')->resultset('Paths')
         ->find({ path => $path }) or do {
             return;
     };
-    my $new = $c->model('Base')->resultset('MediasPaths')->new({
-            Medias => $med,
-            Paths =>  $rspath,
-        });
-    $new->delete;
+    my $new = $c->model('Base')->resultset('MediasPaths')->search({
+            d_media => $med->d_media_key,
+            d_path =>  $rspath->d_path_key,
+        })->next->delete;
 
     $c->model('Base')->storage->dbh->commit;
 }
@@ -174,6 +174,84 @@ sub ls_local : XMLRPC {
     my ($self, $c, $path) = @_;
 
     $c->stash->{xmlrpc} = [ <$path*> ];
+}
+
+sub dump_distrib : XMLRPC {
+    my ($self, $c, $distribution, $version, $arch) = @_;
+    
+    if (!ref $distribution) {
+        $distribution = {
+            distribution => $distribution,
+            release => $version,
+            arch => $arch,
+        };
+    }
+
+    my $ref = {
+        distrib => $distribution,
+    };
+
+    $ref->{media} = $c->forward('/distrib/struct', [ $distribution ]);
+
+    foreach (@{ $ref->{media} || []}) {
+        warn $_->{label};
+        $ref->{path}{$_->{label}} = $c->forward('list_path', [ $distribution,
+                $_->{label} ]);
+    }
+
+    $c->stash->{xmlrpc} = freeze($ref);
+}
+
+sub clean_distrib : XMLRPC {
+    my ($self, $c, $distribution, $version, $arch) = @_;
+    
+    if (!ref $distribution) {
+        $distribution = {
+            distribution => $distribution,
+            release => $version,
+            arch => $arch,
+        };
+    }
+
+    my $rsdist = $c->model('Base')->resultset('Distribution')
+        ->search(name => $distribution->{distribution})
+        ->search_related('Release', version => $distribution->{release})
+        ->search_related('Arch', arch => $distribution->{arch})
+        ->search_related('Medias');
+
+    my $new = $c->model('Base')->resultset('MediasPaths')->search({
+            d_media => { IN => $rsdist->get_column('d_media_key')->as_query },
+        })->delete;
+
+    # $c->model('Base')->storage->dbh->rollback;
+    
+}
+
+sub load_distrib : XMLRPC {
+    my ( $self, $c, $dump ) = @_;
+
+    my $ref = thaw($dump);
+
+    warn keys %{$ref->{path}};
+
+    $c->forward('clean_distrib', [ $ref->{distrib} ]);
+
+    $c->forward('create', [ 
+            $ref->{distrib}{distribution},
+            $ref->{distrib}{release},
+            $ref->{distrib}{arch},
+        ]);
+
+    foreach my $media (@{ $ref->{media} || []}) {
+        $c->forward('add_media', [ $ref->{distrib}, $media ]);
+    }
+    foreach my $media (keys %{ $ref->{path} || [] }) {
+        foreach my $path (@{ $ref->{path}{$media} || [] }) {
+            $c->forward('media_path', [ $ref->{distrib}, $media, $path ]);
+        }
+    }
+
+    #$c->model('Base')->storage->dbh->rollback;
 }
 
 =head1 AUTHOR

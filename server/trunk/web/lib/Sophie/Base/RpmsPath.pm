@@ -14,8 +14,10 @@ use Encode;
 sub new {
     my ($class, $pathkey) = @_;
 
-    bless(\$pathkey, $class);
+    bless({ key => $pathkey }, $class);
 }
+
+sub key { $_[0]->{key} }
 
 sub path {
     my ($self) = @_;
@@ -23,7 +25,7 @@ sub path {
     my $sth = $self->db->prepare_cached(
         q{select path from d_path where d_path_key = ?}
     );
-    $sth->execute($$self);
+    $sth->execute($self->key);
     my $res = $sth->fetchrow_hashref;
     $sth->finish;
     return $res->{path}
@@ -35,7 +37,7 @@ sub ls_rpms {
     my $sth = $self->db->prepare_cached(
         q{select * from rpmfiles where d_path = ?}
     );
-    $sth->execute($$self);
+    $sth->execute($self->key);
     $sth->fetchall_hashref([ 'filename' ]);
 }
 
@@ -100,7 +102,7 @@ sub set_updated {
     warn "UPD";
     $self->db->prepare_cached(q{
         update d_path set updated = now() where d_path_key = ?
-        })->execute($$self);
+        })->execute($self->key);
     $self->db->commit;
 }
 
@@ -113,7 +115,7 @@ sub remove_rpm {
         }
     );
     for (1 .. 3) {
-        if ($remove->execute($$self, $rpm)) { 
+        if ($remove->execute($self->key, $rpm)) { 
             warn "deleting $rpm";
             $self->db->commit;
             return 1;
@@ -134,7 +136,7 @@ sub add_rpm {
                 values (?,?,?)
                 }
             );
-            if ($register->execute($$self, $rpm, $pkgid)) {
+            if ($register->execute($self->key, $rpm, $pkgid)) {
                 warn "adding $rpm";
                 $self->db->commit;
                 return;

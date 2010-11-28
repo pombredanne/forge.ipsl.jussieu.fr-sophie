@@ -108,7 +108,7 @@ sub update_base {
 
                 foreach my $pathkey (@{ $job }) {
                     my @delta = Sophie::Base::RpmsPath->new($pathkey)
-                    ->find_delta;
+                        ->find_delta;
                     while (my @d = splice(@delta, 0, 25)) {
                         my $path = Sophie::Base::RpmsPath->new($pathkey);
                         $path->update_content(@d);

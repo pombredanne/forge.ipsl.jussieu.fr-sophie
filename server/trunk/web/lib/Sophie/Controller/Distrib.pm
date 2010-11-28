@@ -73,7 +73,6 @@ sub struct :XMLRPC {
         { 
             label => $_->label,
             group_label => $_->group_label,
-            key => $_->d_media_key,
         } 
     } $rs->all ];
 }

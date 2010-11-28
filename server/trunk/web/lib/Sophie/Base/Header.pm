@@ -12,8 +12,10 @@ use Encode;
 sub new {
     my ($class, $pkgid) = @_;
 
-    bless(\$pkgid, $class);
+    bless({ key => $pkgid }, $class);
 }
+
+sub key { $_[0]->{key} }
 
 sub rpm_path {
     my ($self) = @_;
@@ -25,7 +27,7 @@ sub rpm_path {
         where pkgid = ?
         }
     );
-    $listrpm->execute($$self);
+    $listrpm->execute($self->key);
 
     return $listrpm->fetchall_hashref({});
 }
@@ -50,7 +52,7 @@ sub addfiles_content {
     my $list_file = $self->db->prepare_cached(q{
         select (rpmqueryfiles(header)).* from rpms where pkgid = ?
     });
-    $list_file->execute($$self);
+    $list_file->execute($self->key);
 
     my $files = $list_file->fetchall_hashref([ 'dirname', 'basename' ]);
 
@@ -91,7 +93,7 @@ sub addfiles_content {
                     $self->db->pg_savepoint('FILECONTENT');
                     $add_content->execute(
                         $enc && ref $enc ? encode('utf8', $enc->decode($content)) : $content,
-                        $$self,
+                        $self->key,
                         $entry->{count}) or do {
                         $self->db->pg_rollback_to('FILECONTENT');
                     };

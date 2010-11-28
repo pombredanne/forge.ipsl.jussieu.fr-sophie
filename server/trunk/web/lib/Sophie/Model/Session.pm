@@ -1,4 +1,4 @@
-package Sophie::Model::Base;
+package Sophie::Model::Session;
 
 use strict;
 use base 'Catalyst::Model::DBIC::Schema';
@@ -7,9 +7,9 @@ __PACKAGE__->config(
     schema_class => 'Sophie::Base',
     connect_info => {
         dsn => '',
+        AutoCommit => 1,
         private_cache_key => __PACKAGE__,
-        AutoCommit => 0,
-    },    
+    }, 
 );
 
 =head1 NAME

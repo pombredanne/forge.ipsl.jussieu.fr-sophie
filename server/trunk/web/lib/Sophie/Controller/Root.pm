@@ -87,7 +87,7 @@ sub  end : Private {
     } elsif (!$c->stash->{current_view}) {
     }
     $c->stash->{data} = $c->stash->{xmlrpc};
-    $c->model('Base')->storage->dbh->commit;
+    $c->model('Base')->storage->dbh->rollback;
 }
 
 =head1 AUTHOR
