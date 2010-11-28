@@ -31,7 +31,7 @@ sub index :Path :Args(0) {
 
     if ($c->req->param('search')) {
         $c->session->{search} = $c->req->param('search');
-        $c->forward('quick', [ undef, split(/\s/, $c->req->param('search')) ]);
+        $c->forward('quick', [ undef, grep { $_ } split(/\s/, $c->req->param('search')) ]);
         my $pager = $c->stash->{rs}->pager;
         $c->stash->{pager} = $pager;
         $c->stash->{xmlrpc} = [
