@@ -31,13 +31,17 @@ sub index :Path :Args(0) {
 
     if ($c->req->param('search')) {
         $c->session->{search} = $c->req->param('search');
-        $c->forward('fuzzy', [ undef, $c->req->param('search') ]);
+        $c->forward('quick', [ undef, split(/\s/, $c->req->param('search')) ]);
         my $pager = $c->stash->{rs}->pager;
         $c->stash->{pager} = $pager;
         $c->stash->{xmlrpc} = [
             $c->stash->{rs}->get_column('pkgid')->all
         ];
     }
+}
+
+sub adv :Local {
+    my ($self, $c) = @_;
 }
 
 sub search_param : Private {
@@ -49,7 +53,7 @@ sub search_param : Private {
     };
     if (!$c->req->xmlrpc->method) {
         $r->{page} = $c->req->param('page') || 1;
-        $r->{rows} = 25;
+        $r->{rows} = 20;
     }
     return $r;
 }
@@ -76,8 +80,14 @@ sub distrib_search : Private {
                     ? (arch => $searchspec->{arch})
                     : ()
             }
-        )->search_related('Medias')
-        ->search_related('MediasPaths')
+        )->search_related('Medias',
+            {
+                ($searchspec->{media} ? (label => $searchspec->{media}) : ()),
+                ($searchspec->{media_group}
+                    ? (group_label => $searchspec->{media_group}) 
+                    : ()),
+            }
+        )->search_related('MediasPaths')
         ->search_related('Paths')
         ->search_related('Rpmfiles');
 }
@@ -213,10 +223,44 @@ sub fuzzy : XMLRPCPath('/search/rpm/fuzzy') {
     }
 }
 
+sub quick : XMLRPCPath('/search/rpm/quick') {
+    my ($self, $c, $searchspec, @keywords) = @_;
+    my $tsquery = join(' & ', map { $_ =~ s/ /\\ /g; $_ } @keywords);
+    $c->stash->{rs} = $c->model('Base')->resultset('Rpms')->search(
+            {
+                -or => [
+                    { -nest => \[
+                        "to_tsvector('english', description) @@ to_tsquery(?)",
+                        [ plain_text => $tsquery],
+                    ], },
+                    {
+                    name => [ @keywords ],
+                    },
+                ],
+            (exists($searchspec->{src})
+                ? (issrc => $searchspec->{src} ? 1 : 0)
+                : ()),
+            pkgid =>
+            { IN => $c->forward('distrib_search', [ $searchspec
+                    ])->get_column('pkgid')->as_query, }, 
+
+
+        },
+        {
+            %{$c->forward('search_param')},
+        },
+    );
+    if ($c->req->xmlrpc->method) {
+        $c->stash->{xmlrpc} = [ 
+            $c->stash->{rs}->get_column('pkgid')->all
+        ];
+    }
+}
+
 sub description : XMLRPCPath('/search/rpm/description') {
     my ($self, $c, $searchspec, @keywords) = @_;
     my $tsquery = join(' & ', map { $_ =~ s/ /\\ /g; $_ } @keywords);
-    $c->stash->{xmlrpc} = [ map { $_->get_column('pkgid') } $c->model('Base')->resultset('Rpms')->search(
+    $c->stash->{rs} = $c->model('Base')->resultset('Rpms')->search(
         {
             -nest => \[
                     "to_tsvector('english', description) @@ to_tsquery(?)",
@@ -240,8 +284,12 @@ sub description : XMLRPCPath('/search/rpm/description') {
             bind => [ $tsquery ], 
             order_by => [ 'rank desc', 'name', 'evr using >>', 'issrc' ],
         },
-    )->all ]
-
+    );
+    if ($c->req->xmlrpc->method) {
+        $c->stash->{xmlrpc} = [ 
+            $c->stash->{rs}->get_column('pkgid')->all
+        ];
+    }
 }
 
 =head1 AUTHOR
