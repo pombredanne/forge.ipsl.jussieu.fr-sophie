@@ -64,13 +64,14 @@ Suggest:
 Files:
 
 [% FOREACH file = xmlrpc.files %]
-[% IF loop.first %]
-<ul>
-[% END %]
-<li>[% file.perm %] [% file.size %] [% file.user %] [% file.group %]
-[% file.filename %]</li>
-[% IF loop.last %]
-</ul>
-[% END %]
+[%- IF loop.first -%]
+<pre style="padding: 1em; margin: 2em;">
+[%- END -%]
+[% file.perm %] [% file.size | format('%6d') %] [% file.user | format('%10s') -%]
+[%- file.group | format('%10s') %] [% file.filename %]
+
+[%- IF loop.last -%]
+</pre>
+[%- END -%]
 [% END %]
 </div>
