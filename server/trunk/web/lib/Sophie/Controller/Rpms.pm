@@ -55,9 +55,9 @@ sub tag : XMLRPCLocal {
 
 
 sub info : XMLRPCLocal {
-    my ($self, $c, $pkgid, $deptype) = @_;
+    my ($self, $c, $pkgid) = @_;
 
-    my %info;
+    my %info = ( pkgid => $pkgid );
     foreach (qw(name version release epoch url group size packager
                 url summary description sourcerpm license buildhost
                 pkgid builddate arch distribution)) {
