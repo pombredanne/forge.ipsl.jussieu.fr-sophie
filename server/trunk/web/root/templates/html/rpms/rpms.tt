@@ -59,3 +59,18 @@ Enhanced:
 Suggest:
 [% PROCESS deps deplist = xmlrpc.deps.S %]
 [% END %]
+
+<div id="sophie_files">
+Files:
+
+[% FOREACH file = xmlrpc.files %]
+[% IF loop.first %]
+<ul>
+[% END %]
+<li>[% file.perm %] [% file.size %] [% file.user %] [% file.group %]
+[% file.filename %]</li>
+[% IF loop.last %]
+</ul>
+[% END %]
+[% END %]
+</div>

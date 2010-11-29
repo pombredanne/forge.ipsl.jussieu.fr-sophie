@@ -135,17 +135,27 @@ sub alldeps : XMLRPCLocal {
 sub files : XMLRPCLocal {
     my ($self, $c, $pkgid) = @_;
 
+    my @col = qw(dirname basename md5 size);
     $c->stash->{xmlrpc} = [ map {
         {
             filename => $_->get_column('dirname') . $_->get_column('basename'),
+            dirname => $_->get_column('dirname'),
+            basename => $_->get_column('basename'),
             md5 => $_->get_column('md5'),
+            perm => $_->get_column('perm'),
+            size => $_->get_column('size'),
+            user => $_->get_column('user'),
+            group => $_->get_column('group'),
         }
     } $c->model('Base')->resultset('Files')->search(
             { 
                 pkgid => $pkgid,
             },
             { 
-                order_by => [ 'count' ],
+                'select' => [ 'rpmfilesmode(mode) as perm', @col, '"group"',
+                    '"user"' ],
+                as => [ qw(perm), @col, 'group', 'user' ],
+                order_by => [ 'dirname', 'basename' ],
 
             },
         )->all ];

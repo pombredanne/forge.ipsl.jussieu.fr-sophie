@@ -1,13 +1,25 @@
-<ol>
 [% FOREACH release = xmlrpc %]
-<li><a href="[% c.uri_for('/', c.req.path, release) %]">[% release %]</a></li>
-[% FOREACH f = c.forward('/distrib/list', [ 
+[% IF loop.first %]
+<ol>
+[% END %]
+<li><a href="[% c.uri_for('/', c.req.path, release) %]">[% release | html %]</a></li>
+[% FOREACH arch = c.forward('/distrib/list', [ 
     {
         'distribution' => dist.distribution,
         'release' => release,
     } 
-]) %]
-[% f %]
+]).sort %]
+[% IF loop.first %]
+<ul>
+[% END %]
+<li>
+<a href="[% c.uri_for('/', c.req.path, release, arch) %]">[% arch | html %]</a>
+</li>
+[% IF loop.last %]
+</ul>
 [% END %]
 [% END %]
+[% IF loop.last %]
 </ol>
+[% END %]
+[% END %]
