@@ -146,15 +146,16 @@ sub files : XMLRPCLocal {
             size => $_->get_column('size'),
             user => $_->get_column('user'),
             group => $_->get_column('group'),
+            has_content => $_->get_column('has_content'),
         }
     } $c->model('Base')->resultset('Files')->search(
             { 
                 pkgid => $pkgid,
             },
             { 
-                'select' => [ 'rpmfilesmode(mode) as perm', @col, '"group"',
+                'select' => [ 'contents is NOT NULL as has_content', 'rpmfilesmode(mode) as perm', @col, '"group"',
                     '"user"' ],
-                as => [ qw(perm), @col, 'group', 'user' ],
+                as => [ qw(has_content perm), @col, 'group', 'user' ],
                 order_by => [ 'dirname', 'basename' ],
 
             },

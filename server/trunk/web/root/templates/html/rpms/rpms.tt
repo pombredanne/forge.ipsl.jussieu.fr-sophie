@@ -65,13 +65,14 @@ Files:
 
 [% FOREACH file = xmlrpc.files %]
 [%- IF loop.first -%]
-<pre style="padding: 1em; margin: 2em;">
+<table border=0 style="font-family: monospace">
 [%- END -%]
-[% file.perm %] [% file.size | format('%6d') %] [% file.user | format('%10s') -%]
-[%- file.group | format('%10s') %] [% file.filename %]
-
+<tr><td>[% file.perm %]</td><td>[% file.size | format('%6d') %]</td><td>[%
+file.user | format('%10s') -%]</td>
+<td>[%- file.group | format('%10s') %]</td><td>[% file.filename %]</td>
+<td>[% file.has_content %]</tr>
 [%- IF loop.last -%]
-</pre>
+</table>
 [%- END -%]
 [% END %]
 </div>

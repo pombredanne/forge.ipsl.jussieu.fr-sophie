@@ -27,8 +27,14 @@
         <span><a href="[% c.uri_for('/explorer') %]">Explorer</a></span>
         </p>
     </div>
+    <div style="clear:both"></div>
+    <div style="float: left">
+        [% FOREACH p = sitepath %]
+        <a href="[% p.path %]">[% p.name | html %]</a>
+        [% IF NOT loop.last %]&gt;[% END %]
+        [% END %]
+    </div>
     <div style="float: right">
-        Search:<br>
         [% INCLUDE 'search/simple_search.tt' %]
     </div>
     <div style="clear:both"></div>

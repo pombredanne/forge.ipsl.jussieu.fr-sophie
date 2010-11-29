@@ -32,6 +32,15 @@ sub begin : Private {
         return;
     }
 
+    if (!$c->stash->{path}) {
+        my @path;
+        my @reqpath = grep { $_ } split('/', $c->req->path);
+        foreach (@reqpath) {
+            push(@path, $_);
+            push(@{ $c->stash->{sitepath} }, { path => $c->uri_for('/', @path), name => $_ });
+        }
+    }
+
     if (($c->req->query_keywords || '') =~ /([^\w]|^)json([^\w]|$)/ ||
         exists($c->req->params ->{json})) {
         $c->stash->{current_view} = 'Json';

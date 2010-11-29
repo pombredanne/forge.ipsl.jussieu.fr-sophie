@@ -203,9 +203,23 @@ sub list_srpms :Chained('distrib_view') PathPart('srpms') {
 }
 
 sub srpm_by_name :Chained('distrib_view') PathPart('srpms/by-name') Args(1) {
+    my ($self, $c, $name) = @_;
+    $c->stash->{dist}{src} = 1;
+    ($c->stash->{pkgid}) = @{ $c->forward('/search/bytag',
+        [ $c->stash->{dist}, 'name', $name ]) };
+    $c->go('/404/index') unless ($c->stash->{pkgid});
+    $c->go('/rpms/rpms', [ $c->stash->{pkgid} ]);
 }
+
 sub rpm_by_name :Chained('distrib_view') PathPart('rpms/by-name') Args(1) {
+    my ($self, $c, $name) = @_;
+    $c->stash->{dist}{src} = 0;
+    ($c->stash->{pkgid}) = @{ $c->forward('/search/bytag',
+        [ $c->stash->{dist}, 'name', $name ]) };
+    $c->go('/404/index') unless ($c->stash->{pkgid});
+    $c->go('/rpms/rpms', [ $c->stash->{pkgid} ]);
 }
+
 sub rpm_by_pkid :Chained('distrib_view') PathPart('by-pkgid') Args(1) {
 }
 
