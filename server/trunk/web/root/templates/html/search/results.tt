@@ -16,7 +16,7 @@ pager.next_page %]</a>
 [% END %]
 </p>
 
-[% FOREACH pkgid = xmlrpc %]
+[% FOREACH pkgid = xmlrpc.results %]
 [% info = c.forward('/rpms/info', [ pkgid ]) %]
 <p><a href="[% c.uri_for('/rpms', pkgid) %]">[% info.name %]-[% info.version
 %]-[% info.release %].[% info.arch %]</a></p>

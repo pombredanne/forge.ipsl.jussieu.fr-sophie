@@ -26,7 +26,7 @@ sub index :Path :Args(0) {
     my ( $self, $c ) = @_;
 
     if ($c->req->param('page')) {
-        $c->req->params->{search} = $c->session->{search};
+        $c->req->params->{search} ||= $c->session->{search};
     }
 
     if ($c->req->param('search')) {
@@ -34,9 +34,13 @@ sub index :Path :Args(0) {
         $c->forward('quick', [ undef, grep { $_ } split(/\s/, $c->req->param('search')) ]);
         my $pager = $c->stash->{rs}->pager;
         $c->stash->{pager} = $pager;
-        $c->stash->{xmlrpc} = [
-            $c->stash->{rs}->get_column('pkgid')->all
-        ];
+        $c->stash->{xmlrpc} = {
+            results => [ $c->stash->{rs}->get_column('pkgid')->all ],
+            pages => $pager->last_page,
+            current_page => $pager->current_page,
+            total_entries => $pager->total_entries,
+            entries_per_page => $pager->entries_per_page,
+        };
     }
 }
 
@@ -53,7 +57,7 @@ sub search_param : Private {
     };
     if (!$c->req->xmlrpc->method) {
         $r->{page} = $c->req->param('page') || 1;
-        $r->{rows} = 20;
+        $r->{rows} = $c->req->param('rows') || 15;
     }
     return $r;
 }
