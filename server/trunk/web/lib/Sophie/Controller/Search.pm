@@ -23,6 +23,10 @@ Catalyst Controller.
 =cut
 
 sub index :Path :Args(0) {
+    my ($self, $c) = @_;
+}
+
+sub results :Local {
     my ( $self, $c ) = @_;
 
     if ($c->req->param('page')) {
@@ -42,10 +46,6 @@ sub index :Path :Args(0) {
             entries_per_page => $pager->entries_per_page,
         };
     }
-}
-
-sub adv :Local {
-    my ($self, $c) = @_;
 }
 
 sub search_param : Private {

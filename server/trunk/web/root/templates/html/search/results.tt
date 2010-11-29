@@ -1,18 +1,18 @@
 <p>
 [% IF pager.current_page != pager.first_page %]
-<a href="[% c.uri_for('/search', { 'page' => pager.first_page }) %]">First</a> 
+<a href="[% c.uri_for('/', c.req.path, { 'page' => pager.first_page }) %]">First</a> 
 [% END %]
 [% IF pager.previous_page != pager.first_page %]
-<a href="[% c.uri_for('/search', { 'page' => pager.previous_page }) %]">[%
+<a href="[% c.uri_for('/', c.req.path, { 'page' => pager.previous_page }) %]">[%
 pager.previous_page %]</a> 
 [% END %]
 [% pager.current_page %] / [% pager.last_page %]
 [% IF pager.next_page != pager.last_page %]
-<a href="[% c.uri_for('/search', { 'page' => pager.next_page }) %]">[%
+<a href="[% c.uri_for('/', c.req.path, { 'page' => pager.next_page }) %]">[%
 pager.next_page %]</a> 
 [% END %]
 [% IF pager.current_page != pager.last_page %]
-<a href="[% c.uri_for('/search', { 'page' => pager.last_page }) %]">Last</a> 
+<a href="[% c.uri_for('/', c.req.path, { 'page' => pager.last_page }) %]">Last</a> 
 [% END %]
 </p>
 

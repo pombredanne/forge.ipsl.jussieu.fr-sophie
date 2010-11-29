@@ -1,5 +1,5 @@
 <!-- $Id$ -->
-<form action="[% c.uri_for('/search/adv') %]" method="POST">
+<form action="[% c.uri_for('/search') %]" method="POST">
 <input type="text" name="search" value="[% c.req.param('search') | html %]">
 <select name="type">
 <option value="byname">rpm named</option>
