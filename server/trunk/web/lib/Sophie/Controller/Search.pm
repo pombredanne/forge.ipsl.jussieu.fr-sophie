@@ -65,33 +65,8 @@ sub search_param : Private {
 sub distrib_search : Private {
     my ( $self, $c, $searchspec ) = @_;
 
-    return $c->model('Base')->resultset('Distribution')
-        ->search(
-            {
-                $searchspec->{distribution}
-                    ? (name => $searchspec->{distribution})
-                    : ()
-            }
-        )->search_related('Release',
-            {
-                $searchspec->{release}
-                    ? (version => $searchspec->{release})
-                    : ()
-            }
-        )->search_related('Arch',
-            {
-                $searchspec->{arch}
-                    ? (arch => $searchspec->{arch})
-                    : ()
-            }
-        )->search_related('Medias',
-            {
-                ($searchspec->{media} ? (label => $searchspec->{media}) : ()),
-                ($searchspec->{media_group}
-                    ? (group_label => $searchspec->{media_group}) 
-                    : ()),
-            }
-        )->search_related('MediasPaths')
+    return $c->forward('/distrib/distrib_rs', [ $searchspec ])
+        ->search_related('MediasPaths')
         ->search_related('Paths')
         ->search_related('Rpmfiles');
 }

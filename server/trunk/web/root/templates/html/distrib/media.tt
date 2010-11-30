@@ -1,3 +1,2 @@
-<!-- $Id$ -->
 
 [% INCLUDE 'distrib/distrib.tt' %]

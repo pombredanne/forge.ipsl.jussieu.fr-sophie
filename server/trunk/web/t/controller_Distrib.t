@@ -8,6 +8,7 @@ use HTTP::Request;
 my $distribution = 'Mandriva';
 my $release = 'cooker';
 my $arch = 'i586';
+my $media = 'main-release';
 
 BEGIN { use_ok 'Catalyst::Test', 'Sophie' }
 BEGIN { use_ok 'Sophie::Controller::Distrib' }
@@ -29,4 +30,5 @@ ok( request( xmlrpcreq('distrib.list') ), "XMLRPC");
 ok( request( xmlrpcreq('distrib.list', $distribution) ), "XMLRPC");
 ok( request("/distrib/$distribution/$release")->is_success, 'Request should succeed' );
 ok( request("/distrib/$distribution/$release/$arch")->is_success, 'Request should succeed' );
+ok( request("/distrib/$distribution/$release/$arch/media")->is_success, 'Request should succeed' );
 done_testing();
