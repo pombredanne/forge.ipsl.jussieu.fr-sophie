@@ -25,19 +25,20 @@ Sophie::Controller::Root - Root Controller for Sophie
 sub begin : Private {
     my ( $self, $c ) = @_;
 
-    if ($c->req->path =~ m:[^/]+\/$:) {
+    if ($c->req->path =~ m:[^/]+\/+$:) {
         my $path = $c->req->path;
         $path =~ s:/*$::;
         $c->res->redirect($c->uri_for("/$path"));
         return;
     }
 
-    if (!$c->stash->{path}) {
+    if (!$c->stash->{sitepath}) {
         my @path;
-        my @reqpath = grep { $_ } split('/', $c->req->path);
+        my @reqpath = split('/', $c->req->path);
         foreach (@reqpath) {
             push(@path, $_);
-            push(@{ $c->stash->{sitepath} }, { path => $c->uri_for('/', @path), name => $_ });
+            push(@{ $c->stash->{sitepath} }, { path => $c->uri_for('/', @path),
+                    name => $_ || '*' });
         }
     }
 

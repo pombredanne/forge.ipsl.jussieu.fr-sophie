@@ -7,3 +7,7 @@ div#sophie_header {
 #sophie_header p {
     padding-left: 1em;
 }
+
+.pkgid {
+    font-family: monospace;
+}

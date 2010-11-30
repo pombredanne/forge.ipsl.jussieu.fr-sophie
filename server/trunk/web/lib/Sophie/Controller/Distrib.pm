@@ -159,14 +159,14 @@ sub distrib_view :PathPrefix :Chained :CaptureArgs(3) {
     $c->stash->{distrib} = $c->stash->{dist};
 }
 
-sub distrib :Chained('distrib_view') PathPart('') {
+sub distrib :Chained('distrib_view') PathPart('') :Args(0) {
     my ( $self, $c ) = @_;
     $c->forward('list', [ $c->stash->{dist} ]);
     # TODO store properly results
     # No call from json here
 }
 
-sub media :Chained('distrib_view') PathPart('media') {
+sub media :Chained('/distrib/distrib_view') PathPart('media') :Args(0) {
     my ( $self, $c ) = @_;
     $c->forward('struct', [ $c->stash->{dist} ]);
 }
@@ -289,7 +289,7 @@ sub list_srpms :Chained('distrib_view') PathPart('srpms') {
     $c->forward('srpms', $c->stash->{dist});
 }
 
-sub srpm_by_name :Chained('distrib_view') PathPart('srpms/by-name') Args(1) {
+sub srpm_by_name :Chained('distrib_view') PathPart('srpms') Args(1) {
     my ($self, $c, $name) = @_;
     $c->stash->{dist}{src} = 1;
     ($c->stash->{pkgid}) = @{ $c->forward('/search/bytag',
@@ -298,7 +298,7 @@ sub srpm_by_name :Chained('distrib_view') PathPart('srpms/by-name') Args(1) {
     $c->go('/rpms/rpms', [ $c->stash->{pkgid} ]);
 }
 
-sub rpm_by_name :Chained('distrib_view') PathPart('rpms/by-name') Args(1) {
+sub rpm_by_name :Chained('distrib_view') PathPart('rpms') Args(1) {
     my ($self, $c, $name) = @_;
     $c->stash->{dist}{src} = 0;
     ($c->stash->{pkgid}) = @{ $c->forward('/search/bytag',
@@ -307,7 +307,13 @@ sub rpm_by_name :Chained('distrib_view') PathPart('rpms/by-name') Args(1) {
     $c->go('/rpms/rpms', [ $c->stash->{pkgid} ]);
 }
 
-sub rpm_by_pkid :Chained('distrib_view') PathPart('by-pkgid') Args(1) {
+sub rpm_bypkgid :Chained('distrib_view') PathPart('by-pkgid') {
+    my ( $self, $c, $pkgid ) = @_;
+    if ($pkgid) {
+        $c->go('/rpms/rpms', [ $pkgid ]);
+    } else {
+        $c->forward('anyrpms', [ $c->stash->{dist} ]);
+    }
 }
 
 sub _media_list_rpms :Chained('distrib_view') PathPart('media') CaptureArgs(1) {
@@ -315,20 +321,25 @@ sub _media_list_rpms :Chained('distrib_view') PathPart('media') CaptureArgs(1) {
     $c->stash->{dist}{media} = $media;
 }
 
-sub media_list_rpms :Chained('_media_list_rpms') PathPart('') {
+sub media_list_rpms :Chained('_media_list_rpms') PathPart('') :Args(0) {
     my ( $self, $c ) = @_;
     $c->forward('anyrpms', [ $c->stash->{dist} ]);
 }
 
-sub media_rpm_byname :Chained('_media_list_rpms') PathPart('rpms/by-name') {
-    my ( $self, $c ) = @_;
+sub media_rpm_byname :Chained('_media_list_rpms') PathPart('rpms') {
+    my ( $self, $c, $name ) = @_;
 }
-sub media_srpm_byname :Chained('_media_list_rpms') PathPart('srpms/by-name') {
-    my ( $self, $c ) = @_;
+sub media_srpm_byname :Chained('_media_list_rpms') PathPart('srpms') {
+    my ( $self, $c, $name ) = @_;
 }
+
 sub media_rpm_bypkgid :Chained('_media_list_rpms') PathPart('by-pkgid') {
     my ( $self, $c, $pkgid ) = @_;
-    $c->forward('/rpms/rpms', [ $pkgid ]);
+    if ($pkgid) {
+        $c->go('/rpms/rpms', [ $pkgid ]);
+    } else {
+        $c->forward('anyrpms', [ $c->stash->{dist} ]);
+    }
 }
 
 =head1 AUTHOR
