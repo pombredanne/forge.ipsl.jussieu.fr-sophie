@@ -51,24 +51,18 @@ sub list :XMLRPC {
 }
 
 sub struct :XMLRPC {
-    my ( $self, $c, $distrib, $release, $arch ) = @_;
+    my ( $self, $c, $distribution, $release, $arch ) = @_;
 
-    my $distribution;
-    if (ref $distrib) {
-        ($distribution, $release, $arch) = (
-            $distrib->{distribution},
-            $distrib->{release},
-            $distrib->{arch},
-        );
-    } else {
-        $distribution = $distrib;
+    if (!ref $distribution) {
+        $distribution = {
+            distribution => $distribution,
+            release => $release,
+            arch => $arch,
+        }
     }
 
-    my $rs = $c->model('Base')->resultset('Distribution')
-        ->search(name => $distribution)
-        ->search_related('Release', { version => $release })
-        ->search_related('Arch', { arch => $arch })
-        ->search_related('Medias')->search({}, { order_by => 'label' });
+    my $rs = $c->forward('distrib_rs', [ $distribution ])
+        ->search({}, { order_by => 'label' });
     $c->stash->{xmlrpc} = [ map { 
         { 
             label => $_->label,
@@ -85,7 +79,7 @@ sub distrib_rs : Private {
                 $distrib->{distribution}
                     ? (name => $distrib->{distribution})
                     : ()
-            }
+            },
         )->search_related('Release',
             {
                 $distrib->{release}
@@ -104,9 +98,10 @@ sub distrib_rs : Private {
                 ($distrib->{media_group}
                     ? (group_label => $distrib->{media_group})
                     : ()),
-            }
+            },
         );
 }
+
 
 sub exists : XMLRPC {
     my ( $self, $c, $d ) = @_;
@@ -293,7 +288,7 @@ sub srpm_by_name :Chained('distrib_view') PathPart('srpms') Args(1) {
     my ($self, $c, $name) = @_;
     $c->stash->{dist}{src} = 1;
     ($c->stash->{pkgid}) = @{ $c->forward('/search/bytag',
-        [ $c->stash->{dist}, 'name', $name ]) };
+        [ $c->stash->{dist}, 'name', $name ])->{results} };
     $c->go('/404/index') unless ($c->stash->{pkgid});
     $c->go('/rpms/rpms', [ $c->stash->{pkgid} ]);
 }
@@ -310,7 +305,11 @@ sub rpm_by_name :Chained('distrib_view') PathPart('rpms') Args(1) {
 sub rpm_bypkgid :Chained('distrib_view') PathPart('by-pkgid') {
     my ( $self, $c, $pkgid ) = @_;
     if ($pkgid) {
-        $c->go('/rpms/rpms', [ $pkgid ]);
+        if (@{ $c->forward('/search/bypkgid', [ $c->stash->{dist}, $pkgid ]) } ) {
+            $c->go('/rpms/rpms', [ $pkgid ]);
+        } else {
+            $c->go('/404/index');
+        }
     } else {
         $c->forward('anyrpms', [ $c->stash->{dist} ]);
     }
@@ -336,7 +335,11 @@ sub media_srpm_byname :Chained('_media_list_rpms') PathPart('srpms') {
 sub media_rpm_bypkgid :Chained('_media_list_rpms') PathPart('by-pkgid') {
     my ( $self, $c, $pkgid ) = @_;
     if ($pkgid) {
-        $c->go('/rpms/rpms', [ $pkgid ]);
+        if (@{ $c->forward('/search/bypkgid', [ $c->stash->{dist}, $pkgid ]) } ) {
+            $c->go('/rpms/rpms', [ $pkgid ]);
+        } else {
+            $c->go('/404/index');
+        }
     } else {
         $c->forward('anyrpms', [ $c->stash->{dist} ]);
     }

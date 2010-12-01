@@ -71,13 +71,57 @@ sub distrib_search : Private {
         ->search_related('Rpmfiles');
 }
 
+sub format_search : Private {
+    my ( $self, $c, $searchspec ) = @_;
+
+    my $rs = $c->stash->{rs}->search(
+        {},
+        {
+            page => $searchspec->{page} || 1,
+            rows => $searchspec->{rows} || 10,
+        },
+    );
+
+    if (!$searchspec->{page}) {
+        my $pager = $rs->pager;
+        $c->stash->{xmlrpc} = {
+                pages => $pager->last_page,
+                current_page => $pager->current_page,
+                total_entries => $pager->total_entries,
+                entries_per_page => $pager->entries_per_page,
+        };
+    }
+    $c->stash->{xmlrpc}{results} = [ $rs->get_column('pkgid')->all ];
+}
+
+sub bypkgid : XMLRPCPath('/search/rpm/bypkgid') {
+    my ( $self, $c, $searchspec, $pkgid ) = @_;
+
+    $c->stash->{rs} = $c->model('Base')->resultset('Rpms')->search(
+        {
+            -and => [ 
+                (exists($searchspec->{src})
+                    ? { issrc => $searchspec->{src} ? 1 : 0 }
+                    : ()),
+                { pkgid => $pkgid }, 
+                { pkgid =>
+                    { IN => $c->forward('distrib_search', [ $searchspec
+                        ])->get_column('pkgid')->as_query, }, 
+                },
+            ]     
+        },
+    );
+
+    $c->forward('format_search', $searchspec);
+}
+
 sub bytag : XMLRPCPath('/search/rpm/bytag') {
     my ( $self, $c, $searchspec, $tag, $tagvalue ) = @_;
 
     my $tagrs = $c->model('Base')->resultset('Tags')
         ->search({ tagname => lc($tag), value => $tagvalue})
         ->get_column('pkgid');
-    $c->stash->{xmlrpc} = [ $c->model('Base')->resultset('Rpms')->search(
+    $c->stash->{rs} = $c->model('Base')->resultset('Rpms')->search(
         {
             -and => [ 
                 (exists($searchspec->{src})
@@ -92,8 +136,8 @@ sub bytag : XMLRPCPath('/search/rpm/bytag') {
                 },
             ]     
         },
-        $c->forward('search_param'),
-    )->get_column('pkgid')->all ]
+    );
+    $c->forward('format_search', $searchspec);
 
 }
 
@@ -113,7 +157,7 @@ sub bydep : XMLRPCPath('/search/rpm/bydep') {
             : ()),
         }
     )->get_column('pkgid');
-    $c->stash->{xmlrpc} = [ $c->model('Base')->resultset('Rpms')->search(
+    $c->stash->{rs} = $c->model('Base')->resultset('Rpms')->search(
         {
             -and => [ 
                 (exists($searchspec->{src})
@@ -128,8 +172,8 @@ sub bydep : XMLRPCPath('/search/rpm/bydep') {
                 },
             ]     
         },
-        $c->forward('search_param'),
-    )->get_column('pkgid')->all ]
+    );
+    $c->forward('format_search', $searchspec);
 }
 
 sub byfile : XMLRPCPath('/search/rpm/byfile') {
@@ -144,7 +188,7 @@ sub byfile : XMLRPCPath('/search/rpm/byfile') {
             basename => $basename,
         })
     ->get_column('pkgid');
-    $c->stash->{xmlrpc} = [ $c->model('Base')->resultset('Rpms')->search(
+    $c->stash->{rs} = $c->model('Base')->resultset('Rpms')->search(
         {
             -and => [ 
                 (exists($searchspec->{src})
@@ -159,8 +203,8 @@ sub byfile : XMLRPCPath('/search/rpm/byfile') {
                 },
             ]     
         },
-        $c->forward('search_param'),
-    )->get_column('pkgid')->all ]
+    );
+    $c->forward('format_search', $searchspec);
 }
 
 sub fuzzy : XMLRPCPath('/search/rpm/fuzzy') {
@@ -182,9 +226,10 @@ sub fuzzy : XMLRPCPath('/search/rpm/fuzzy') {
                     { name => 
                         { '~*' => $name, },
                     },
-                    { pkgid =>
-                        { IN => $deprs->as_query, },
-                    }, ]
+#                    { pkgid =>
+#                        { IN => $deprs->as_query, },
+#                    },
+                     ]
                 },
                 { pkgid =>
                     { IN => $c->forward('distrib_search', [ $searchspec
@@ -195,11 +240,7 @@ sub fuzzy : XMLRPCPath('/search/rpm/fuzzy') {
         $c->forward('search_param'),
     );
     
-    if ($c->req->xmlrpc->method) {
-        $c->stash->{xmlrpc} = [ 
-            $c->stash->{rs}->get_column('pkgid')->all
-        ];
-    }
+    $c->forward('format_search', $searchspec);
 }
 
 sub quick : XMLRPCPath('/search/rpm/quick') {
@@ -229,11 +270,7 @@ sub quick : XMLRPCPath('/search/rpm/quick') {
             %{$c->forward('search_param')},
         },
     );
-    if ($c->req->xmlrpc->method) {
-        $c->stash->{xmlrpc} = [ 
-            $c->stash->{rs}->get_column('pkgid')->all
-        ];
-    }
+    $c->forward('format_search', $searchspec);
 }
 
 sub description : XMLRPCPath('/search/rpm/description') {
@@ -264,11 +301,7 @@ sub description : XMLRPCPath('/search/rpm/description') {
             order_by => [ 'rank desc', 'name', 'evr using >>', 'issrc' ],
         },
     );
-    if ($c->req->xmlrpc->method) {
-        $c->stash->{xmlrpc} = [ 
-            $c->stash->{rs}->get_column('pkgid')->all
-        ];
-    }
+    $c->forward('format_search', $searchspec);
 }
 
 =head1 AUTHOR
