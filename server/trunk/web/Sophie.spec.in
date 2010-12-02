@@ -32,7 +32,7 @@ BuildRequires: perl(Catalyst::Plugin::Session::Store::DBI)
 BuildRequires: perl(Catalyst::Authentication::Store::DBIx::Class)
 BuildRequires: perl(Catalyst::Model::DBIC::Schema)
 BuildRequires: perl(Pod::Find)
-BuildRequires: perl(Pod::Pom)
+BuildRequires: perl(Pod::POM)
 
 Requires: perl(Catalyst)
 Requires: perl(Catalyst::Plugin::ConfigLoader)
