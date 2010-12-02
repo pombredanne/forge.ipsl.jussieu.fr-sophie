@@ -103,9 +103,9 @@ sub deps : XMLRPCLocal {
         )->all;
 }
 
-=head1 rpms.location
+=head2 rpms.location (PKGID)
 
-C<No> doc yet
+Return all distribution where the package having C<PKGID> can be found.
 
 =cut
 

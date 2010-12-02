@@ -46,9 +46,13 @@ sub ACCEPT_CONTEXT {
 
         my $parser = Pod::POM->new();
         my $pom = $parser->parse($pod);
-        foreach my $item ($pom->content) {
-            if ($method{$item->title}) {
-                $self->{method}{$item->title} = $item;
+        foreach my $head1 ($pom->content) {
+            foreach my $item ($head1->content) {
+                my $title = $item->title or next;
+                $title =~ s/[^\w\._].*$//;
+                if ($method{$title}) {
+                    $self->{method}{$title} = $item;
+                }
             }
         }
     }
