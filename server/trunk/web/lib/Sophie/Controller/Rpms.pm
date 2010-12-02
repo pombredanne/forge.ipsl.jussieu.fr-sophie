@@ -103,6 +103,12 @@ sub deps : XMLRPCLocal {
         )->all;
 }
 
+=head1 rpms.location
+
+C<No> doc yet
+
+=cut
+
 sub location : XMLRPCLocal {
     my ($self, $c, $pkgid) = @_;
 

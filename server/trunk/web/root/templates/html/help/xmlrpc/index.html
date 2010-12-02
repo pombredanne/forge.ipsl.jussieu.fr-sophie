@@ -1,0 +1,4 @@
+[% pom = c.model('Help::XMLRPC') %]
+[% FOREACH sec = pom.list %]
+[% pom.present(sec) %]
+[% END %]
