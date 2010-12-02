@@ -1,0 +1,48 @@
+<!-- $Id$ -->
+
+<div id="sophie_rpm_deps">
+
+<h2>Dependencies</h2>
+
+[% BLOCK deps %]
+[% FOREACH dep = deplist %]
+[% '<ul class="sophie_deps">' IF loop.first %]
+<li>
+    [% dep.name | html %]
+    [% IF dep.evr %][% dep.sense | html %] [% dep.evr | html %][% END %]
+</li>
+[% '</ul>' IF loop.last %]
+[% END %]
+[% END %]
+
+[% IF xmlrpc.P.size %]
+<h3>Provides</h3>
+[% PROCESS deps deplist = xmlrpc.P %]
+[% END %]
+
+[% IF xmlrpc.R.size %]
+<h3>Requires</h3>
+[% PROCESS deps deplist = xmlrpc.R %]
+[% END %]
+
+[% IF xmlrpc.C.size %]
+<h3>Conflict</h3>
+[% PROCESS deps deplist = xmlrpc.C %]
+[% END %]
+
+[% IF xmlrpc.O.size %]
+<h3>Obsoletes</h3>
+[% PROCESS deps deplist = xmlrpc.O %]
+[% END %]
+
+[% IF xmlrpc.E.size %]
+<h3>Enhanced</h3>
+[% PROCESS deps deplist = xmlrpc.E %]
+[% END %]
+
+[% IF xmlrpc.S.size %]
+<h3>Suggest</h3>
+[% PROCESS deps deplist = xmlrpc.S %]
+[% END %]
+
+</div>

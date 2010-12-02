@@ -1,0 +1,10 @@
+<!-- $Id$ -->
+
+
+<div id="sophie_changelog">
+
+[% FOREACH change = xmlrpc.changelog %]
+[% END %]
+
+</div>
+

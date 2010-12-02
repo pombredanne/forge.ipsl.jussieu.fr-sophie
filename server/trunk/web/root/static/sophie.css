@@ -8,6 +8,21 @@ div#sophie_header {
     padding-left: 1em;
 }
 
+#sophie_rpm_description p {
+    padding-left: 1em;
+    padding-right: 1em;
+}
+
 .pkgid {
     font-family: monospace;
+}
+
+.filename {
+    font-family: monospace;
+}
+
+.filename td {
+    padding-left: 1em;
+    padding-right: 1em;
+    font-size: 1.2em;
 }

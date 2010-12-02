@@ -1,0 +1,18 @@
+<!-- $Id$ -->
+
+<div id="sophie_rpm_files">
+<h2>Files</h2>
+
+[% FOREACH file = xmlrpc %]
+[%- IF loop.first -%]
+<table border=0 class="filename">
+[%- END -%]
+<tr><td>[% file.perm %]</td><td align="right">[% file.size | format('%6d') %]</td><td>[%
+file.user | format('%10s') -%]</td>
+<td>[%- file.group | format('%10s') %]</td><td>[% file.filename %]</td>
+<td>[% file.has_content %]</tr>
+[%- IF loop.last -%]
+</table>
+[%- END -%]
+[% END %]
+</div>

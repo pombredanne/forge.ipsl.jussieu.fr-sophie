@@ -92,6 +92,7 @@ sub format_search : Private {
         };
     }
     $c->stash->{xmlrpc}{results} = [ $rs->get_column('pkgid')->all ];
+    return $c->stash->{xmlrpc};
 }
 
 sub bypkgid : XMLRPCPath('/search/rpm/bypkgid') {

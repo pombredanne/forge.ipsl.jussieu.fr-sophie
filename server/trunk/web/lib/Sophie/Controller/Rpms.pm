@@ -103,8 +103,70 @@ sub deps : XMLRPCLocal {
         )->all;
 }
 
-sub alldeps : XMLRPCLocal {
+sub location : XMLRPCLocal {
     my ($self, $c, $pkgid) = @_;
+
+    $c->stash->{xmlrpc} = [
+        map {
+        {
+            distribution => $_->get_column('name'),
+            release => $_->get_column('version'),
+            arch => $_->get_column('arch'), 
+            media => $_->get_column('label'),
+            media_group => $_->get_column('group_label'),
+        }
+        }
+        $c->forward('/distrib/distrib_rs', [ {} ])
+         ->search_related('MediasPaths')
+                 ->search_related('Paths')
+        ->search_related('Rpmfiles',
+            { pkgid => $pkgid },
+            {
+                select => [ qw(name version arch label group_label) ],
+            }
+        )->all ]
+
+
+}
+
+sub rpms_ :PathPrefix :Chained :CaptureArgs(1) {
+    my ( $self, $c, $pkgid ) = @_;
+    $c->stash->{pkgid} = $pkgid if($pkgid);
+    {
+        my $match = $c->stash->{pkgid};
+        ($c->stash->{rpmurl}) = $c->req->path =~
+            m{(.*/\Q$match\E)(?:/[^/]+)?$};
+    }
+    #$c->model('Base')->resultset('Rpms')->search(pkgid => $pkgid)->next;
+    $c->stash->{rpms}{info} =
+        $c->forward('info', [ $c->stash->{pkgid} ]);
+    $c->stash->{rpms}{location} =
+        $c->forward('location', [ $c->stash->{pkgid} ]);
+}
+
+sub rpms : Private {
+    my ( $self, $c, $pkgid, $subpart) = @_;
+    # Because $c->forward don't take into account Chained sub
+    $c->forward('rpms_', [ $pkgid ]);
+    for ($subpart || '') {
+        /^deps$/      and $c->go('alldeps',      [ $pkgid ]);
+        /^files$/     and $c->go('files',     [ $pkgid ]);
+        /^changelog$/ and $c->go('changelog', [ $pkgid ]);
+    }
+
+    return $c->stash->{xmlrpc} = $c->stash->{rpms};
+}
+
+sub rpms__ : Chained('/rpms/rpms_') :PathPart('') :Args(0) :XMLRPCLocal {
+    my ( $self, $c ) = @_;
+
+    $c->go('rpms', [ $c->stash->{pkgid} ]);
+}
+
+
+sub alldeps :Chained('rpms_') :PathPart('deps') :Args(0) :XMLRPCLocal {
+    my ( $self, $c, $pkgid ) = @_;
+    $pkgid ||= $c->stash->{pkgid};
 
     my %deps;
     foreach (
@@ -132,8 +194,9 @@ sub alldeps : XMLRPCLocal {
     $c->stash->{xmlrpc} = \%deps;
 }
 
-sub files : XMLRPCLocal {
-    my ($self, $c, $pkgid) = @_;
+sub files :Chained('rpms_') :PathPart('files') :Args(0) :XMLRPCLocal {
+    my ( $self, $c, $pkgid ) = @_;
+    $pkgid ||= $c->stash->{pkgid};
 
     my @col = qw(dirname basename md5 size);
     $c->stash->{xmlrpc} = [ map {
@@ -162,8 +225,9 @@ sub files : XMLRPCLocal {
         )->all ];
 }
 
-sub changelog : XMLRPCLocal {
-    my ($self, $c, $pkgid) = @_;
+sub changelog :Chained('rpms_') :PathPart('changelog') :Args(0) {
+    my ( $self, $c, $pkgid ) = @_;
+    $pkgid ||= $c->stash->{pkgid};
 
     my @ch;
     foreach ($c->model('Base')->resultset('RpmsChangelog')->search({},
@@ -186,18 +250,6 @@ sub changelog : XMLRPCLocal {
     }
 
     $c->stash->{xmlrpc} = \@ch;
-}
-
-
-sub rpms : Chained : PathPart :XMLRPCLocal {
-    my ( $self, $c, $pkgid ) = @_;
-    $c->stash->{pkgid} = $c->model('Base')->resultset('Rpms')->search(pkgid => $pkgid)->next;
-    $c->stash->{xmlrpc} = {
-        info      => $c->forward('info', [ $pkgid ]),
-        changelog => $c->forward('changelog', [ $pkgid ]),
-        files     => $c->forward('files', [ $pkgid ]),
-        deps      => $c->forward('alldeps', [ $pkgid ]),
-    };
 }
 
 =head1 AUTHOR

@@ -80,17 +80,26 @@ sub distrib_rs : Private {
                     ? (name => $distrib->{distribution})
                     : ()
             },
+            {
+                select => [ qw(name) ],
+            }
         )->search_related('Release',
             {
                 $distrib->{release}
                     ? (version => $distrib->{release})
                     : ()
+            },
+            {
+                select => [ qw(version) ],
             }
         )->search_related('Arch',
             {
                 $distrib->{arch}
                     ? (arch => $distrib->{arch})
                     : ()
+            },
+            {
+                select => [ qw(arch) ],
             }
         )->search_related('Medias',
             {
@@ -99,6 +108,9 @@ sub distrib_rs : Private {
                     ? (group_label => $distrib->{media_group})
                     : ()),
             },
+            {
+                select => [ qw(label group_label) ],
+            }
         );
 }
 
@@ -297,7 +309,7 @@ sub rpm_by_name :Chained('distrib_view') PathPart('rpms') Args(1) {
     my ($self, $c, $name) = @_;
     $c->stash->{dist}{src} = 0;
     ($c->stash->{pkgid}) = @{ $c->forward('/search/bytag',
-        [ $c->stash->{dist}, 'name', $name ]) };
+        [ $c->stash->{dist}, 'name', $name ])->{results} };
     $c->go('/404/index') unless ($c->stash->{pkgid});
     $c->go('/rpms/rpms', [ $c->stash->{pkgid} ]);
 }
@@ -305,7 +317,8 @@ sub rpm_by_name :Chained('distrib_view') PathPart('rpms') Args(1) {
 sub rpm_bypkgid :Chained('distrib_view') PathPart('by-pkgid') {
     my ( $self, $c, $pkgid ) = @_;
     if ($pkgid) {
-        if (@{ $c->forward('/search/bypkgid', [ $c->stash->{dist}, $pkgid ]) } ) {
+        if (@{ $c->forward('/search/bypkgid', [ $c->stash->{dist}, $pkgid ])
+            }->{results} ) {
             $c->go('/rpms/rpms', [ $pkgid ]);
         } else {
             $c->go('/404/index');
@@ -333,10 +346,12 @@ sub media_srpm_byname :Chained('_media_list_rpms') PathPart('srpms') {
 }
 
 sub media_rpm_bypkgid :Chained('_media_list_rpms') PathPart('by-pkgid') {
-    my ( $self, $c, $pkgid ) = @_;
+    my ( $self, $c, $pkgid, $part ) = @_;
     if ($pkgid) {
-        if (@{ $c->forward('/search/bypkgid', [ $c->stash->{dist}, $pkgid ]) } ) {
-            $c->go('/rpms/rpms', [ $pkgid ]);
+        if (@{ $c->forward('/search/bypkgid', [ $c->stash->{dist}, $pkgid
+            ])->{results} } ) {
+            $c->stash->{pkgid} = $pkgid;
+            $c->go('/rpms/rpms', [ $pkgid, $part ]);
         } else {
             $c->go('/404/index');
         }

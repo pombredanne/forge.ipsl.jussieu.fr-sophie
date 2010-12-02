@@ -6,9 +6,11 @@ use HTTP::Request;
 
 # know existing data:
 my $distribution = 'Mandriva';
-my $release = 'cooker';
-my $arch = 'i586';
+my $release = '2010.1';
+my $arch = 'x86_64';
 my $media = 'main-release';
+my $pkgid = '45db73adf5f9ceabc8f9ea1dabccffcc';
+my $rpmname = 'rpm';
 
 BEGIN { use_ok 'Catalyst::Test', 'Sophie' }
 BEGIN { use_ok 'Sophie::Controller::Distrib' }
@@ -31,4 +33,17 @@ ok( request( xmlrpcreq('distrib.list', $distribution) ), "XMLRPC");
 ok( request("/distrib/$distribution/$release")->is_success, 'Request should succeed' );
 ok( request("/distrib/$distribution/$release/$arch")->is_success, 'Request should succeed' );
 ok( request("/distrib/$distribution/$release/$arch/media")->is_success, 'Request should succeed' );
+warn "/distrib/$distribution/$release/$arch/media/$media/by-pkgid/$pkgid";
+ok(
+    request("/distrib/$distribution/$release/$arch/media/$media/by-pkgid/$pkgid")
+    ->is_success, "request media/pkgid");
+ok(
+    request("/distrib/$distribution/$release/$arch/media/$media/by-pkgid/$pkgid/deps")
+    ->is_success, "request media/pkgid/deps");
+ok(
+    request("/distrib/$distribution/$release/$arch/media/$media/by-pkgid/$pkgid/files")
+    ->is_success, "request media/pkgid/files");
+ok(
+    request("/distrib/$distribution/$release/$arch/media/$media/by-pkgid/$pkgid/changelog")
+    ->is_success, "request media/pkgid/changelog");
 done_testing();
