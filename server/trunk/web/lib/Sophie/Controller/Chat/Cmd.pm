@@ -21,13 +21,33 @@ Catalyst Controller.
 
 =cut
 
+=head1 BOT COMMAND
+
+=head2 REPLY
+
+=cut
+
+sub _commands {
+    my ( $self, $c ) = @_;
+    [ grep { m/^[^_]/ } map { $_->name } $self->get_action_methods() ];
+}
+
 sub help : XMLRPC {
     my ( $self, $c, $reqspec, @args ) = @_;
-    return $c->{stash}->{xmlrpc} = [ grep { m/^[^_]/ } map { $_->name } $self->get_action_methods() ];
+    return $c->{stash}->{xmlrpc} = {
+        message => [
+            'availlable command:',
+            join(', ', @{ $self->_commands }),
+        ],
+    }
 }
 
 
-sub me : XMLRPC {
+sub asv : XMLRPC {
+    my ( $self, $c ) = @_;
+    return $c->stash->{xmlrpc} = {
+        message => [ 'Sophie ' . $Sophie::VERSION . ' Chat: ' . q$Rev$ ],
+    };
 }
 
 
