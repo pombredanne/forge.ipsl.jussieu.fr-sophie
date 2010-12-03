@@ -22,6 +22,7 @@ use Catalyst qw/
     Server
     Server::XMLRPC
     Authentication
+    Authorization::Roles
 /;
 
 use RPC::XML;
@@ -62,9 +63,10 @@ __PACKAGE__->config(
                 store => {
                     class => 'DBIx::Class',
                     user_model => 'Base::Users',
-                    role_relation => 'UsersRoles',
+                    role_relation => 'Roles',
                     role_field => 'rolename',
                     id_field => 'mail',
+                    # use_userdata_from_session => 1,
                 },
             },
         },

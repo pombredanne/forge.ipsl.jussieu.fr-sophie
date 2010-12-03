@@ -19,6 +19,7 @@ requires 'Catalyst::Action::RenderView';
 requires 'Moose';
 requires 'namespace::autoclean';
 requires 'Catalyst::Plugin::Authentication' => '0';
+requires 'Catalyst::Plugin::Authorization::Roles' => '0';
 requires 'Catalyst::Plugin::Session' => '0';
 requires 'Catalyst::Plugin::Session::Store::DBI' => '0';
 requires 'Catalyst::Plugin::Session::State::Cookie' => '0';
