@@ -51,7 +51,11 @@ sub message : XMLRPC {
     my ($cmd, @args) = Text::ParseWords::shellwords($message);
 
     if ($c->get_action( $cmd, '/chat/cmd' )) {
-        $c->forward('/chat/cmd/' . $cmd, [ $reqspec, @args ]);
+        return $c->forward('/chat/cmd/' . $cmd, [ $reqspec, @args ]);
+    } else {
+        $c->stash->{xmlrpc} = {
+            error => 'No such command',
+        };
     }
 }
 
