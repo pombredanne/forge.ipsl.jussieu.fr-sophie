@@ -1,4 +1,4 @@
-package Sophie::Model::Help::XMLRPC;
+package Sophie::Model::Help::POD;
 use Moose;
 use namespace::autoclean;
 use Pod::Find;
@@ -26,35 +26,42 @@ it under the same terms as Perl itself.
 
 =cut
 
-sub list {
+sub pom {
     my ($self) = @_;
-    return sort keys %{$self->{method}};
+    return values %{ $self->{pom} }
 }
 
-sub present {
-    my ($self, $section) = @_;
-    $self->{method}{$section}->present(Pod::POM::View::HTML->new);
+sub xmlrpc_functions {
+    my ($self) = @_;
+    my @pod;
+    foreach my $pom ($self->pom) {
+        foreach my $head1 ($pom->content) {
+            foreach my $item ($head1->content) {
+                my $title = $item->title or next;
+                $title =~ s/[^\w\._].*$//;
+                if ($self->{xmlrpc_methods}->{$title}) {
+                     push(@pod, $item);
+                }
+            }
+        }
+    }
+    my $ppvh = Pod::POM::View::HTML->new;
+    return join("\n\n", map { $_->present($ppvh) } @pod);
 }
 
 sub ACCEPT_CONTEXT {
     my ($self, $c, @args) = @_;
 
-    my %method = %{ $c->server->xmlrpc->list_methods };
+    $self->{xmlrpc_methods} = $c->server->xmlrpc->list_methods;
+
     foreach my $controller ($c->controllers) {
         my $pod = Pod::Find::pod_where({ -verbose => 0, -inc => 1 },
             "Sophie::Controller::$controller");
 
         my $parser = Pod::POM->new();
         my $pom = $parser->parse($pod);
-        foreach my $head1 ($pom->content) {
-            foreach my $item ($head1->content) {
-                my $title = $item->title or next;
-                $title =~ s/[^\w\._].*$//;
-                if ($method{$title}) {
-                    $self->{method}{$title} = $item;
-                }
-            }
-        }
+        $self->{pom}{$controller} = $pom;
+
     }
 
     return $self;
