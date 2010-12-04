@@ -4,6 +4,6 @@ use strict;
 use warnings;
 use Sophie::Client;
 
-my $sc = Sophie::Client->new(server => 'http://localhost:3000/rpc');
+my $sc = Sophie::Client->new();
 
 $sc->run;

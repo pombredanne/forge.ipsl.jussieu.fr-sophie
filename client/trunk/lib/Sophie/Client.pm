@@ -22,7 +22,7 @@ sub new {
     my ($class, %options) = @_;
 
     my $self = $class->SUPER::new(
-        $options{server} || 'http://sophie2.aero.jussieu.fr'
+        $options{server} || 'http://sophie2.aero.jussieu.fr/rpc'
     );
 
     if ($options{login}) {
