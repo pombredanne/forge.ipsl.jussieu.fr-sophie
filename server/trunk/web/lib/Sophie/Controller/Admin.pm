@@ -254,6 +254,16 @@ sub load_distrib : XMLRPC {
     #$c->model('Base')->storage->dbh->rollback;
 }
 
+sub set_user_data : XMLRPC {
+    my ( $self, $c, $user, $dataname, $data ) = @_;
+    $c->forward('/user/set_user_data', [ $user, $dataname, $data ]);
+}
+
+sub update_user_data : XMLRPC {
+    my ( $self, $c, $user, $dataname, $data ) = @_;
+    $c->forward('/user/update_user_data', [ $user, $dataname, $data ]);
+}
+
 =head1 AUTHOR
 
 Olivier Thauvin
