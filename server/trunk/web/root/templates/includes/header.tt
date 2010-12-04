@@ -25,6 +25,7 @@
         <span><a href="[% c.uri_for('/search') %]">Search</a></span>
         <span><a href="[% c.uri_for('/distrib') %]">Distribution</a></span>
         <span><a href="[% c.uri_for('/explorer') %]">Explorer</a></span>
+        <span><a href="[% c.uri_for('/help') %]">Help</a></span>
         </p>
     </div>
     <div style="clear:both"></div>
