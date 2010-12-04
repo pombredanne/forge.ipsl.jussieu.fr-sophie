@@ -30,7 +30,7 @@ sub index :Path :Args(0) {
 }
 
 sub message : XMLRPC {
-    my ($self, $c, $contexts, $message) = @_;
+    my ($self, $c, $contexts, $message, @msgargs) = @_;
     
     my $reqspec = {};
 
@@ -48,10 +48,12 @@ sub message : XMLRPC {
         }
     }
 
-    my ($cmd, @args) = Text::ParseWords::shellwords($message);
+    my ($cmd, @args) = @msgargs
+        ? ($message, @msgargs)
+        : Text::ParseWords::shellwords($message);
 
     if ($c->get_action( $cmd, '/chat/cmd' )) {
-        return $c->forward('/chat/cmd/' . $cmd, [ $reqspec, @args ]);
+        return $c->go('/chat/cmd/' . $cmd, [ $reqspec, @args ]);
     } else {
         $c->stash->{xmlrpc} = {
             error => 'No such command',
