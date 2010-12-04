@@ -1,0 +1,6 @@
+Changes
+Makefile.PL
+MANIFEST
+README
+t/Sophie-IrcBot.t
+lib/Sophie/IrcBot.pm
