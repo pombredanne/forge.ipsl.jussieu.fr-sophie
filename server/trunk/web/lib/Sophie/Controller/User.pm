@@ -49,6 +49,8 @@ sub fetch_user_data : Private {
 sub fetchdata : XMLRPC {
     my ( $self, $c, $dataname ) = @_;
 
+    $c->user or return {};
+
     return $c->forward('fetch_user_data', [ $c->user->mail || '', $dataname ]);
 }
 
@@ -64,6 +66,25 @@ sub set_user_data : Private {
         value => encode_base64( nfreeze($data) ),
     });
     $c->model('Base')->storage->dbh->commit;
+}
+
+sub update_data : XMLRPC {
+    my ( $self, $c, $user, $dataname, $data ) = @_;
+    $c->forward('update_user_data', [ $c->user->mail || '', $dataname, $data ]);
+}
+
+sub update_user_data : Private {
+    my ( $self, $c, $user, $dataname, $data ) = @_;
+
+    my $prev_data = $c->forward('fetch_user_data',
+        [ $user || '', $dataname ]
+    ) || {};
+
+    foreach (keys %$data) {
+        $prev_data->{$_} = $data->{$_};
+    }
+
+    $c->forward('set_user_data', [ $user, $dataname, $prev_data ]);
 }
 
 sub setdata : XMLRPC {
