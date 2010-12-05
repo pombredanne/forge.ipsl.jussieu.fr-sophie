@@ -286,32 +286,32 @@ sub rpms_name :XMLRPC {
         )->get_column('name')->all ];
 }
 
-sub list_rpms :Chained('distrib_view') PathPart('rpms') {
+sub list_rpms :Chained('distrib_view') PathPart('rpms') Args(0) {
     my ( $self, $c ) = @_;
     $c->forward('rpms', $c->stash->{dist});
 }
 
-sub list_srpms :Chained('distrib_view') PathPart('srpms') {
+sub list_srpms :Chained('distrib_view') PathPart('srpms') Args(0) {
     my ( $self, $c ) = @_;
     $c->forward('srpms', $c->stash->{dist});
 }
 
-sub srpm_by_name :Chained('distrib_view') PathPart('srpms') Args(1) {
-    my ($self, $c, $name) = @_;
+sub srpm_by_name :Chained('distrib_view') PathPart('srpms') {
+    my ($self, $c, $name, @subpart) = @_;
     $c->stash->{dist}{src} = 1;
     ($c->stash->{pkgid}) = @{ $c->forward('/search/bytag',
         [ $c->stash->{dist}, 'name', $name ])->{results} };
     $c->go('/404/index') unless ($c->stash->{pkgid});
-    $c->go('/rpms/rpms', [ $c->stash->{pkgid} ]);
+    $c->go('/rpms/rpms', [ $c->stash->{pkgid}, @subpart ]);
 }
 
-sub rpm_by_name :Chained('distrib_view') PathPart('rpms') Args(1) {
-    my ($self, $c, $name) = @_;
+sub rpm_by_name :Chained('distrib_view') PathPart('rpms') {
+    my ($self, $c, $name, @subpart) = @_;
     $c->stash->{dist}{src} = 0;
     ($c->stash->{pkgid}) = @{ $c->forward('/search/bytag',
         [ $c->stash->{dist}, 'name', $name ])->{results} };
     $c->go('/404/index') unless ($c->stash->{pkgid});
-    $c->go('/rpms/rpms', [ $c->stash->{pkgid} ]);
+    $c->go('/rpms/rpms', [ $c->stash->{pkgid}, @subpart ]);
 }
 
 sub rpm_bypkgid :Chained('distrib_view') PathPart('by-pkgid') {
@@ -346,12 +346,12 @@ sub media_srpm_byname :Chained('_media_list_rpms') PathPart('srpms') {
 }
 
 sub media_rpm_bypkgid :Chained('_media_list_rpms') PathPart('by-pkgid') {
-    my ( $self, $c, $pkgid, $part ) = @_;
+    my ( $self, $c, $pkgid, @part ) = @_;
     if ($pkgid) {
         if (@{ $c->forward('/search/bypkgid', [ $c->stash->{dist}, $pkgid
             ])->{results} } ) {
             $c->stash->{pkgid} = $pkgid;
-            $c->go('/rpms/rpms', [ $pkgid, $part ]);
+            $c->go('/rpms/rpms', [ $pkgid, @part ]);
         } else {
             $c->go('/404/index');
         }

@@ -3,10 +3,31 @@
 [% IF xmlrpc.size %]
 
 [% FOREACH file = xmlrpc %]
+[% IF loop.first %]
+<table>
+[% END %]
 [% info = c.forward('/rpms/info', [ file.pkgid ]) %]
+<tr><td colspan="6">
 <a href="[% c.uri_for('/rpms', file.pkgid) %]">
     [% info.name | html %]-[% info.version %]-[% info.release %].[% info.arch %]
-</a><br>
+</a></td></tr>
+
+<tr class="filename"><td>[% file.perm %]</td><td align="right">[% file.size | format('%6d')
+%]</td><td>[% file.user | format('%10s') -%]</td>
+<td>[%- file.group | format('%10s') %]</td><td>[% file.md5 %]</td>
+<td>
+[% IF file.has_content %]
+<a href="[% c.uri_for('/rpms', file.pkgid, 'files', file.count) %]">
+[% file.basename %]
+</a>
+[% ELSE %]
+[% file.basename %]
+[% END %]
+</td></tr>
+
+[% IF loop.last %]
+</table>
+[% END %]
 [% END %]
 
 [% ELSE %]

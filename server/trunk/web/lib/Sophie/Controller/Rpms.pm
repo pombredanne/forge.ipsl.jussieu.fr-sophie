@@ -140,8 +140,6 @@ sub rpms_ :PathPrefix :Chained :CaptureArgs(1) {
     $c->stash->{pkgid} = $pkgid if($pkgid);
     {
         my $match = $c->stash->{pkgid};
-        ($c->stash->{rpmurl}) = $c->req->path =~
-            m{(.*/\Q$match\E)(?:/[^/]+)?$};
     }
     #$c->model('Base')->resultset('Rpms')->search(pkgid => $pkgid)->next;
     $c->stash->{rpms}{info} =
@@ -151,13 +149,14 @@ sub rpms_ :PathPrefix :Chained :CaptureArgs(1) {
 }
 
 sub rpms : Private {
-    my ( $self, $c, $pkgid, $subpart) = @_;
+    my ( $self, $c, $pkgid, $subpart, @args) = @_;
+    $c->stash->{rpmurl} = $c->req->path;
     # Because $c->forward don't take into account Chained sub
     $c->forward('rpms_', [ $pkgid ]);
     for ($subpart || '') {
-        /^deps$/      and $c->go('alldeps',      [ $pkgid ]);
-        /^files$/     and $c->go('files',     [ $pkgid ]);
-        /^changelog$/ and $c->go('changelog', [ $pkgid ]);
+        /^deps$/      and $c->go('alldeps',   [ $pkgid, @args ]);
+        /^files$/     and $c->go('files',     [ $pkgid, @args ]);
+        /^changelog$/ and $c->go('changelog', [ $pkgid, @args ]);
     }
 
     return $c->stash->{xmlrpc} = $c->stash->{rpms};
@@ -172,6 +171,7 @@ sub rpms__ : Chained('/rpms/rpms_') :PathPart('') :Args(0) :XMLRPCLocal {
 
 sub alldeps :Chained('rpms_') :PathPart('deps') :Args(0) :XMLRPCLocal {
     my ( $self, $c, $pkgid ) = @_;
+    $c->stash->{rpmurl} = ($c->req->path =~ m:(.*)/[^/]+:)[0];
     $pkgid ||= $c->stash->{pkgid};
 
     my %deps;
@@ -201,10 +201,15 @@ sub alldeps :Chained('rpms_') :PathPart('deps') :Args(0) :XMLRPCLocal {
 }
 
 sub files :Chained('rpms_') :PathPart('files') :Args(0) :XMLRPCLocal {
-    my ( $self, $c, $pkgid ) = @_;
+    my ( $self, $c, $pkgid, $number ) = @_;
+    $c->stash->{rpmurl} = ($c->req->path =~ m:(.*)/[^/]+:)[0];
     $pkgid ||= $c->stash->{pkgid};
 
-    my @col = qw(dirname basename md5 size);
+    if ($number) { # This come from a forward
+        $c->go('files_contents', [ $number ]);
+    }
+
+    my @col = qw(dirname basename md5 size count);
     $c->stash->{xmlrpc} = [ map {
         {
             filename => $_->get_column('dirname') . $_->get_column('basename'),
@@ -216,6 +221,7 @@ sub files :Chained('rpms_') :PathPart('files') :Args(0) :XMLRPCLocal {
             user => $_->get_column('user'),
             group => $_->get_column('group'),
             has_content => $_->get_column('has_content'),
+            count => $_->get_column('count'),
         }
     } $c->model('Base')->resultset('Files')->search(
             { 
@@ -231,9 +237,26 @@ sub files :Chained('rpms_') :PathPart('files') :Args(0) :XMLRPCLocal {
         )->all ];
 }
 
+sub files_contents :Chained('rpms_') :PathPart('files') :Args(1) {
+    my ( $self, $c, $number ) = @_;
+    $c->stash->{rpmurl} = ($c->req->path =~ m:(.*)/[^/]+/[^/]+:)[0];
+    my $pkgid = $c->stash->{pkgid};
+
+    $c->stash->{xmlrpc} = $c->model('Base')->resultset('Files')->search(
+        {
+            pkgid => $pkgid,
+            count => $number,
+        },
+        {
+            select => ['contents'],
+        }
+    )->get_column('contents')->first;
+}
+
 sub changelog :Chained('rpms_') :PathPart('changelog') :Args(0) {
     my ( $self, $c, $pkgid ) = @_;
     $pkgid ||= $c->stash->{pkgid};
+    $c->stash->{rpmurl} = ($c->req->path =~ m:(.*)/[^/]+:)[0];
 
     my @ch;
     foreach ($c->model('Base')->resultset('RpmsChangelog')->search({},

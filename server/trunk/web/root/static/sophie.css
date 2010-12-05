@@ -26,3 +26,10 @@ div#sophie_header {
     padding-right: 1em;
     font-size: 1.2em;
 }
+
+pre.filedata {
+    padding: 2em;
+    margin: 2em;
+    background: #F5F5DC;
+    border: outset;
+}

@@ -52,8 +52,21 @@ sub file :Local {
 
     my $rsdist = $c->forward('/search/distrib_search', [ $c->session->{__explorer} ]);
 
+    my @col = qw(dirname basename md5 size pkgid count);
     $c->stash->{xmlrpc} = [ 
-        map { { pkgid => $_->get_column('pkgid') } }
+        map { {
+            pkgid => $_->get_column('pkgid'),
+            filename => $_->get_column('dirname') . $_->get_column('basename'),
+            dirname => $_->get_column('dirname'),
+            basename => $_->get_column('basename'),
+            md5 => $_->get_column('md5'),
+            perm => $_->get_column('perm'),
+            size => $_->get_column('size'),
+            user => $_->get_column('user'),
+            group => $_->get_column('group'),
+            has_content => $_->get_column('has_content'),
+            count => $_->get_column('count')
+            } }
         $c->model('Base')
       ->resultset('Files')
       ->search({
@@ -61,12 +74,12 @@ sub file :Local {
               pkgid => { IN => $rsdist->get_column('pkgid')->as_query, },
           },
           { 
-              'select' => [
-                  'contents IS NULL as has_contents', 'pkgid'
-              ],
-              as => [ qw(has_content pkgid) ],
-              order_by => 'pkgid' 
-          }
+              'select' => [ 'contents is NOT NULL as has_content', 'rpmfilesmode(mode) as perm', @col, '"group"',
+                  '"user"' ],
+              as => [ qw(has_content perm), @col, 'group', 'user' ],
+              order_by => [ 'pkgid' ],
+
+          },
       )->all ];
 }
 

@@ -1,3 +1,4 @@
 <a href="[% c.uri_for('/', rpmurl) %]">Info</a>
 <a href="[% c.uri_for('/', rpmurl, 'deps') %]">Deps</a>
 <a href="[% c.uri_for('/', rpmurl, 'files') %]">Files</a>
+<a href="[% c.uri_for('/', rpmurl, 'changelog') %]">ChangeLog</a>
