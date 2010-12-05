@@ -33,8 +33,18 @@ sub message : XMLRPC {
     my ($self, $c, $contexts, $message, @msgargs) = @_;
     
     my $reqspec = {};
+    my @contexts = grep { $_ } (
+        $c->user_exists
+        ? ( 'default',
+            (ref $contexts
+                ? (@$contexts)
+                : ($contexts)
+            ),
+        )
+        : ()
+    );
 
-    foreach my $co (ref $contexts ? @$contexts : $contexts) {
+    foreach my $co (@contexts) {
         if (ref($co) eq 'HASH') {
             foreach (keys %$co) {
                 $reqspec->{$_} = $co->{$_};
