@@ -305,7 +305,7 @@ sub description : XMLRPCPath('/search/rpm/description') {
     $c->forward('format_search', $searchspec);
 }
 
-=head2 search.rpms.bydate SEARCHSPEC TIMESTAMP
+=head2 search.rpms.bydate (SEARCHSPEC, TIMESTAMP)
 
 Return a list of rpms files added since TIMESTAMP.
 TIMESTAMP must the number of second since 1970-01-01 (eq UNIX epoch).
