@@ -1,10 +1,18 @@
 
-<!-- <p>
-<a href="[% c.uri_for('/explorer') %]">/</a>
-[% FOREACH p = eachpath %]
-<a href="[% c.uri_for('/explorer', p.path) %]">[% p.dir | html %]</a>
-[% END %]
-</p>-->
+<form action="[% c.uri_for('/', c.req.path) %]" id="explorer_d">
+    <span id="distribselect">
+    [% INCLUDE 'ajax/forms/distribselect.tt' %]
+    </span>
+    <input type="submit" value="Update view...">
+</form>
+[% c.prototype.observe_form('explorer_d',
+    {
+    url => c.uri_for('/ajax/forms/distribselect', { 'ajax' => 1 }),
+    frequency => 1,
+    update => 'distribselect',
+    }
+) %]
+
 
 <div id="exp_dir" style="float: left; border: outset; width: 30%">
     Loading...

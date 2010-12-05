@@ -37,7 +37,7 @@ sub help : XMLRPC {
     return $c->{stash}->{xmlrpc} = {
         message => [
             'availlable command:',
-            join(', ', @{ $self->_commands }),
+            join(', ', grep { $_ !~ /^end$/ } @{ $self->_commands }),
         ],
     }
 }
@@ -46,11 +46,16 @@ sub help : XMLRPC {
 sub asv : XMLRPC {
     my ( $self, $c ) = @_;
     return $c->stash->{xmlrpc} = {
-        message => [ 'Sophie ' . $Sophie::VERSION . ' Chat: ' . q$Rev$ ],
+        message => [ 'Sophie: ' . $Sophie::VERSION . ', Chat ' . q$Rev$ ],
     };
 }
 
+sub end : Private {
+    my ($self, $c ) = @_;
+    my $reqspec = $c->req->arguments->[0];
 
+    $c->forward('/end');
+}
 
 =head1 AUTHOR
 

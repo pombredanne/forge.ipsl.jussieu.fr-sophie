@@ -1,0 +1,55 @@
+<!-- $Id$ -->
+
+[% FOREACH dist = c.forward('/distrib/list', []) %]
+[% IF loop.first %]
+<select name="distribution">
+<option value="">--</option>
+[% END %]
+<option [% 'selected="selected"' IF c.req.param('distribution') == dist %]>
+[% dist %]
+</option>
+[% IF loop.last %]
+</select>
+[% END %]
+[% END %]
+
+[% IF c.req.param('distribution') %]
+[% FOREACH dist = c.forward('/distrib/list', [
+    { 
+        'distribution' => c.req.param('distribution'),
+    } 
+]) %]
+[% IF loop.first %]
+<select name="release">
+<option value="">--</option>
+[% END %]
+<option [% 'selected="selected"' IF c.req.param('release') == dist %]>
+[% dist %]
+</option>
+[% IF loop.last %]
+</select>
+[% END %]
+[% END %]
+
+
+[% IF c.req.param('release') %]
+[% FOREACH dist = c.forward('/distrib/list', [
+    { 
+        'distribution' => c.req.param('distribution'),
+        'release' => c.req.param('release'),
+    } 
+]) %]
+[% IF loop.first %]
+<select name="arch">
+<option value="">--</option>
+[% END %]
+<option [% 'selected="selected"' IF c.req.param('arch') == dist %]>
+[% dist %]
+</option>
+[% IF loop.last %]
+</select>
+[% END %]
+[% END %]
+[% END %]
+
+[% END %]

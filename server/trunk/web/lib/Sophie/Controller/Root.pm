@@ -53,7 +53,7 @@ sub begin : Private {
 
     if ($c->action =~ m/^admin\//) {
         if (!($c->user_exists && $c->check_user_roles($c->user, 'Admin'))) {
-            $c->res->redirect($c->uri_for('/login'));
+            #$c->go('/login/index');
         }
     }
 }

@@ -23,6 +23,7 @@ use Catalyst qw/
     Server::XMLRPC
     Authentication
     Authorization::Roles
+    Prototype
 /;
 
 use RPC::XML;

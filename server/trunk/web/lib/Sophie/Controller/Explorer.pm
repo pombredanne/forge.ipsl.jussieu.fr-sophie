@@ -30,7 +30,12 @@ sub index :Path {
             release => $c->req->param('release') || undef,
             arch => $c->req->param('arch') || undef,
         };
+    } else {
+        foreach (qw(distribution release arch)) {
+            $c->req->params->{$_} = $c->session->{explorer}{$_}
+        }
     }
+
     $c->session->{__explorer} = $c->session->{explorer};
 
     $c->stash->{path} = join('/', grep { $_  } @args);

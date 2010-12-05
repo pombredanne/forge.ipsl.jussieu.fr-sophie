@@ -46,4 +46,13 @@ ok(
 ok(
     request("/distrib/$distribution/$release/$arch/media/$media/by-pkgid/$pkgid/changelog")
     ->is_success, "request media/pkgid/changelog");
+
+ok(
+    request("/distrib/$distribution/$release/$arch/rpms/$rpmname")
+    ->is_success, "request rpms/$rpmname");
+ok(
+    request("/distrib/$distribution/$release/$arch/srpms/$rpmname")
+    ->is_success, "request srpms/$rpmname");
+
+
 done_testing();
