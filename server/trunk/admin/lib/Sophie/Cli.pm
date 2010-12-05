@@ -65,7 +65,34 @@ sub denv {
             completion => sub {
                 my ($self, $start, $media) = @_;
                 if ($media) {
-                    return (<$start*>)
+                    my $res = $self->xmlreq('admin.ls_local', $start);
+                    return @{ $res->value };
+                } else {
+                my $res = $self->xmlreq('distrib.struct',
+                    $self->{dist},
+                );
+                return map { $_->{label} } @{ $res->value };
+                }
+            },
+        }
+    );
+    $env->add_func('unsetpath', {
+            code => sub {
+                my ($self, $media, $path) = @_;
+                my $res = $self->xmlreq('admin.media_remove_path',
+                    $self->{dist},
+                    $media,
+                    $path,
+                );
+            },
+            completion => sub {
+                my ($self, $start, $media) = @_;
+                if ($media) {
+                    my $res = $self->xmlreq('admin.list_path',
+                        $self->{dist},
+                        $media,
+                    );
+                    return @{ $res->value };
                 } else {
                 my $res = $self->xmlreq('distrib.struct',
                     $self->{dist},
@@ -97,17 +124,18 @@ sub denv {
             code => sub {
                 my ($self, $media, $group) = @_;
                 my $res = $self->xmlreq('admin.add_media',$self->{dist},
-                    { dist_label => $media,
+                    { label => $media,
                       group_label => $group },
                 );
                 print $OUT join ('', map { "$_->{label}\n" } @{ $res->value });
             },
             completion => sub {
-                my ($self) = @_;
+                my ($self, $start, $label) = @_;
                 my $res = $self->xmlreq('distrib.struct',
                     $self->{dist},
                 );
-                return map { $_->{label} } @{ $res->value };
+                return ((map { $_->{label} } @{ $res->value }), $label ?
+                    ($label) : ())
             },
         }
     );
