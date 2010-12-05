@@ -15,7 +15,7 @@
 
 <h2>Description:</h2>
 <div id="sophie_rpm_description">
-[% xmlrpc.info.description | html | html_para %]
+[% xmlrpc.info.description | html | html_line_break %]
 </div>
 </div>
 

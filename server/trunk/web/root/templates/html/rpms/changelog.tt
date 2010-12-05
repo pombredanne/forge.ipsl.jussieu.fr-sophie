@@ -3,7 +3,12 @@
 
 <div id="sophie_changelog">
 
-[% FOREACH change = xmlrpc.changelog %]
+[% FOREACH change = xmlrpc %]
+[% IF loop.first %]<ul class="sophie_changelog">[% END %]
+<li>[% change.date | html %] [% change.name | html %]
+<p>[% change.text | html_line_break %]</p>
+</li>
+[% IF loop.last %]</ul>[% END %]
 [% END %]
 
 </div>

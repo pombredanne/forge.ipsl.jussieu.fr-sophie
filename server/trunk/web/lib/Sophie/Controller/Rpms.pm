@@ -3,6 +3,7 @@ use Moose;
 use namespace::autoclean;
 use Encode::Guess;
 use Encode;
+use POSIX;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -275,6 +276,7 @@ sub changelog :Chained('rpms_') :PathPart('changelog') :Args(0) {
             ? encode('utf8', $_->get_column('name'))
             : $_->get_column('name');
         $chentry->{time} = $_->get_column('time');
+        $chentry->{date} = POSIX::strftime('%a %b %e %Y', gmtime($_->get_column('time')));
         push(@ch, $chentry);
     }
 
