@@ -305,6 +305,120 @@ sub description : XMLRPCPath('/search/rpm/description') {
     $c->forward('format_search', $searchspec);
 }
 
+=head2 search.rpms.bydate SEARCHSPEC TIMESTAMP
+
+Return a list of rpms files added since TIMESTAMP.
+TIMESTAMP must the number of second since 1970-01-01 (eq UNIX epoch).
+
+SEARCHSPEC is a struct with following key/value:
+
+=over 4
+
+=item distribution
+
+Limit search to this distribution
+
+=item release
+
+Limit search to this release
+
+=item arch
+
+Limit search to distribution of this arch
+
+=item src
+
+If set to true, limit search to source package, If set to false, limit search to
+binary package.
+
+=item name
+
+Limit search to rpm having this name
+
+=item rows
+
+Set maximum of results, the default is 10000.
+
+=back
+
+Each elements of the output is a struct:
+
+=over 4
+
+=item filename
+
+the rpm filename
+
+=item pkgid
+
+the identifier of the package
+
+=item distribution
+
+the distribution containing this package
+
+=item release
+
+the release containing this package
+
+=item arch
+
+the arch containing this package
+
+=item media
+
+the media containing this package
+
+=back
+
+=cut
+
+sub bydate : XMLRPCPath('/search/rpms/bydate') {
+    my ( $self, $c, $searchspec, $date ) = @_;
+
+    return $c->stash->{xmlrpc} = [
+        map {
+            { 
+                filename => $_->get_column('filename'),
+                pkgid    => $_->get_column('pkgid'), 
+                distribution => $_->get_column('name'),
+                release => $_->get_column('version'),
+                arch => $_->get_column('arch'),
+                media => $_->get_column('label'),
+            }
+        }
+        $c->forward('/distrib/distrib_rs', [ $searchspec ])
+        ->search_related('MediasPaths')
+        ->search_related('Paths')
+        ->search_related('Rpmfiles',
+            {
+                -nest => \[
+                    "Rpmfiles.added > '1970-01-01'::date + ?::interval",
+                    [ plain_text => "$date seconds" ],   
+                ],
+                pkgid => {
+                    IN => $c->model('Base::Rpms')->search(
+                        {
+                            (exists($searchspec->{name})
+                                ? (name => $searchspec->{name})
+                                : ()
+                            ),
+                            (exists($searchspec->{src})
+                                ? (issrc => $searchspec->{src} ? 1 : 0)
+                                : ()
+                            ),
+                        }
+                    )->get_column('pkgid')->as_query,
+                }
+            },
+            {
+                select => [qw(filename pkgid name version arch label) ],
+                rows => $searchspec->{rows} || 10000,
+                order_by => [ 'Rpmfiles.added desc' ],
+            },
+        )->all ];
+}
+
 =head1 AUTHOR
 
 Olivier Thauvin
