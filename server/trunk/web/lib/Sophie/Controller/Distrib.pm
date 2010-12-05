@@ -315,11 +315,11 @@ sub rpm_by_name :Chained('distrib_view') PathPart('rpms') {
 }
 
 sub rpm_bypkgid :Chained('distrib_view') PathPart('by-pkgid') {
-    my ( $self, $c, $pkgid ) = @_;
+    my ( $self, $c, $pkgid, @subpart ) = @_;
     if ($pkgid) {
-        if (@{ $c->forward('/search/bypkgid', [ $c->stash->{dist}, $pkgid ])
-            }->{results} ) {
-            $c->go('/rpms/rpms', [ $pkgid ]);
+        if (@{ $c->forward('/search/bypkgid',
+            [ $c->stash->{dist}, $pkgid ])->{results} } ) {
+            $c->go('/rpms/rpms', [ $pkgid, @subpart ]);
         } else {
             $c->go('/404/index');
         }

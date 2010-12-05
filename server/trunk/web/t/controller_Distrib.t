@@ -33,7 +33,6 @@ ok( request( xmlrpcreq('distrib.list', $distribution) ), "XMLRPC");
 ok( request("/distrib/$distribution/$release")->is_success, 'Request should succeed' );
 ok( request("/distrib/$distribution/$release/$arch")->is_success, 'Request should succeed' );
 ok( request("/distrib/$distribution/$release/$arch/media")->is_success, 'Request should succeed' );
-warn "/distrib/$distribution/$release/$arch/media/$media/by-pkgid/$pkgid";
 ok(
     request("/distrib/$distribution/$release/$arch/media/$media/by-pkgid/$pkgid")
     ->is_success, "request media/pkgid");
@@ -54,5 +53,8 @@ ok(
     request("/distrib/$distribution/$release/$arch/srpms/$rpmname")
     ->is_success, "request srpms/$rpmname");
 
+ok(
+    request("/distrib/$distribution/$release/$arch/by-pkgid/$pkgid")
+    ->is_success, "request distrib bypkgid");
 
 done_testing();

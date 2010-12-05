@@ -13,6 +13,24 @@ div#sophie_header {
     padding-right: 1em;
 }
 
+div.sophie_package_list {
+    background: #F5F5DC;
+    margin-top: 2em;
+}
+
+.sophie_package_list h2 {
+    margin-top: 0em;
+    margin-bottom: 0.5em;
+}
+.sophie_package_list p {
+    padding-left: 2em;
+    padding-right: 0em;
+    padding-top: 0em;
+    padding-bottom: 0em;
+    margin: 0em;
+    margin-bottom: 0.2em;
+}
+
 .pkgid {
     font-family: monospace;
 }
@@ -33,3 +51,5 @@ pre.filedata {
     background: #F5F5DC;
     border: outset;
 }
+
+
