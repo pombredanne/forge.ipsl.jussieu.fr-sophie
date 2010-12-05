@@ -3,7 +3,7 @@ package Sophie::View::Json;
 use strict;
 use base 'Catalyst::View::JSON';
 
-__PACKAGE__->config(expose_stash => [ qw(xmlrpc) ]);
+__PACKAGE__->config(expose_stash => 'xmlrpc');
 
 =head1 NAME
 
