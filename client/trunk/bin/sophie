@@ -3,7 +3,28 @@
 use strict;
 use warnings;
 use Sophie::Client;
+use Getopt::Long;
+use Pod::Usage;
 
-my $sc = Sophie::Client->new();
+GetOptions(
+    'u=s' => \my $url,
+    'l=s' => \my $login,
+    'p=s' => \my $pass,
+    't=s' => \my $type,
+    'd=s' => \my @options,
+) or pod2usage;
+
+my %options;
+foreach (@options) {
+    m/([^=]+)\s*=\s*(.*)/ or next;
+    $options{$1} = $2;
+}
+
+my $sc = Sophie::Client->new(
+    server => $url,
+    login => $login,
+    password => $pass,
+    type => $type,
+);
 
 $sc->run;

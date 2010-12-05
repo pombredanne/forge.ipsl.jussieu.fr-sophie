@@ -6,17 +6,8 @@ use warnings;
 use RPC::XML;
 use base qw(RPC::XML::Client);
 $RPC::XML::FORCE_STRING_ENCODING = 1;
-use Term::ReadLine;
 
 our $VERSION = '0.01';
-
-{
-    open (my $fh, "/dev/tty" )
-        or eval 'sub Term::ReadLine::findConsole { ("&STDIN", "&STDERR")
-    }';
-    die $@ if $@;
-    close ($fh);
-}
 
 sub new {
     my ($class, %options) = @_;
@@ -24,6 +15,8 @@ sub new {
     my $self = $class->SUPER::new(
         $options{server} || 'http://sophie2.aero.jussieu.fr/rpc'
     );
+    $self->timeout(10);
+    $self->{options} = { %options };
 
     if ($options{login}) {
         my $res = $self->send_request('login',
@@ -36,31 +29,56 @@ sub new {
         }
     }
 
-    bless($self, $class);
+    my $realclass = $class . '::' . ($options{type} || 'Term');
+    no strict qw(refs);
+    eval "require $realclass;";
+    return if($@);
+    bless($self, $realclass);
 }
 
-sub run {
-    my ($self) = @_;
-
-    my $term = Term::ReadLine->new('Sophie');
-    $term->MinLine(99999);
-    my $OUT = $term->OUT || \*STDOUT;
-
-    while (1) {
-        defined (my $line = $term->readline('Sophie > ')) or do {
-            print $OUT "\n";
-            return;
-        };
-
-        my $resp = $self->send_request('chat.message', [ 'chan', 'user' ], $line);
-        if (ref($resp)) {
-            my $res = $resp->value;
-            print "$_\n" foreach (@{$res->{message}});
+sub get_var {
+    my ($self, $varname) = @_;
+    my $resp = $self->send_request('user.fetchdata', $varname);
+    if (ref $resp) {
+        if ($resp->value) {
+            return $resp->value;
         }
+    } else {
+        return {};
     }
 }
 
+sub set_var {
+    my ($self, $varname, $data) = @_;
+
+    my $resp = $self->send_request('user.updatedata', $varname, $data);
+    if (ref $resp) {
+        return 1;
+    } else {
+        return;
+    }
+}
+
+sub handle_message {
+    my ($self, $heap, $context, $message) = @_;
+
+    $self->submit_query($heap, $context, $message);
+}
+
+sub submit_query {
+    my ($self, $heap, $context, $message) = @_;
+
+    my $resp = $self->send_request('chat.message', $context, $message);
+    if (ref($resp)) {
+        $self->show_reply($heap, $resp->value);
+    } else {
+        return;
+    }
+
+}
+
 1;
+
 __END__
 # Below is stub documentation for your module. You'd better edit it!
 
