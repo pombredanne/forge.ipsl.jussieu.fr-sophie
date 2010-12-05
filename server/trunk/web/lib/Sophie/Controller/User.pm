@@ -39,7 +39,7 @@ sub fetch_user_data : Private {
     )->next) {
         $c->stash->{xmlrpc} = thaw( decode_base64( $rs->get_column('value') ) );
     } else {
-        $c->stash->{xmlrpc} = '';
+        $c->stash->{xmlrpc} = {};
     }
 
     return $c->stash->{xmlrpc};
