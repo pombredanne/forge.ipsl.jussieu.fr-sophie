@@ -37,8 +37,9 @@ sub results :Local {
         $c->session->{search} = $c->req->param('search');
         $c->forward('quick', [
                 {
-                    page => $c->req->param('page'),
+                    page => $c->req->param('page') || undef,
                 } , grep { $_ } split(/\s/, $c->req->param('search')) ]);
+
     }
 }
 
@@ -63,8 +64,20 @@ sub format_search : Private {
         },
     );
 
-    if (1 || !$searchspec->{page}) {
-        my $pager = $rs->pager;
+    $c->stash->{rs} = $rs;
+    $c->stash->{column} ||= 'pkgid';
+    my @results;
+    if (ref $c->stash->{column}) {
+        while (my $i = $rs->next) {
+            push(@results, {
+                map { $_ => $i->get_column($_) } @{$c->stash->{column}} 
+            });
+        }
+    } else {
+        @results = $rs->get_column($c->stash->{column})->all;
+    }
+    if (!$searchspec->{page}) {
+        my $pager = $c->stash->{rs}->pager;
         $c->stash->{pager} = $pager;
         $c->stash->{xmlrpc} = {
                 pages => $pager->last_page,
@@ -73,20 +86,7 @@ sub format_search : Private {
                 entries_per_page => $pager->entries_per_page,
         };
     }
-    $c->stash->{column} ||= 'pkgid';
-    if (ref $c->stash->{column}) {
-        my @results;
-        while (my $i = $rs->next) {
-            push(@results, {
-                map { $_ => $i->get_column($_) } @{$c->stash->{column}} 
-            });
-        }
-        $c->stash->{xmlrpc}{results} = \@results;
-    } else {
-        $c->stash->{xmlrpc}{results} = [
-            $rs->get_column($c->stash->{column})->all
-        ];
-    }
+    $c->stash->{xmlrpc}{results} = \@results;
     return $c->stash->{xmlrpc};
 }
 
