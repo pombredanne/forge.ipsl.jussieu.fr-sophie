@@ -26,6 +26,22 @@ sub index :Path :Args(0) {
     my ($self, $c) = @_;
 }
 
+sub results :Local {
+    my ( $self, $c ) = @_;
+
+    if ($c->req->param('page')) {
+        $c->req->params->{search} ||= $c->session->{search};
+    }
+
+    if ($c->req->param('search')) {
+        $c->session->{search} = $c->req->param('search');
+        $c->forward('quick', [
+                {
+                    page => $c->req->param('page'),
+                } , grep { $_ } split(/\s/, $c->req->param('search')) ]);
+    }
+}
+
 sub distrib_search : Private {
     my ( $self, $c, $searchspec ) = @_;
 
@@ -47,8 +63,9 @@ sub format_search : Private {
         },
     );
 
-    if (!$searchspec->{page}) {
+    if (1 || !$searchspec->{page}) {
         my $pager = $rs->pager;
+        $c->stash->{pager} = $pager;
         $c->stash->{xmlrpc} = {
                 pages => $pager->last_page,
                 current_page => $pager->current_page,
@@ -397,9 +414,6 @@ sub quick : XMLRPCPath('/search/rpm/quick') {
                     ])->get_column('pkgid')->as_query, }, 
 
 
-        },
-        {
-            %{$c->forward('search_param')},
         },
     );
     $c->forward('format_search', $searchspec);
