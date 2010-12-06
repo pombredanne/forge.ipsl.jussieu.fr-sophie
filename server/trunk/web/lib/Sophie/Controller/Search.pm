@@ -441,6 +441,7 @@ sub file_search : XMLRPCPath('/search/file/byname') {
     my ($dirname, $basename) = $file =~ m:^(.*/)?([^/]+)$:;
     $searchspec ||= {};
 
+    my @col = qw(dirname basename md5 size pkgid count);
     my $filers = $c->stash->{rs} = $c->model('Base::Files')
     ->search(
         {
@@ -449,15 +450,25 @@ sub file_search : XMLRPCPath('/search/file/byname') {
                     ? (dirname => $dirname)
                     : ()),
                 basename => $basename,
+                ($searchspec->{content} ? { has_content => 1 } : ()),
                 pkgid => {
                     IN => $c->forward('distrib_search',
                         [ $searchspec ])->get_column('pkgid')->as_query,
                 },
             ],
+        },
+        {
+            'select' => [ 'contents is NOT NULL as has_content',
+                'rpmfilesmode(mode) as perm', @col, '"group"',
+                '"user"' ],
+            as => [ qw(has_content perm), @col,
+                'group', 'user' ],
         }
     );
     
-    $c->stash->{column} = \qw(basename);
+    $c->stash->{column} = [
+        @col, qw(has_content perm user group)
+    ];
     
     $c->forward('format_search', $searchspec);
 }
