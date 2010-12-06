@@ -13,6 +13,7 @@ __PACKAGE__->config(
         Sophie->path_to( 'root', 'templates', 'includes' ),
         Sophie->path_to( 'root', 'templates', 'html' ),
     ],
+    PLUGIN_BASE => 'Sophie::Template::Plugin',
 );
 
 =head1 NAME

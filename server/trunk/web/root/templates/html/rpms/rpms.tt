@@ -1,4 +1,6 @@
 <!-- $Id$ -->
+[% USE 'GuessEncode' %]
+[% USE 'ObfuscateMail' %]
 
 <div id="sophie_info">
 <ul id="sophie_tag">
@@ -10,12 +12,12 @@
 <li class="tag">Distribution: [% xmlrpc.info.distribution | html %]</li>
 <li class="tag">Group: [% xmlrpc.info.group | html %]</li>
 <li class="tag">Url: <a href="[% xmlrpc.info.url | html %]">[% xmlrpc.info.url | html %]</a></li>
-<li class="tag">Summary: [% xmlrpc.info.summary | html %]</li>
+<li class="tag">Summary: [% xmlrpc.info.summary | guessencode | html %]</li>
 </ul>
 
 <h2>Description:</h2>
 <div id="sophie_rpm_description">
-[% xmlrpc.info.description | html | html_line_break %]
+[% xmlrpc.info.description | guessencode | html | html_line_break %]
 </div>
 </div>
 

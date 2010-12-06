@@ -15,6 +15,7 @@ __PACKAGE__->config(
     ],
     PRE_PROCESS => 'header.tt',
     POST_PROCESS => 'footer.tt',
+    PLUGIN_BASE => 'Sophie::Template::Plugin',
 );
 
 =head1 NAME
