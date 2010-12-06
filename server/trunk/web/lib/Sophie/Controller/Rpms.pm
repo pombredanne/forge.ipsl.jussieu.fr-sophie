@@ -60,19 +60,24 @@ sub info : XMLRPCLocal {
 
     my %info = ( pkgid => $pkgid );
     foreach (qw(name version release epoch url group size packager
-                url summary description sourcerpm license buildhost
-                pkgid builddate arch distribution)) {
+                url sourcerpm license buildhost
+                arch distribution)) {
         if (my $r = $c->model('base')->resultset('Rpms')->search(
             { pkgid => $pkgid },
             { 
-                select => [ qq{rpmqueryformat("header", ?)} ],
+                select => [ qq{rpmquery("header", ?)} ],
                 as => [ 'qf' ],
-                bind => [ "%{$_}" ],
+                bind => [ $_ ],
             }
             )->next) { 
             $info{$_} = $r->get_column('qf');
         }
     }
+    my $rpm = $c->model('base')->resultset('Rpms')->search(
+            { pkgid => $pkgid },
+        )->next;
+    $info{description} = $rpm->description;
+    $info{summary} = $rpm->summary;
 
     return $c->stash->{xmlrpc} = \%info;
 }
