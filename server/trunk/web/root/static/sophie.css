@@ -2,6 +2,7 @@
 
 div#sophie_header {
     border: outset;
+    background-color: #43A321;/*#4E8E21;/*#4EB560;/*#3F98FC;*/
 }
 
 #sophie_header p {
@@ -14,7 +15,7 @@ div#sophie_header {
 }
 
 div.sophie_package_list {
-    background: #F5F5DC;
+    background: #F5E0AB; /*F5F5DC;*/
     margin-top: 2em;
 }
 
@@ -52,4 +53,9 @@ pre.filedata {
     border: outset;
 }
 
-
+a:link {
+  color: #573B1D;/*#FAD170;  */
+}
+a:visited {
+  color: #F7B62D;/*#43A321;  */
+}
