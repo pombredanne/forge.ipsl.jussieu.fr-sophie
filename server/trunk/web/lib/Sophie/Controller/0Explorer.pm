@@ -33,7 +33,9 @@ sub dir :Local {
       ->search(
           {
               dirname => '/' . ($dir ? "$dir/" : ''),
-              pkgid => { IN => $rsdist->get_column('pkgid')->as_query, },
+              (grep { $_ } values %{ $c->session->{__explorer} }
+                ? (pkgid => { IN => $rsdist->get_column('pkgid')->as_query, })
+                : ())
           },
           {
               order_by => [ 'basename' ],
