@@ -78,6 +78,8 @@ sub info : XMLRPCLocal {
         )->next;
     $info{description} = $rpm->description;
     $info{summary} = $rpm->summary;
+    $info{src} = $rpm->issrc ? 1 : 0;
+    $info{evr} = $rpm->evr;
 
     return $c->stash->{xmlrpc} = \%info;
 }

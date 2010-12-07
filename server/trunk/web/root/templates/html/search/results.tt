@@ -1,3 +1,8 @@
+<!-- $Id$ -->
+
+[% USE 'GuessEncode' %]
+[% USE 'ObfuscateMail' %]
+
 <p>
 [% IF pager.current_page != pager.first_page %]
 <a href="[% c.uri_for('/', c.req.path, { 'page' => pager.first_page }) %]">First</a> 
@@ -18,7 +23,11 @@ pager.next_page %]</a>
 
 [% FOREACH pkgid = xmlrpc.results %]
 [% info = c.forward('/rpms/info', [ pkgid ]) %]
-<p><a href="[% c.uri_for('/rpms', pkgid) %]">[% info.name %]-[% info.version
-%]-[% info.release %].[% info.arch %]</a></p>
-<p>[% info.summary | html %]</p>
+<div class="sophie_package_list">
+<h2><a href="[% c.uri_for('/rpms', pkgid) %]">
+    [% info.name %]-[% info.version %]-[% info.release %].[% IF info.src %]src[% ELSE %][% info.arch %][% END %]</a></h2>
+<p>
+[% info.summary | guessencode | html %]
+</p>
+</div>
 [% END %]

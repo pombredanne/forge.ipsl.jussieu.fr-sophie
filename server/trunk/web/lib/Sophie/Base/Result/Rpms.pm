@@ -5,7 +5,7 @@ use warnings;
 use base qw(DBIx::Class::Core);
 
 __PACKAGE__->table('rpms');
-__PACKAGE__->add_columns(qw/pkgid summary description issrc name/);
+__PACKAGE__->add_columns(qw/pkgid summary description issrc name evr/);
 __PACKAGE__->set_primary_key(qw/pkgid/);
 __PACKAGE__->has_many(Rpmfile => 'Sophie::Base::Result::RpmFile', 'pkgid');
 __PACKAGE__->has_many(Deps => 'Sophie::Base::Result::Deps', 'pkgid');
