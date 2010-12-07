@@ -72,7 +72,16 @@ sub struct :XMLRPC {
 }
 
 sub distrib_rs : Private {
-    my ( $self, $c, $distrib ) = @_;
+    my ( $self, $c, $distrib, $asfilter ) = @_;
+    if ($asfilter && !(
+            $distrib->{distribution} ||
+            $distrib->{release} ||
+            $distrib->{arch} ||
+            $distrib->{media} ||
+            $distrib->{media_group})) {
+        return;
+    }
+
     return $c->model('Base')->resultset('Distribution')
         ->search(
             {

@@ -2,12 +2,7 @@
 [% USE 'GuessEncode' %]
 [% USE 'ObfuscateMail' %]
 
-[% FOREACH package = c.forward('/search/bydate', [
-    {
-    src => 1,
-    rows => 10,
-    },
-    1 ]) %]
+[% FOREACH package = xmlrpc %]
 
 <div class="sophie_package_list">
 <h2><a href="[% c.uri_for('/distrib', package.distribution, package.release,

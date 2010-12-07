@@ -67,7 +67,16 @@ The root page (/)
 sub index :Path :Args(0) {
     my ( $self, $c ) = @_;
 
-    # Hello World
+    $c->stash->{xmlrpc} = $c->forward(
+        '/search/bydate',
+        [
+            {
+                src => 1,
+                rows => 20,
+            },
+            1
+        ]
+    ); 
 }
 
 =head2 default

@@ -44,18 +44,24 @@ sub results :Local {
 }
 
 sub distrib_search : Private {
-    my ( $self, $c, $searchspec ) = @_;
+    my ( $self, $c, $searchspec, $asfilter ) = @_;
 
-    return $c->forward('/distrib/distrib_rs', [ $searchspec ])
-        ->search_related('MediasPaths')
-        ->search_related('Paths')
-        ->search_related('Rpmfiles');
+    # if asfilter is set, return undef if nothing would have been filter
+    if (my $rs = $c->forward('/distrib/distrib_rs', [ $searchspec, $asfilter ]))
+    {
+        return $rs
+            ->search_related('MediasPaths')
+            ->search_related('Paths')
+            ->search_related('Rpmfiles');
+        } else {
+            return;
+        }
 }
 
 sub format_search : Private {
     my ( $self, $c, $searchspec ) = @_;
-
     $searchspec ||= {};
+
     my $rs = $c->stash->{rs}->search(
         {},
         {
@@ -76,7 +82,7 @@ sub format_search : Private {
     } else {
         @results = $rs->get_column($c->stash->{column})->all;
     }
-    if (!$searchspec->{page}) {
+    if (1 || !$searchspec->{page}) {
         my $pager = $c->stash->{rs}->pager;
         $c->stash->{pager} = $pager;
         $c->stash->{xmlrpc} = {
@@ -160,6 +166,7 @@ the media containing this package
 
 sub bydate : XMLRPCPath('/search/rpms/bydate') {
     my ( $self, $c, $searchspec, $date ) = @_;
+    $searchspec ||= {};
 
     return $c->stash->{xmlrpc} = [
         map {
@@ -206,6 +213,9 @@ sub bydate : XMLRPCPath('/search/rpms/bydate') {
 
 sub bypkgid : XMLRPCPath('/search/rpm/bypkgid') {
     my ( $self, $c, $searchspec, $pkgid ) = @_;
+    $searchspec ||= {};
+
+    my $distrs = $c->forward('distrib_search', [ $searchspec, 1 ]);
 
     $c->stash->{rs} = $c->model('Base')->resultset('Rpms')->search(
         {
@@ -213,11 +223,10 @@ sub bypkgid : XMLRPCPath('/search/rpm/bypkgid') {
                 (exists($searchspec->{src})
                     ? { issrc => $searchspec->{src} ? 1 : 0 }
                     : ()),
-                { pkgid => $pkgid }, 
-                { pkgid =>
-                    { IN => $c->forward('distrib_search', [ $searchspec
-                        ])->get_column('pkgid')->as_query, }, 
-                },
+                { pkgid => $pkgid },
+                $distrs
+                    ? { pkgid => { IN => $distrs->get_column('pkgid')->as_query, } }
+                    : ()
             ]     
         },
     );
@@ -237,8 +246,10 @@ SEARCHSPEC is a struct with search options.
 
 sub byname : XMLRPCPath('/search/rpm/byname') {
     my ( $self, $c, $searchspec, $name, $sense, $evr ) = @_;
-
     $searchspec ||= {};
+
+    my $distrs = $c->forward('distrib_search', [ $searchspec, 1 ]);
+
     $c->stash->{rs} = $c->model('Base')->resultset('Rpms')->search(
         {
             -and => [ 
@@ -253,10 +264,9 @@ sub byname : XMLRPCPath('/search/rpm/byname') {
                         [ plain_text => $evr ],
                     ] }
                     : ()),
-                { pkgid =>
-                    { IN => $c->forward('distrib_search', [ $searchspec
-                        ])->get_column('pkgid')->as_query, }, 
-                },
+                $distrs
+                    ? { pkgid => { IN => $distrs->get_column('pkgid')->as_query, }, }
+                    : (),
             ]     
         },
     );
@@ -266,10 +276,12 @@ sub byname : XMLRPCPath('/search/rpm/byname') {
 
 sub bytag : XMLRPCPath('/search/rpm/bytag') {
     my ( $self, $c, $searchspec, $tag, $tagvalue ) = @_;
+    $searchspec ||= {};
 
     my $tagrs = $c->model('Base')->resultset('Tags')
         ->search({ tagname => lc($tag), value => $tagvalue})
         ->get_column('pkgid');
+    my $distrs = $c->forward('distrib_search', [ $searchspec, 1 ]);
     $c->stash->{rs} = $c->model('Base')->resultset('Rpms')->search(
         {
             -and => [ 
@@ -279,10 +291,9 @@ sub bytag : XMLRPCPath('/search/rpm/bytag') {
                 { pkgid => 
                     { IN => $tagrs->as_query, },
                 },
-                { pkgid =>
-                    { IN => $c->forward('distrib_search', [ $searchspec
-                        ])->get_column('pkgid')->as_query, }, 
-                },
+                $distrs
+                    ? { pkgid => { IN => $distrs->get_column('pkgid')->as_query, }, }
+                    : (),
             ]     
         },
     );
@@ -292,6 +303,9 @@ sub bytag : XMLRPCPath('/search/rpm/bytag') {
 
 sub bydep : XMLRPCPath('/search/rpm/bydep') {
     my ( $self, $c, $searchspec, $deptype, $depname, $depsense, $depevr ) = @_;
+    $searchspec ||= {};
+
+    my $distrs = $c->forward('distrib_search', [ $searchspec, 1 ]);
 
     my $deprs = $c->model('Base')->resultset('Deps')->search(
         {
@@ -315,10 +329,9 @@ sub bydep : XMLRPCPath('/search/rpm/bydep') {
                 { pkgid => 
                     { IN => $deprs->as_query, },
                 },
-                { pkgid =>
-                    { IN => $c->forward('distrib_search', [ $searchspec
-                        ])->get_column('pkgid')->as_query, }, 
-                },
+                $distrs
+                    ? { pkgid => { IN => $distrs->get_column('pkgid')->as_query, }, }
+                    : (),
             ]     
         },
     );
@@ -328,7 +341,9 @@ sub bydep : XMLRPCPath('/search/rpm/bydep') {
 sub byfile : XMLRPCPath('/search/rpm/byfile') {
     my ( $self, $c, $searchspec, $file) = @_;
     my ($dirname, $basename) = $file =~ m:^(.*/)?([^/]+)$:;
+    $searchspec ||= {};
 
+    my $distrs = $c->forward('distrib_search', [ $searchspec, 1 ]);
     my $filers = $c->model('Base')->resultset('Files')
     ->search({
             ($dirname
@@ -346,10 +361,9 @@ sub byfile : XMLRPCPath('/search/rpm/byfile') {
                 { pkgid => 
                     { IN => $filers->as_query, },
                 },
-                { pkgid =>
-                    { IN => $c->forward('distrib_search', [ $searchspec
-                        ])->get_column('pkgid')->as_query, }, 
-                },
+                $distrs
+                    ? { pkgid => { IN => $distrs->get_column('pkgid')->as_query, }, }
+                    : (),
             ]     
         },
     );
@@ -358,10 +372,12 @@ sub byfile : XMLRPCPath('/search/rpm/byfile') {
 
 sub fuzzy : XMLRPCPath('/search/rpm/fuzzy') {
     my ($self, $c, $searchspec, $name) = @_;
+    $searchspec ||= {};
 
     my $deprs = $c->model('Base')->resultset('Deps')->search(
         { deptype => 'P', depname => { '~*' => $name } }
     )->get_column('pkgid');
+    my $distrs = $c->forward('distrib_search', [ $searchspec, 1 ]);
 
     $c->stash->{rs} = 
 
@@ -380,13 +396,11 @@ sub fuzzy : XMLRPCPath('/search/rpm/fuzzy') {
 #                    },
                      ]
                 },
-                { pkgid =>
-                    { IN => $c->forward('distrib_search', [ $searchspec
-                        ])->get_column('pkgid')->as_query, }, 
-                },
+                $distrs
+                    ? { pkgid => { IN => $distrs->get_column('pkgid')->as_query, }, }
+                    : (),
             ]     
         },
-        $c->forward('search_param'),
     );
     
     $c->forward('format_search', $searchspec);
@@ -394,26 +408,28 @@ sub fuzzy : XMLRPCPath('/search/rpm/fuzzy') {
 
 sub quick : XMLRPCPath('/search/rpm/quick') {
     my ($self, $c, $searchspec, @keywords) = @_;
+    $searchspec ||= {};
     my $tsquery = join(' & ', map { $_ =~ s/ /\\ /g; $_ } @keywords);
+    
+    my $distrs = $c->forward('distrib_search', [ $searchspec, 1 ]);
+
     $c->stash->{rs} = $c->model('Base')->resultset('Rpms')->search(
             {
                 -or => [
-                    { -nest => \[
-                        "to_tsvector('english', description) @@ to_tsquery(?)",
-                        [ plain_text => $tsquery],
-                    ], },
+#                    { -nest => \[
+#                        "to_tsvector('english', description) @@ to_tsquery(?)",
+#                        [ plain_text => $tsquery],
+#                    ], },
                     {
-                    name => [ @keywords ],
+                    name => { '~*' => [ @keywords ] },
                     },
                 ],
             (exists($searchspec->{src})
                 ? (issrc => $searchspec->{src} ? 1 : 0)
                 : ()),
-            pkgid =>
-            { IN => $c->forward('distrib_search', [ $searchspec
-                    ])->get_column('pkgid')->as_query, }, 
-
-
+            ($distrs 
+                ? (pkgid => { IN => $distrs->get_column('pkgid')->as_query, },)
+                : ()),
         },
     );
     $c->forward('format_search', $searchspec);
@@ -421,7 +437,9 @@ sub quick : XMLRPCPath('/search/rpm/quick') {
 
 sub description : XMLRPCPath('/search/rpm/description') {
     my ($self, $c, $searchspec, @keywords) = @_;
+    $searchspec ||= {};
     my $tsquery = join(' & ', map { $_ =~ s/ /\\ /g; $_ } @keywords);
+    my $distrs = $c->forward('distrib_search', [ $searchspec, 1 ]);
     $c->stash->{rs} = $c->model('Base')->resultset('Rpms')->search(
         {
             -nest => \[
@@ -431,14 +449,11 @@ sub description : XMLRPCPath('/search/rpm/description') {
                 (exists($searchspec->{src})
                     ? (issrc => $searchspec->{src} ? 1 : 0)
                     : ()),
-                pkgid =>
-                    { IN => $c->forward('distrib_search', [ $searchspec
-                ])->get_column('pkgid')->as_query, }, 
-                
-          
+                ($distrs 
+                    ? (pkgid => { IN => $distrs->get_column('pkgid')->as_query, },)
+                    : ()),
         },
         {
-            %{$c->forward('search_param')},
             select => [ 
                 "ts_rank_cd(to_tsvector('english', description),to_tsquery(?)) as rank",
                 'pkgid'
@@ -446,7 +461,7 @@ sub description : XMLRPCPath('/search/rpm/description') {
             bind => [ $tsquery ], 
             order_by => [ 'rank desc', 'name', 'evr using >>', 'issrc' ],
         },
-    );
+    )->as_subselect_rs;
     $c->forward('format_search', $searchspec);
 }
 
