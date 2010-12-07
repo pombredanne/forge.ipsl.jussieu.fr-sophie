@@ -38,6 +38,7 @@ sub results :Local {
         $c->forward('quick', [
                 {
                     page => $c->req->param('page') || undef,
+                    src => 0,
                 } , grep { $_ } split(/\s/, $c->req->param('search')) ]);
 
     }
