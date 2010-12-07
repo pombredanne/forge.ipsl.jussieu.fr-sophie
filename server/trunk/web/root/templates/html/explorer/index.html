@@ -8,14 +8,34 @@
 [% c.prototype.observe_form('explorer_d',
     {
     url => c.uri_for('/ajax/forms/distribselect', { 'ajax' => 1 }),
-    frequency => 1,
+    frequency => 2,
     update => 'distribselect',
     }
 ) %]
 
+<div style="float: left; border: outset; width: 30%">
+<form action="#" method="POST">
+    Filter to file starting by: 
+    <input type="text" id="explorer_filter" name="filename">
+    <span id="explorer_filter_ind" style="display: none;">Re-Loading...</span>
+</form>
+[% c.prototype.observe_field(
+    'explorer_filter',
+    {
+    url => dirurl,
+    frequency => 2,
+    update => 'exp_dir',
+    with => '"ajax=1&filename=" + value',
+    indicator => 'explorer_filter_ind',
+    loading => 'document.getElementById("explorer_filter_ind").style.display = "";',
+    complete => 'document.getElementById("explorer_filter_ind").style.display = "none";',
+    }
+) %]
+<hr>
 
-<div id="exp_dir" style="float: left; border: outset; width: 30%">
+<div id="exp_dir" style="">
     Loading...
+</div>
 </div>
 <div id="exp_file" style="float: left; border: outset; width: 60%">
     Loading...
