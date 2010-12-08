@@ -1,0 +1,14 @@
+[% FOREACH f = list %]
+
+[% IF f.pkgid == pkgid %]
+[% IF loop.prev %]
+<a href="[% c.uri_for('/sources', rpm, filename, loop.prev.pkgid) %]">Prev</a>
+[% END %]
+[% IF loop.next %]
+<a href="[% c.uri_for('/sources', rpm, filename, loop.next.pkgid) %]">Next</a>
+[% END %]
+[% END %]
+
+[% END %]
+
+[% INCLUDE 'sources/rpm_sources_file_pkg.tt' %]

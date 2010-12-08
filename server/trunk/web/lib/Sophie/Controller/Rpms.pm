@@ -250,7 +250,7 @@ sub files_contents :Chained('rpms_') :PathPart('files') :Args(1) {
     $c->stash->{rpmurl} = ($c->req->path =~ m:(.*)/[^/]+/[^/]+:)[0];
     my $pkgid = $c->stash->{pkgid};
 
-    $c->stash->{xmlrpc} = $c->model('Base')->resultset('Files')->search(
+    $c->stash->{xmlrpc} = $c->model('Base::Files')->search(
         {
             pkgid => $pkgid,
             count => $number,

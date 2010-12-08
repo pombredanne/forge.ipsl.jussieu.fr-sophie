@@ -24,7 +24,21 @@ Catalyst Controller.
 sub index :Path :Args(0) {
     my ( $self, $c ) = @_;
 
-    $c->response->body('Matched Sophie::Controller::Sources in Sources.');
+    if ($c->req->param('search')) {
+        $c->stash->{xmlrpc} = [ $c->model('Base::Rpms')
+        ->search(
+            {
+                name => { 'LIKE' => $c->req->param('search') . '%' },
+                issrc => 1,
+            },
+            {
+                group_by => [ qw(name) ],
+                select => [ qw(name) ],
+            }
+        )->get_column('name')->all ];
+    } else {
+        $c->stash->{xmlrpc} = [];
+    }
 }
 
 sub srcfiles : XMLRPCLocal {
@@ -91,27 +105,62 @@ sub srcfilesbyfile : XMLRPCLocal {
             }
         )->search_related('SrcFiles')->search(
             {
-                #has_content => 1,
+                has_content => 1,
                 basename => $filename,
             },
             {
+                    '+columns' => [ qw(me.evr) ],
                     order_by => [ 'evr using >>' ],
             }
         )->all ];
 
 }
 
-sub rpm_sources :Path :Args(1) {
+sub rpm_sources_ :PathPrefix :Chained :CaptureArgs(1) {
+    my ($self, $c, $rpm) = @_;
+    $c->stash->{rpm} = $rpm;
+}
+
+sub rpm_sources :Chained('rpm_sources_') :PathPart('') :Args(0) {
     my ($self, $c, $rpm) = @_;
 
-    $c->forward('srcfiles', [ {}, $rpm ]);
+    $c->forward('srcfiles', [ {}, $c->stash->{rpm} ]);
 
 }
 
-sub rpm_sources_file :Path :Args(2) {
-    my ($self, $c, $rpm, $filename) = @_;
+sub rpm_sources_file_ :Chained('rpm_sources_') :PathPart('') :CaptureArgs(1) {
+    my ($self, $c, $filename) = @_;
+    $c->stash->{filename} = $filename;
 
-    $c->forward('srcfilesbyfile', [ {}, $rpm, $filename ]);
+    $c->stash->{list} = $c->forward('srcfilesbyfile', [ {},
+        $c->stash->{rpm}, $c->stash->{filename} ] );
+}
+
+sub rpm_sources_file :Chained('rpm_sources_file_') :PathPart('') :Args(0) {
+    my ($self, $c ) = @_;
+
+    #$c->forward('srcfilesbyfile', [ {},
+    #        $c->stash->{rpm}, $c->stash->{filename} ] );
+
+}
+
+sub rpm_sources_file_pkg_ :Chained('rpm_sources_file_') :PathPart('') :CaptureArgs(1) {
+    my ($self, $c, $pkgid) = @_;
+    $c->stash->{pkgid} = $pkgid;
+    $c->stash->{xmlrpc} = { $c->model('Base::SrcFiles')->find(
+        {
+
+            pkgid => $c->stash->{pkgid},
+            basename => $c->stash->{filename},
+        },
+        {
+            '+columns' => ['contents'],
+        }
+    )->get_columns };
+}
+
+sub rpm_sources_file_pkg :Chained('rpm_sources_file_pkg_') :PathPart('') :Args(0) {
+    my ($self, $c) = @_;
 
 }
 

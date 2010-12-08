@@ -7,19 +7,20 @@
 
 <tr>
 <!-- <td class="filename">[% file.size %]</td> -->
-<td class="filename">[% file.evr %]</td>
 <td class="filename">
     [% IF file.has_content %]
-    <a href="[% c.uri_for('/rpms', file.pkgid, 'files', file.count) %]">
+    <a href="[% c.uri_for('/', c.req.path, file.pkgid) %]">
     [% file.basename | html %]
     </a>
     [% ELSE %]
     [% file.basename | html %]
     [% END %]
 </td>
+<td class="filename">[% file.evr %]</td>
 <td>
 [% FOREACH loc = c.forward('/rpms/location', [ file.pkgid ]) %]
-[% loc.distribution %] [% loc.release %] [% loc.arch %]<br>
+[% loc.distribution %] [% loc.release %] [% loc.arch %]
+[% '; ' IF NOT loop.last %]
 [% END %]
 </td>
 </tr>
@@ -27,4 +28,10 @@
 [% IF loop.last %]
 </table>
 [% END %]
+[% END %]
+
+[% IF xmlrpc.size == 1 %]
+[% pkgid = xmlrpc.0.pkgid %]
+[% file = c.forward('/sources/rpm_sources_file_pkg_', [ xmlrpc.0.pkgid ]) %]
+[% INCLUDE 'sources/rpm_sources_file_pkg.tt', xmlrpc = file %]
 [% END %]

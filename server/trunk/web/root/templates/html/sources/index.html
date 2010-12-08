@@ -1,0 +1,16 @@
+<p>Search source rpm having name starting by:</p>
+<form action="[% c.uri_for('/sources') %]" method="POST">
+    <input type="text" name="search" value="[% c.req.param('search') | html %]">
+    <input type="submit">
+</form>
+
+[% FOREACH rpm = xmlrpc %]
+[% IF loop.first %]
+<ul>
+[% END %]
+<li><a href="[% c.uri_for('/sources', rpm) %]">[% rpm | html %]</a></li>
+[% IF loop.last %]
+</ul>
+[% END %]
+
+[% END %]
