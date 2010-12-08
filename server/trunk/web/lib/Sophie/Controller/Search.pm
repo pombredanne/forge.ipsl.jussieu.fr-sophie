@@ -24,6 +24,27 @@ Catalyst Controller.
 
 sub index :Path :Args(0) {
     my ($self, $c) = @_;
+
+    if ($c->req->param('page')) {
+        $c->req->params->{search} = $c->session->{search};
+        $c->req->params->{type} = $c->session->{type};
+    } else {
+        $c->session->{search} = $c->req->params->{search};
+        $c->session->{type} = $c->req->params->{type};
+    }
+
+    my $searchspec = {
+        page => $c->req->param('page') || undef,
+    };
+
+    for ($c->req->param('type')) {
+        /^byname$/ and do {
+            $c->forward('byname', [ $searchspec, $c->req->param('search') ||
+                    undef ]);
+            last;
+        };
+    }
+
 }
 
 sub results :Local {
@@ -270,6 +291,9 @@ sub byname : XMLRPCPath('/search/rpm/byname') {
                     : (),
             ]     
         },
+        {
+                order_by => [ 'name', 'evr using >>', 'issrc' ],
+        }
     );
     $c->forward('format_search', $searchspec);
 

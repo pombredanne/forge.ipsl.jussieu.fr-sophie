@@ -6,3 +6,5 @@
 </select>
 <input type="submit">
 </form>
+
+[% INCLUDE 'search/results.tt' %]
