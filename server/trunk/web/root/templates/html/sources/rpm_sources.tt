@@ -1,0 +1,26 @@
+<!-- $Id$ -->
+
+[% FOREACH file = xmlrpc %]
+[% IF loop.first %]
+<table>
+[% END %]
+
+<tr>
+<!-- <td class="filename">[% file.size %]</td> -->
+<td class="filename">[% file.evr %]</td>
+<td class="filename">
+    <a href="[% c.uri_for('/', c.req.path, file.basename) %]">
+    [% file.basename | html %]
+    </a>
+</td>
+<td>
+[%# FOREACH loc = c.forward('/rpms/location', [ file.pkgid ]) %]
+[% loc.distribution %] [% loc.release %] [% loc.arch %]<br>
+[%# END %]
+</td>
+</tr>
+
+[% IF loop.last %]
+</table>
+[% END %]
+[% END %]
