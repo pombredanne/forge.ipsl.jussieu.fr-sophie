@@ -54,14 +54,16 @@ sub tag : XMLRPCLocal {
     )->all ]
 }
 
-
-sub info : XMLRPCLocal {
+sub basicinfo : XMLRPCLocal {
     my ($self, $c, $pkgid) = @_;
 
-    my %info = ( pkgid => $pkgid );
-    foreach (qw(name version release epoch url group size packager
-                url sourcerpm license buildhost
-                arch distribution)) {
+    my $rpm = $c->model('base::Rpms')->find(
+        { pkgid => $pkgid },
+    );
+    $rpm or return;
+    my %info = $rpm->get_columns;
+    $info{src} = $info{issrc} ? 1 : 0;
+    foreach (qw(version release arch)) {
         if (my $r = $c->model('base')->resultset('Rpms')->search(
             { pkgid => $pkgid },
             { 
@@ -73,15 +75,32 @@ sub info : XMLRPCLocal {
             $info{$_} = $r->get_column('qf');
         }
     }
-    my $rpm = $c->model('base')->resultset('Rpms')->search(
-            { pkgid => $pkgid },
-        )->next;
-    $info{description} = $rpm->description;
-    $info{summary} = $rpm->summary;
-    $info{src} = $rpm->issrc ? 1 : 0;
-    $info{evr} = $rpm->evr;
 
     return $c->stash->{xmlrpc} = \%info;
+}
+
+
+sub info : XMLRPCLocal {
+    my ($self, $c, $pkgid) = @_;
+
+
+    my $info = $c->forward('basicinfo', [ $pkgid ]);
+    foreach (qw(name epoch url group size packager
+                url sourcerpm license buildhost
+                distribution)) {
+        if (my $r = $c->model('base')->resultset('Rpms')->search(
+            { pkgid => $pkgid },
+            { 
+                select => [ qq{rpmquery("header", ?)} ],
+                as => [ 'qf' ],
+                bind => [ $_ ],
+            }
+            )->next) { 
+            $info->{$_} = $r->get_column('qf');
+        }
+    }
+
+    return $c->stash->{xmlrpc} = $info;
 }
 
 
