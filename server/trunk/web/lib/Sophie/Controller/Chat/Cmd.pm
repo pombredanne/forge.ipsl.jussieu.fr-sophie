@@ -26,6 +26,8 @@ Catalyst Controller.
 
 =head2 REPLY
 
+=head1 AVAILLABLE FUNCTIONS
+
 =cut
 
 sub _commands {
@@ -43,19 +45,38 @@ sub _getopt : Private {
     return \@ARGV;
 }
 
+=head2 help [cmd]
 
+Return help about command cmd or list availlable command. 
 
+=cut
 
 sub help : XMLRPC {
-    my ( $self, $c, $reqspec, @args ) = @_;
-    return $c->{stash}->{xmlrpc} = {
-        private_reply => 1,
-        message => [
-            'availlable command:',
-            join(', ', grep { $_ !~ /^end$/ } @{ $self->_commands }),
-        ],
+    my ( $self, $c, $reqspec, $cmd ) = @_;
+    if ($cmd) {
+        my @message = grep { /\S+/ } split(/\n/,
+            $c->model('Help::POD')->bot_help_text($cmd) || 'No help availlable');
+        return $c->{stash}->{xmlrpc} = {
+            private_reply => 1,
+            message => \@message,
+        };
+    } else {
+        return $c->{stash}->{xmlrpc} = {
+            private_reply => 1,
+            message => [
+                'availlable command:',
+                join(', ', grep { $_ !~ /^end$/ } @{ $self->_commands }),
+            ],
+        }
     }
 }
+
+=head2 asv
+
+ASV means in french "age, sexe, ville" (age, sex and town).
+Return the version of the Chat module version.
+
+=cut
 
 sub asv : XMLRPC {
     my ( $self, $c ) = @_;
@@ -86,6 +107,11 @@ sub version : XMLRPC {
     return $c->stash->{xmlrpc} = {
         message => \@message,
     }
+}
+
+sub v : XMLRPC {
+    my ($self, $c, @args) = @_;
+    $c->forward('version', [ @args ]);
 }
 
 sub end : Private {

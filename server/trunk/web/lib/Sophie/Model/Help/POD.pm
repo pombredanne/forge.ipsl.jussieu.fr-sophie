@@ -4,6 +4,7 @@ use namespace::autoclean;
 use Pod::Find;
 use Pod::POM;
 use Pod::POM::View::HTML;
+use Pod::POM::View::Text;
 
 extends 'Catalyst::Model';
 
@@ -30,6 +31,31 @@ sub pom {
     my ($self) = @_;
     return values %{ $self->{pom} }
 }
+
+sub bot_functions {
+    my ($self) = @_;
+    my $botpom = $self->{pom}{'Chat::Cmd'};
+    foreach my $head1 ($botpom->content) {
+        $head1->title eq 'AVAILLABLE FUNCTIONS' or next;
+        return map { $_->title } $head1->content;
+    }
+}
+
+sub bot_help_text {
+    my ($self, $cmd) = @_;
+    my $botpom = $self->{pom}{'Chat::Cmd'};
+    foreach my $head1 ($botpom->content) {
+        $head1->title eq 'AVAILLABLE FUNCTIONS' or next;
+        foreach ($head1->content) {
+            $_->title =~ /^\Q$cmd\E( |$)/ or next;
+            my $ppvt = Pod::POM::View::Text->new;
+            return $_->present($ppvt);
+        }
+        last;
+    }
+    return;
+}
+
 
 sub xmlrpc_functions {
     my ($self) = @_;
