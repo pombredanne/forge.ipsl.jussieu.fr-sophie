@@ -34,6 +34,7 @@ sub index :Path :Args(0) {
             {
                 group_by => [ qw(name) ],
                 select => [ qw(name) ],
+                order_by => [ qw(name) ],
             }
         )->get_column('name')->all ];
     } else {
