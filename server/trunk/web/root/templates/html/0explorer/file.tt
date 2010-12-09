@@ -6,7 +6,7 @@
 [% IF loop.first %]
 <table>
 [% END %]
-[% info = c.forward('/rpms/info', [ file.pkgid ]) %]
+[% info = c.forward('/rpms/basicinfo', [ file.pkgid ]) %]
 <tr><td colspan="6">
 <a href="[% c.uri_for('/rpms', file.pkgid) %]">
     [% info.name | html %]-[% info.version %]-[% info.release %].[% info.arch %]

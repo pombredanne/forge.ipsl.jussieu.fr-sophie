@@ -27,14 +27,15 @@ sub dir :Local {
     $c->stash->{path} = $dir;
     $c->stash->{explorerurl} = '/explorer' . ($dir ? "/$dir" : '');
 
-    my $rsdist = $c->forward('/search/distrib_search', [ $c->session->{__explorer} ]);
+    my $rsdist = $c->forward('/search/distrib_search', [
+            $c->session->{__explorer}, 1 ]);
     $c->stash->{xmlrpc} = [ $c->model('Base')
       ->resultset('Files')
       ->search(
           {
               dirname => '/' . ($dir ? "$dir/" : ''),
-              (grep { $_ } values %{ $c->session->{__explorer} }
-                ? (pkgid => { IN => $rsdist->get_column('pkgid')->as_query, })
+              ($rsdist 
+                ? (pkgid => { IN => $rsdist->get_column('pkgid')->as_query, },)
                 : ()),
               ($c->req->param('filename')
                   ? ( basename => { LIKE => $c->req->param('filename') . '%' } )
@@ -55,7 +56,8 @@ sub file :Local {
     $c->stash->{path} = $dir;
     $c->stash->{explorerurl} = '/explorer' . ($dir ? "/$dir" : '');
 
-    my $rsdist = $c->forward('/search/distrib_search', [ $c->session->{__explorer} ]);
+    my $rsdist = $c->forward('/search/distrib_search', [
+            $c->session->{__explorer}, 1 ]);
 
     my @col = qw(dirname basename md5 size pkgid count);
     $c->stash->{xmlrpc} = [ 
@@ -66,7 +68,9 @@ sub file :Local {
       ->resultset('Files')
       ->search({
               dirname => '/' . ($dir ? "$dir/" : ''), basename => $basename,
-              pkgid => { IN => $rsdist->get_column('pkgid')->as_query, },
+              ($rsdist 
+                ? (pkgid => { IN => $rsdist->get_column('pkgid')->as_query, },)
+                : ())
           },
           { 
               'select' => [ 'contents is NOT NULL as has_content', 'rpmfilesmode(mode) as perm', @col, '"group"',
