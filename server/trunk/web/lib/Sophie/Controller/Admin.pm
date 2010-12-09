@@ -176,6 +176,26 @@ sub ls_local : XMLRPC {
     $c->stash->{xmlrpc} = [ <$path*> ];
 }
 
+sub replace_path : XMLRPC {
+    my ($self, $c, $path, $newpath) = @_;
+
+    my $dpath = $c->model('Base::Paths')->find({
+        path => $path,
+    }) or do {
+        return $c->stash->{xmlrpc} = 'Path not found';
+    };
+
+    $newpath =~ s/\/*$//;
+
+    $dpath->update(
+        {
+            updated => undef,
+            path => $newpath,
+        }
+    ) and $c->model('Base')->storage->dbh->commit;
+    return $c->stash->{xmlrpc} = 'OK';
+}
+
 sub dump_distrib : XMLRPC {
     my ($self, $c, $distribution, $version, $arch) = @_;
     
