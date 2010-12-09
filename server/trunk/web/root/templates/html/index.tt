@@ -9,7 +9,7 @@
     package.arch, 'by-pkgid',  package.pkgid) %]">
     [% package.filename %]</a></h2>
 <p>
-[% c.forward('/rpms/info', [ package.pkgid ]).summary | guessencode | html %]
+[% c.forward('/rpms/basicinfo', [ package.pkgid ]).summary | guessencode | html %]
 </p>
 <p>[% package.distribution | html %] - [% package.release | html %] -
     [% package.arch | html %] / [% package.media | html %]
