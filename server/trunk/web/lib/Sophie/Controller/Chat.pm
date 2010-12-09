@@ -29,6 +29,15 @@ sub index :Path :Args(0) {
 
 }
 
+sub viewpaste :Path :Args(1) {
+    my ($self, $c, $pasteid) = @_;
+
+    $c->forward('get_paste', [ $pasteid ]);
+    if (! $c->stash->{xmlrpc}) {
+        $c->go('/404/index');
+    }
+}
+
 sub message : XMLRPC {
     my ($self, $c, $contexts, $message, @msgargs) = @_;
     
@@ -68,6 +77,38 @@ sub message : XMLRPC {
         $c->stash->{xmlrpc} = {
             error => 'No such command',
         };
+    }
+}
+
+sub paste : XMLRPCLocal {
+    my ($self, $c, $title, $text) = @_;
+
+    my @char = ('a' .. 'z', 'A' .. 'Z', 0 .. 9);
+    my $id = join('', map { $char[rand(@char)] } (0..7));
+    $c->model('Base::ChatPaste')->create(
+        {
+            id => $id,
+            user_id => $c->model('Base::Users')->find(
+                { mail => $c->user->mail })->ukey,
+            title => $title,
+            reply => $text,
+        }
+    );
+    $c->model('Base')->storage->dbh->commit;
+    $c->stash->{xmlrpc} = $id;
+}
+
+sub get_paste : XMLRPCLocal {
+    my ($self, $c, $id) = @_;
+
+    my $paste = $c->model('Base::ChatPaste')->find(
+            { id => $id, },
+            { select => [ qw(whenpaste title reply) ], }
+        );
+    if ($paste) {
+        return $c->stash->{xmlrpc} = { $paste->get_columns };
+    } else {
+        return $c->stash->{xmlrpc} = undef;
     }
 }
 
