@@ -29,24 +29,29 @@ sub dir :Local {
 
     my $rsdist = $c->forward('/search/distrib_search', [
             $c->session->{__explorer}, 1 ]);
-    $c->stash->{xmlrpc} = [ $c->model('Base')
-      ->resultset('Files')
-      ->search(
-          {
-              dirname => '/' . ($dir ? "$dir/" : ''),
-              ($rsdist 
-                ? (pkgid => { IN => $rsdist->get_column('pkgid')->as_query, },)
-                : ()),
-              ($c->req->param('filename')
-                  ? ( basename => { LIKE => $c->req->param('filename') . '%' } )
-                  : ()),
-          },
-          {
-              order_by => [ 'basename' ],
-              group_by => [ 'basename' ], 
-              select => [ 'basename' ],
-          }
-      )->get_column('basename')->all ];
+    my %uniq;
+    foreach (
+        $c->model('Base')
+        ->resultset('Files')
+        ->search(
+            {
+                dirname => '/' . ($dir ? "$dir/" : ''),
+                ($rsdist 
+                    ? (pkgid => { IN => $rsdist->get_column('pkgid')->as_query, },)
+                    : ()),
+                ($c->req->param('filename')
+                    ? ( basename => { LIKE => $c->req->param('filename') . '%' } )
+                    : ()),
+            },
+            {
+                #order_by => [ 'basename' ],
+                #group_by => [ 'basename' ], 
+                select => [ 'basename' ],
+            }
+        )->get_column('basename')->all) {
+        $uniq{$_} = 1;
+    }
+    $c->stash->{xmlrpc} = [ sort keys %uniq ]; 
 }
 
 sub file :Local {
