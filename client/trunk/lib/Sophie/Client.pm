@@ -15,7 +15,7 @@ sub new {
     my $self = $class->SUPER::new(
         $options{server} || 'http://sophie2.aero.jussieu.fr/rpc'
     );
-    $self->timeout(10);
+    $self->timeout(20);
     $self->{options} = { %options };
 
     if ($options{login}) {

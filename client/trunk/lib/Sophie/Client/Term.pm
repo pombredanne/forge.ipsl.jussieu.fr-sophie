@@ -33,6 +33,7 @@ sub run {
             return;
         };
         $self->handle_message(undef, undef, $line);
+        $term->addhistory($line);
     }
 }
 
