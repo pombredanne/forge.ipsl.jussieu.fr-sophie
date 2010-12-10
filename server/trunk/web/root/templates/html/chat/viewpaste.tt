@@ -1,0 +1,7 @@
+<!-- $Id$ -->
+
+<p>[% xmlrpc.title %]</p>
+
+<pre class="filedata">
+[% xmlrpc.reply | html %]
+</pre>
