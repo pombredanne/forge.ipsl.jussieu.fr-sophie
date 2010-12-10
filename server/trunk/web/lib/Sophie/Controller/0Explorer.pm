@@ -1,6 +1,8 @@
 package Sophie::Controller::0Explorer;
 use Moose;
 use namespace::autoclean;
+use DBD::Pg qw(:async);
+use Sophie::Base::Async;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -30,27 +32,40 @@ sub dir :Local {
     my $rsdist = $c->forward('/search/distrib_search', [
             $c->session->{__explorer}, 1 ]);
     my %uniq;
-    foreach (
-        $c->model('Base')
-        ->resultset('Files')
-        ->search(
-            {
-                dirname => '/' . ($dir ? "$dir/" : ''),
-                ($rsdist 
-                    ? (pkgid => { IN => $rsdist->get_column('pkgid')->as_query, },)
-                    : ()),
-                ($c->req->param('filename')
-                    ? ( basename => { LIKE => $c->req->param('filename') . '%' } )
-                    : ()),
-            },
-            {
-                #order_by => [ 'basename' ],
-                #group_by => [ 'basename' ], 
-                select => [ 'basename' ],
-            }
-        )->get_column('basename')->all) {
-        $uniq{$_} = 1;
+
+    my $query = Sophie::Base::Async->new(
+        $c->model('Base'),
+        timeout => 10,
+        build => sub { $_[0]
+            ->resultset('Files')
+            ->search(
+                {
+                    dirname => '/' . ($dir ? "$dir/" : ''),
+                    ($rsdist 
+                        ? (pkgid => { IN => $rsdist->get_column('pkgid')->as_query, },)
+                        : ()),
+                    ($c->req->param('filename')
+                        ? ( basename => { LIKE => $c->req->param('filename') . '%' } )
+                        : ()),
+                },
+                {
+                    #order_by => [ 'basename' ],
+                    #group_by => [ 'basename' ], 
+                    select => [ 'basename' ],
+                }
+            )
+            ->get_column('basename')
+        },
+    );
+
+    if(my $sth = $query->wait_result) {
+        while (my $res = $sth->fetchrow_hashref()) {
+            $uniq{$res->{basename}} = 1;
+        }
+    } else {
+        $c->stash->{timeout} = 1;
     }
+
     $c->stash->{xmlrpc} = [ sort keys %uniq ]; 
 }
 
