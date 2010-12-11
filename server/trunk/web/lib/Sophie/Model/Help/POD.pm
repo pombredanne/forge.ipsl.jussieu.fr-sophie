@@ -56,6 +56,32 @@ sub bot_help_text {
     return;
 }
 
+sub bot_help_html {
+    my ($self, $cmd) = @_;
+    my $botpom = $self->{pom}{'Chat::Cmd'};
+    foreach my $head1 ($botpom->content) {
+        $head1->title eq 'AVAILLABLE FUNCTIONS' or next;
+        foreach ($head1->content) {
+            $_->title =~ /^\Q$cmd\E( |$)/ or next;
+            my $ppvh = Pod::POM::View::HTML->new;
+            return $_->present($ppvh);
+        }
+        last;
+    }
+    return;
+}
+
+sub chat_functions {
+    my ($self) = @_;
+    my $botpom = $self->{pom}{'Chat::Cmd'};
+    foreach my $head1 ($botpom->content) {
+        $head1->title eq 'AVAILLABLE FUNCTIONS' or next;
+        my $ppvh = Pod::POM::View::HTML->new;
+        return $head1->present($ppvh);
+    }
+    return;
+}
+
 
 sub xmlrpc_functions {
     my ($self) = @_;
