@@ -1,0 +1,21 @@
+<!-- $Id$ -->
+
+<p><a href="[% c.uri_for('/rpms', pkgid) %]">rpms/[% pkgid %]</a></p>
+
+[% FOREACH loc = xmlrpc %]
+[% IF loop.first %]
+<ul>
+[% END %]
+
+<li>
+<a href="[% c.uri_for('/distrib', loc.distribution, loc.release,
+loc.arch, 'by-pkgid', pkgid) %]">
+[% loc.distribution | html %] / [% loc.release | html %] /
+[% loc.arch | html %] / [% loc.media | html %]
+</a>
+</li>
+
+[% IF loop.last %]
+</ul>
+[% END %]
+[% END %]

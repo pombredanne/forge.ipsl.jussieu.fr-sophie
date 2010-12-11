@@ -130,38 +130,6 @@ sub deps : XMLRPCLocal {
         )->all;
 }
 
-=head2 rpms.location (PKGID)
-
-Return all distribution where the package having C<PKGID> can be found.
-
-=cut
-
-sub location : XMLRPCLocal {
-    my ($self, $c, $pkgid) = @_;
-
-    $c->stash->{xmlrpc} = [
-        map {
-        {
-            distribution => $_->get_column('name'),
-            release => $_->get_column('version'),
-            arch => $_->get_column('arch'), 
-            media => $_->get_column('label'),
-            media_group => $_->get_column('group_label'),
-        }
-        }
-        $c->forward('/distrib/distrib_rs', [ {} ])
-         ->search_related('MediasPaths')
-                 ->search_related('Paths')
-        ->search_related('Rpmfiles',
-            { pkgid => $pkgid },
-            {
-                select => [ qw(name version arch label group_label) ],
-            }
-        )->all ]
-
-
-}
-
 sub rpms_ :PathPrefix :Chained :CaptureArgs(1) {
     my ( $self, $c, $pkgid ) = @_;
     $c->stash->{pkgid} = $pkgid if($pkgid);
@@ -177,14 +145,15 @@ sub rpms_ :PathPrefix :Chained :CaptureArgs(1) {
 
 sub rpms : Private {
     my ( $self, $c, $pkgid, $subpart, @args) = @_;
-    $c->stash->{rpmurl} = $c->req->path;
     # Because $c->forward don't take into account Chained sub
     $c->forward('rpms_', [ $pkgid ]);
     for ($subpart || '') {
         /^deps$/      and $c->go('alldeps',   [ $pkgid, @args ]);
         /^files$/     and $c->go('files',     [ $pkgid, @args ]);
         /^changelog$/ and $c->go('changelog', [ $pkgid, @args ]);
+        /^location$/  and $c->go('location',  [ $pkgid, @args ]);
     }
+    $c->stash->{rpmurl} = $c->req->path;
 
     return $c->stash->{xmlrpc} = $c->stash->{rpms};
 }
@@ -280,7 +249,7 @@ sub files_contents :Chained('rpms_') :PathPart('files') :Args(1) {
     )->get_column('contents')->first;
 }
 
-sub changelog :Chained('rpms_') :PathPart('changelog') :Args(0) {
+sub changelog :Chained('rpms_') :PathPart('changelog') :Args(0) :XMLRPCLocal {
     my ( $self, $c, $pkgid ) = @_;
     $pkgid ||= $c->stash->{pkgid};
     $c->stash->{rpmurl} = ($c->req->path =~ m:(.*)/[^/]+:)[0];
@@ -307,6 +276,40 @@ sub changelog :Chained('rpms_') :PathPart('changelog') :Args(0) {
     }
 
     $c->stash->{xmlrpc} = \@ch;
+}
+
+=head2 rpms.location (PKGID)
+
+Return all distribution where the package having C<PKGID> can be found.
+
+=cut
+
+sub location :Chained('rpms_') :PathPart('location') :Args(0) {
+    my ( $self, $c, $pkgid ) = @_;
+    $pkgid ||= $c->stash->{pkgid};
+    $c->stash->{rpmurl} = ($c->req->path =~ m:(.*)/[^/]+:)[0];
+
+    $c->stash->{xmlrpc} = [
+        map {
+        {
+            distribution => $_->get_column('name'),
+            dist => $_->get_column('shortname'),
+            release => $_->get_column('version'),
+            arch => $_->get_column('arch'), 
+            media => $_->get_column('label'),
+            media_group => $_->get_column('group_label'),
+        }
+        }
+        $c->forward('/distrib/distrib_rs', [ {} ])
+         ->search_related('MediasPaths')
+                 ->search_related('Paths')
+        ->search_related('Rpmfiles',
+            { pkgid => $pkgid },
+            {
+                select => [ qw(shortname name version arch label group_label) ],
+                order_by => [ qw(name version arch label) ],
+            }
+        )->all ]
 }
 
 =head1 AUTHOR
