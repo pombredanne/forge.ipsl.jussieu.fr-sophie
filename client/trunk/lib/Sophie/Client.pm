@@ -19,14 +19,7 @@ sub new {
     $self->{options} = { %options };
 
     if ($options{login}) {
-        my $res = $self->send_request('login',
-            $options{login},
-            $options{password});
-        if (ref $res) {
-            $self->request->header('cookie', $$res);
-        } else {
-            die "Can't login";
-        }
+        login($self) or die "Can't login";
     }
 
     my $realclass = $class . '::' . ($options{type} || 'Term');
@@ -34,6 +27,24 @@ sub new {
     eval "require $realclass;";
     return if($@);
     bless($self, $realclass);
+}
+
+sub login {
+    my ($self) = @_;
+    my %options = %{ $self->{options} };
+    if ($options{login}) {
+        my $res = $self->send_request('login',
+            $options{login},
+            $options{password});
+        if (ref $res) {
+            $self->request->header('cookie', $$res);
+            return 1;
+        } else {
+            return;
+        }
+    } else {
+        return;
+    }
 }
 
 sub get_var {
@@ -62,6 +73,7 @@ sub set_var {
 sub handle_message {
     my ($self, $heap, $context, $message) = @_;
 
+    $self->login;
     $self->submit_query($heap, $context, $message);
 }
 
