@@ -53,6 +53,15 @@ div.sophie_package_list {
     margin-top: 2em;
 }
 
+.sophie_help h2 {
+    font-size: 1.2em;
+    background-color: #EFF3F7;
+}
+
+.sophie_help code {
+    background-color: #FFFFC0;
+}
+
 .sophie_package_list h2 {
     margin-top: 0em;
     margin-bottom: 0.5em;

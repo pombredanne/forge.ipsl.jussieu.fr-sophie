@@ -166,7 +166,7 @@ sub version : XMLRPC {
 
 =head2 v
 
-C<v> is an alias for C<version> command.
+C<v> is an alias for L<version> command.
 
 =cut
 
