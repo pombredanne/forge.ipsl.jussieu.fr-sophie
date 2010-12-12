@@ -103,7 +103,6 @@ sub info : XMLRPCLocal {
     return $c->stash->{xmlrpc} = $info;
 }
 
-
 sub deps : XMLRPCLocal {
     my ($self, $c, $pkgid, $deptype) = @_;
 
@@ -128,6 +127,47 @@ sub deps : XMLRPCLocal {
 
             },
         )->all;
+}
+
+sub sources : XMLRPCLocal {
+    my ( $self, $c, $pkgid ) = @_;
+
+    my $sourcerpm = $c->forward('queryformat', [ $pkgid, '%{SOURCERPM}' ]);
+
+    $c->stash->{xmlrpc} = [ $c->model('Base::Rpms')->search(
+        {
+            pkgid => { 
+                IN => $c->model('Base::RpmFile')->search(
+                    { filename => $sourcerpm, }
+                )->get_column('pkgid')->as_query
+            },
+        }
+    )->get_column('pkgid')->all ];
+}
+
+sub binaries : XMLRPCLocal {
+    my ( $self, $c, $pkgid ) = @_;
+
+    my $sourcerpm = $c->forward('queryformat', [ $pkgid,
+            '%{NAME}-%{VERSION}-%{RELEASE}.src.rpm' ]);
+
+    my $tagrs = $c->model('Base')->resultset('Tags')
+        ->search({ tagname => 'sourcerpm', value => $sourcerpm })
+        ->get_column('pkgid');
+    $c->stash->{xmlrpc} = [ $c->model('Base::Rpms')->search(
+        {
+            -and => [
+                { issrc => 0 },
+                { pkgid =>
+                    { IN => $tagrs->as_query, },
+                },
+            ]
+        },
+        {
+            order_by => [ qw(arch name), 'evr using >>' ],
+        },
+    )->get_column('pkgid')->all ];
+
 }
 
 sub rpms_ :PathPrefix :Chained :CaptureArgs(1) {

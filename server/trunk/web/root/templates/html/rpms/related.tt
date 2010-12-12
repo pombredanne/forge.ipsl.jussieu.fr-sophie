@@ -1,0 +1,32 @@
+<!-- $Id$ -->
+[% info = c.forward('/rpms/basicinfo', [ pkgid ]) %]
+[% IF info.issrc %]
+[% FOREACH pkgid = c.forward('/rpms/binaries', [ pkgid ]) %]
+[% IF loop.first %]
+<p>Generated packages:</p>
+<ul>
+[% END %]
+[% info = c.forward('/rpms/basicinfo', [ pkgid ]) %]
+<li><a href="[% c.uri_for('/rpms', pkgid ) %]">
+[% info.name | html %]-[% info.version | html %]-[% info.release %].[% info.arch %]
+</a></li>
+[% IF loop.last %]
+</ul>
+[% END %]
+[% END %]
+[% ELSE %]
+[% FOREACH pkgid = c.forward('/rpms/sources', [ pkgid ]) %]
+[% IF loop.first %]
+<p>Sources packages:</p>
+<ul>
+[% END %]
+[% info = c.forward('/rpms/basicinfo', [ pkgid ]) %]
+<li><a href="[% c.uri_for('/rpms', pkgid ) %]">
+[% info.name | html %]-[% info.version | html %]-[% info.release %]
+</a></li>
+[% IF loop.last %]
+</ul>
+[% END %]
+[% END %]
+
+[% END %]
