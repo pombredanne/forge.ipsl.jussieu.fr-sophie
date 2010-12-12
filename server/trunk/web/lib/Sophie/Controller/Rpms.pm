@@ -30,6 +30,12 @@ sub index :Path :Args(0) {
     $c->response->body('Matched Sophie::Controller::Rpms in Rpms.');
 }
 
+=head2 rpms.queryformat PKGID, FORMAT
+
+Perform an C<rpm -q --qf> on the package having C<PKGID>.
+
+=cut
+
 sub queryformat : XMLRPCLocal {
     my ( $self, $c, $pkgid, $qf ) = @_;
     $c->stash->{xmlrpc} = $c->model('base')->resultset('Rpms')->search(
@@ -41,6 +47,12 @@ sub queryformat : XMLRPCLocal {
         }
     )->next->get_column('qf');
 }
+
+=head2 rpms.tag PKGID, TAG
+
+Return the list of C<TAG> values for package C<PKGID>
+
+=cut
 
 sub tag : XMLRPCLocal {
     my ( $self, $c, $pkgid, $tag ) = @_;
