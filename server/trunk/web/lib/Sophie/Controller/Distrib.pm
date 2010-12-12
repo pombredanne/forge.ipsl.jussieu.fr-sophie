@@ -35,7 +35,12 @@ sub list :XMLRPC {
         return $c->stash->{xmlrpc} = [ map { $_->name }
             $rs->search(undef, { order_by => ['name'] })->all ];
     }
-    $rs = $rs->search(name => $distribution)->search_related('Release');
+    $rs = $rs->search({
+            -or => [
+                { name      => $distribution },
+                { shortname => $distribution },
+            ],
+        })->search_related('Release');
     if (!$release) {
         return $c->stash->{xmlrpc} = [ map { $_->version }
             $rs->search(undef, { order_by => ['version'] })->all ];
@@ -86,7 +91,11 @@ sub distrib_rs : Private {
         ->search(
             {
                 $distrib->{distribution}
-                    ? (name => $distrib->{distribution})
+                    ? (-or => [
+                            { name =>      $distrib->{distribution} },
+                            { shortname => $distrib->{distribution} },
+                        ],
+                    )
                     : ()
             },
             {
