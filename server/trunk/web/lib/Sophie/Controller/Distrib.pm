@@ -90,7 +90,7 @@ sub distrib_rs : Private {
                     : ()
             },
             {
-                select => [ qw(name) ],
+                select => [ qw(name shortname) ],
             }
         )->search_related('Release',
             {

@@ -22,11 +22,39 @@ Catalyst Controller.
 
 =cut
 
+=head2 end
+
+=cut
+
+sub end : Private {
+    my ($self, $c ) = @_;
+    my $reqspec = $c->req->arguments->[0];
+    $reqspec->{max_line} ||= 4;
+    my $message =  $c->stash->{xmlrpc};
+
+    my @backup = @{ $message->{message} };
+    my $needpaste = 0;
+
+    if (@{ $message->{message} } > ($reqspec->{max_line})) {
+        @{ $message->{message} } = 
+            # -2 because line 0 and we remove one for paste url
+            @backup[0 .. $reqspec->{max_line} -2];
+        $needpaste = 1;
+    } 
+
+    if ($needpaste) {
+        my $id = $c->forward('/chat/paste', [ 'Bot paste', join("\n", @backup) ]);
+        push(@{ $message->{message} }, 'All results availlable here: ' . $c->uri_for('/chat', $id));
+    }
+
+    $c->stash->{xmlrpc} = $message;
+
+    $c->forward('/end');
+}
+
 =head1 BOT COMMAND
 
 =head2 REPLY
-
-=head1 AVAILLABLE FUNCTIONS
 
 =cut
 
@@ -44,6 +72,26 @@ sub _getopt : Private {
 
     return \@ARGV;
 }
+
+sub _fmt_location : Private {
+    my ($self, $c, $pkgid) = @_;
+
+    my @loc;
+    foreach (@{ $c->forward('/rpms/location', [ $pkgid ]) }) {
+        push @loc, sprintf(
+            '%s (%s, %s, %s)',
+            $_->{media},
+            $_->{dist} || $_->{distribution},
+            $_->{release},
+            $_->{arch},
+        );
+    }
+    return join(', ', @loc);
+}
+
+=head1 AVAILLABLE FUNCTIONS
+
+=cut
 
 =head2 help [cmd]
 
@@ -65,7 +113,7 @@ sub help : XMLRPC {
             private_reply => 1,
             message => [
                 'availlable command:',
-                join(', ', grep { $_ !~ /^end$/ } @{ $self->_commands }),
+                join(', ', sort grep { $_ !~ /^end$/ } @{ $self->_commands }),
             ],
         }
     }
@@ -85,6 +133,12 @@ sub asv : XMLRPC {
     };
 }
 
+=head2 version [-s] NAME
+
+Show the version of package C<NAME>.
+
+=cut
+
 sub version : XMLRPC {
     my ($self, $c, $reqspec, @args) = @_;
 
@@ -102,42 +156,189 @@ sub version : XMLRPC {
     my $rpmlist = $c->forward('/search/byname', [ $reqspec, $args[0] ]);
     foreach (@{ $rpmlist->{results} }) {
         my $info = $c->forward('/rpms/basicinfo', [ $_ ]);
-        push @message, $info->{evr};
+        push @message, $info->{evr} . ' // ' .
+            $c->forward('_fmt_location', [ $_ ]);
     }
     return $c->stash->{xmlrpc} = {
         message => \@message,
     }
 }
 
+=head2 v
+
+C<v> is an alias for C<version> command.
+
+=cut
+
 sub v : XMLRPC {
     my ($self, $c, @args) = @_;
     $c->forward('version', [ @args ]);
 }
 
-sub end : Private {
-    my ($self, $c ) = @_;
-    my $reqspec = $c->req->arguments->[0];
-    $reqspec->{max_line} ||= 4;
-    my $message =  $c->stash->{xmlrpc};
+=head2 packager [-s] NAME
 
-    my @backup = @{ $message->{message} };
-    my $needpaste = 0;
+Show the packager of package C<NAME>.
 
-    if (@{ $message->{message} } > ($reqspec->{max_line})) {
-        @{ $message->{message} } = 
-            # -2 because line 0 and we remove one for paste url
-            @backup[0 .. $reqspec->{max_line} -2];
-        $needpaste = 1;
-    } 
+=cut
 
-    if ($needpaste) {
-        my $id = $c->forward('/chat/paste', [ 'Bot paste', join("\n", @backup) ]);
-        push(@{ $message->{message} }, $c->uri_for('/chat', $id));
+sub packager : XMLRPC {
+    my ($self, $c, $reqspec, @args) = @_;
+
+    my @message;
+    $reqspec->{src} = 0;
+
+    @args = @{ $c->forward('_getopt', [
+        {
+            'd=s' => \$reqspec->{distribution},
+            'v=s' => \$reqspec->{release},
+            'a=s' => \$reqspec->{arch},
+            's'   => sub { $reqspec->{src} = 1 },
+        }, @args ]) };
+
+    my $rpmlist = $c->forward('/search/byname', [ $reqspec, $args[0] ]);
+    foreach (@{ $rpmlist->{results} }) {
+        my $info = $c->forward('/rpms/queryformat', [ $_, '%{packager}' ]);
+        push @message, $info . ' // ' .
+            $c->forward('_fmt_location', [ $_ ]);
     }
+    return $c->stash->{xmlrpc} = {
+        message => \@message,
+    }
+}
 
-    $c->stash->{xmlrpc} = $message;
+=head2 p
 
-    $c->forward('/end');
+Is an alias for C<packager> command.
+
+=cut
+
+sub p : XMLRPC {
+    my ($self, $c, @args) = @_;
+    $c->forward('packager', [ @args ]);
+}
+
+=head2 arch [-s] NAME
+
+Show the architecture of package C<NAME>.
+
+=cut 
+
+sub arch : XMLRPC {
+    my ($self, $c, $reqspec, @args) = @_;
+
+    my @message;
+    $reqspec->{src} = 0;
+
+    @args = @{ $c->forward('_getopt', [
+        {
+            'd=s' => \$reqspec->{distribution},
+            'v=s' => \$reqspec->{release},
+            'a=s' => \$reqspec->{arch},
+            's'   => sub { $reqspec->{src} = 1 },
+        }, @args ]) };
+
+    my $rpmlist = $c->forward('/search/byname', [ $reqspec, $args[0] ]);
+    foreach (@{ $rpmlist->{results} }) {
+        my $info = $c->forward('/rpms/queryformat', [ $_, '%{arch}' ]);
+        push @message, $info . ' // ' .
+            $c->forward('_fmt_location', [ $_ ]);
+    }
+    return $c->stash->{xmlrpc} = {
+        message => \@message,
+    }
+}
+
+=head2 a
+
+Is an alias to C<arch> command.
+
+=cut 
+
+sub a : XMLRPC {
+    my ($self, $c, @args) = @_;
+    $c->forward('arch', [ @args ]);
+}
+
+=head2 buildtime [-s] NAME
+
+Show the build time of package C<NAME>.
+
+=cut
+
+sub buildtime : XMLRPC {
+    my ($self, $c, $reqspec, @args) = @_;
+
+    my @message;
+    $reqspec->{src} = 0;
+
+    @args = @{ $c->forward('_getopt', [
+        {
+            'd=s' => \$reqspec->{distribution},
+            'v=s' => \$reqspec->{release},
+            'a=s' => \$reqspec->{arch},
+            's'   => sub { $reqspec->{src} = 1 },
+        }, @args ]) };
+
+    my $rpmlist = $c->forward('/search/byname', [ $reqspec, $args[0] ]);
+    foreach (@{ $rpmlist->{results} }) {
+        my $info = $c->forward('/rpms/queryformat', [ $_, '%{buildtime:date}' ]);
+        push @message, $info . ' // ' .
+            $c->forward('_fmt_location', [ $_ ]);
+    }
+    return $c->stash->{xmlrpc} = {
+        message => \@message,
+    }
+}
+
+=head2 builddate
+
+Is an alias for C<buildtime> command.
+
+=cut
+
+sub builddate : XMLRPC {
+    my ($self, $c, @args) = @_;
+    $c->forward('buildtime', [ @args ]);
+}
+
+=head2 builddate
+
+Is an alias for C<buildtime> command.
+
+=cut
+
+sub b : XMLRPC {
+    my ($self, $c, @args) = @_;
+    $c->forward('builddate', [ @args ]);
+}
+
+=head2 qf rpmname format
+
+Perform an rpm -q --qf on package named C<rpmname>
+
+=cut
+
+sub qf : XMLRPC {
+    my ($self, $c, $reqspec, @args) = @_;
+    my @message;
+    $reqspec->{src} = 0;
+
+    @args = @{ $c->forward('_getopt', [
+        {
+            'd=s' => \$reqspec->{distribution},
+            'v=s' => \$reqspec->{release},
+            'a=s' => \$reqspec->{arch},
+            's'   => sub { $reqspec->{src} = 1 },
+        }, @args ]) };
+
+    my $rpmlist = $c->forward('/search/byname', [ $reqspec, $args[0] ]);
+    foreach (@{ $rpmlist->{results} }) {
+        my $info = $c->forward('/rpms/queryformat', [ $_, $args[1] ]);
+        push @message, $info;
+    }
+    return $c->stash->{xmlrpc} = {
+        message => \@message,
+    }
 }
 
 =head1 AUTHOR
