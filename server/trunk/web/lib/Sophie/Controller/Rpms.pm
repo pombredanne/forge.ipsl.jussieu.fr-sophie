@@ -145,12 +145,14 @@ sub sources : XMLRPCLocal {
     my ( $self, $c, $pkgid ) = @_;
 
     my $sourcerpm = $c->forward('queryformat', [ $pkgid, '%{SOURCERPM}' ]);
+    my $nosourcerpm = $sourcerpm;
+    $nosourcerpm =~ s/\.src.rpm$/\.nosrc.rpm/;
 
     $c->stash->{xmlrpc} = [ $c->model('Base::Rpms')->search(
         {
             pkgid => { 
                 IN => $c->model('Base::RpmFile')->search(
-                    { filename => $sourcerpm, }
+                    { filename => [ $sourcerpm, $nosourcerpm ] }
                 )->get_column('pkgid')->as_query
             },
         }
@@ -162,9 +164,11 @@ sub binaries : XMLRPCLocal {
 
     my $sourcerpm = $c->forward('queryformat', [ $pkgid,
             '%{NAME}-%{VERSION}-%{RELEASE}.src.rpm' ]);
+    my $nosourcerpm = $sourcerpm;
+    $nosourcerpm =~ s/\.src.rpm$/\.nosrc.rpm/;
 
     my $tagrs = $c->model('Base')->resultset('Tags')
-        ->search({ tagname => 'sourcerpm', value => $sourcerpm })
+        ->search({ tagname => 'sourcerpm', value => [ $sourcerpm, $nosourcerpm ] })
         ->get_column('pkgid');
     $c->stash->{xmlrpc} = [ $c->model('Base::Rpms')->search(
         {
