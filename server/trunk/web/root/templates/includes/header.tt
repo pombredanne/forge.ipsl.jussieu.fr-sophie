@@ -19,7 +19,7 @@
 
     <div id="sophie_header">
     <a href="[% c.uri_for('/') %]">
-    <img src="[% c.uri_for('/static', 'sophie.png') -%]" style="float:left">
+    <img src="[% c.uri_for('/static', 'sophie.png') -%]" alt="Sophie" style="float:left">
     </a>
     <div style="float:left; padding: 0.5em;">
         <p id="sitename">Sophie</p>
