@@ -1,7 +1,7 @@
-<div id="sophie_rpms_menu">
-<a href="[% c.uri_for('/', rpmurl) %]">Info</a>
-<a href="[% c.uri_for('/', rpmurl, 'deps') %]">Deps</a>
-<a href="[% c.uri_for('/', rpmurl, 'files') %]">Files</a>
-<a href="[% c.uri_for('/', rpmurl, 'changelog') %]">ChangeLog</a>
-<a href="[% c.uri_for('/', rpmurl, 'location') %]">Location</a>
-</div>
+<ul id="sophie_rpms_menu" class="flat_menu">
+<li><a href="[% c.uri_for('/', rpmurl) %]">Info</a></li>
+<li><a href="[% c.uri_for('/', rpmurl, 'deps') %]">Deps</a></li>
+<li><a href="[% c.uri_for('/', rpmurl, 'files') %]">Files</a></li>
+<li><a href="[% c.uri_for('/', rpmurl, 'changelog') %]">ChangeLog</a></li>
+<li><a href="[% c.uri_for('/', rpmurl, 'location') %]">Location</a></li>
+</ul>

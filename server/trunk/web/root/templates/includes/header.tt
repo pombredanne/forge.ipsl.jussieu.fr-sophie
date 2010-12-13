@@ -21,18 +21,18 @@
     <a href="[% c.uri_for('/') %]">
     <img src="[% c.uri_for('/static', 'sophie.png') -%]" style="float:left">
     </a>
-    <div style="float:left">
+    <div style="float:left; padding: 0.5em;">
         <p id="sitename">Sophie</p>
-        <p id="sophie_menu">
-        <span><a href="[% c.uri_for('/search') %]">Search</a></span>
-        <span><a href="[% c.uri_for('/distrib') %]">Distribution</a></span>
-        <span><a href="[% c.uri_for('/explorer') %]">Explorer</a></span>
-        <span><a href="[% c.uri_for('/sources') %]">Source & Patches</a></span>
-        <span><a href="[% c.uri_for('/help') %]">Help</a></span>
-        </p>
+        <ul id="sophie_menu" class="flat_menu">
+        <li><a href="[% c.uri_for('/search') %]">Search</a></li>
+        <li><a href="[% c.uri_for('/distrib') %]">Distribution</a></li>
+        <li><a href="[% c.uri_for('/explorer') %]">Explorer</a></li>
+        <li><a href="[% c.uri_for('/sources') %]">Source & Patches</a></li>
+        <li><a href="[% c.uri_for('/help') %]">Help</a></li>
+        </ul>
     </div>
     <div style="clear:both"></div>
-    <div style="float: left">
+    <div style="float: left" id="sophie_site_path">
         [% FOREACH p = sitepath %]
         <a href="[% p.path %]">[% p.name | html %]</a>
         [% IF NOT loop.last %]&gt;[% END %]

@@ -8,26 +8,38 @@ a:visited {
   color: #F7B62D;/*#43A321;  */
 }
 
-div#mainpage {
-    /*
-    margin-left: 1em;
-    margin-right: 1em;
-    margin-top: 1em;
-    margin-bottom: 1em;*/
-    padding: 1em;
-/*    float: left; */
+p#sitename {
+    font-size: 1.2em;
+    padding-left: 1em;
+}
+
+.flat_menu li {
+    margin-left: 0em;
+    display: inline;
+}
+
+.flat_menu {
+    padding-left: 0em;
+}
+
+#sophie_site_path {
+    font-size: 0.7em;
 }
 
 div#body_main {
     float:left;
-    margin-left: 1em;
-    margin-right: 1em;
+    padding-left: 1em;
+    padding-right: 1em;
+    width: 60%;
 }
 
 div#body_additional {
     float:left;
-    margin-left: 1em;
-    margin-right: 1em;
+    border: inset;
+    font-size: 0.7em;
+    padding: 0.2em;
+    width: 35%;
+    overflow: hidden;
 }
 
 div#sophie_header {
@@ -35,17 +47,22 @@ div#sophie_header {
     background-color: #43A321;/*#4E8E21;/*#4EB560;/*#3F98FC;*/
 }
 
-div#sophie_rpms_menu {
+#sophie_rpms_menu {
     margin-left: 1em;
+    padding-left: 0em;
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
 }
 
-#sophie_header p {
-    padding-left: 1em;
+#sophie_rpms_menu li {
+    margin-left: 0em;
+    display: inline;
 }
 
 #sophie_rpm_description p {
-    padding-left: 1em;
-    padding-right: 1em;
+    padding-left: 0em;
+    padding-right: 0em;
+    font-size: 0.9em;
 }
 
 div.sophie_package_list {
@@ -66,6 +83,7 @@ div.sophie_package_list {
     margin-top: 0em;
     margin-bottom: 0.5em;
 }
+
 .sophie_package_list p {
     padding-left: 2em;
     padding-right: 0em;
@@ -73,6 +91,14 @@ div.sophie_package_list {
     padding-bottom: 0em;
     margin: 0em;
     margin-bottom: 0.2em;
+}
+
+ul.sophie_tag {
+    padding-left: 0em;
+}
+
+.sophie_tag li {
+    list-style-type: none;
 }
 
 .pkgid {

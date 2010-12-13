@@ -3,7 +3,7 @@
 [% USE 'ObfuscateMail' %]
 
 <div id="sophie_info">
-<ul id="sophie_tag">
+<ul class="sophie_tag" id="sophie_tag">
 <li class="tag">Name: [% xmlrpc.info.name | html %]</li>
 <li class="tag">Version: [% xmlrpc.info.version | html %]</li>
 <li class="tag">Release: [% xmlrpc.info.release | html %]</li>
@@ -11,13 +11,14 @@
 <li class="tag">Architecture: [% xmlrpc.info.arch | html %]</li>
 <li class="tag">Distribution: [% xmlrpc.info.distribution | html %]</li>
 <li class="tag">Group: [% xmlrpc.info.group | html %]</li>
+<li class="tag">License: [% xmlrpc.info.license | html %]</li>
 <li class="tag">Url: <a href="[% xmlrpc.info.url | html %]">[% xmlrpc.info.url | html %]</a></li>
 <li class="tag">Summary: [% xmlrpc.info.summary | guessencode | html %]</li>
 </ul>
 
-<h2>Description:</h2>
 <div id="sophie_rpm_description">
-[% xmlrpc.info.description | guessencode | html | html_line_break %]
+<h2>Description:</h2>
+<p>[% xmlrpc.info.description | guessencode | html | html_line_break %]</p>
 </div>
 </div>
 
