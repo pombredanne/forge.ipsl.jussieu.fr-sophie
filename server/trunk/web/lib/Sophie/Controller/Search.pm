@@ -332,7 +332,7 @@ sub bydep : XMLRPCPath('/search/rpm/bydep') {
 
     my $distrs = $c->forward('distrib_search', [ $searchspec, 1 ]);
 
-    my $deprs = $c->model('Base')->resultset('Deps')->search(
+    my $deprs = $c->model('Base::Deps')->search(
         {
             deptype => $deptype,
             depname => $depname,
@@ -495,8 +495,9 @@ sub file_search : XMLRPCPath('/search/file/byname') {
     my ($dirname, $basename) = $file =~ m:^(.*/)?([^/]+)$:;
     $searchspec ||= {};
 
+    my $distrs = $c->forward('distrib_search', [ $searchspec, 1 ]);
     my @col = qw(dirname basename md5 size pkgid count);
-    my $filers = $c->stash->{rs} = $c->model('Base::Files')
+    $c->stash->{rs} = $c->model('Base::Files')
     ->search(
         {
             -and => [
@@ -505,10 +506,9 @@ sub file_search : XMLRPCPath('/search/file/byname') {
                     : ()),
                 basename => $basename,
                 ($searchspec->{content} ? { has_content => 1 } : ()),
-                pkgid => {
-                    IN => $c->forward('distrib_search',
-                        [ $searchspec ])->get_column('pkgid')->as_query,
-                },
+                ($distrs 
+                    ? (pkgid => { IN => $distrs->get_column('pkgid')->as_query, },)
+                    : ()),
             ],
         },
         {
@@ -524,6 +524,44 @@ sub file_search : XMLRPCPath('/search/file/byname') {
         @col, qw(has_content perm user group)
     ];
     
+    $c->forward('format_search', $searchspec);
+}
+
+sub dep_search : XMLRPCPath('/search/dep/match') {
+    my ($self, $c, $searchspec, $deptype, $depname, $depsense, $depevr) = @_;
+
+    my $distrs = $c->forward('distrib_search', [ $searchspec, 1 ]);
+    $c->stash->{rs} = $c->model('Base::Deps')->search(
+        {
+            -and => [
+            { deptype => $deptype },
+            { depname => $depname },
+            ($depsense
+                ? ({-nest => \[
+                    'rpmdepmatch(flags, evr, rpmsenseflag(?), ?)',
+                    [ plain_text => $depsense],
+                    [ plain_text => $depevr ]
+                ]})
+            : ()),
+            ($distrs 
+                ? ({ pkgid => { IN => $distrs->get_column('pkgid')->as_query,
+                        },})
+                : ()),
+            (exists($searchspec->{src})
+                ? { pkgid => { IN => $c->model('Base::Rpms')->search(
+                            { issrc => $searchspec->{src} ? 1 : 0 }
+                        )->get_column('pkgid')->as_query, }, }
+                : ()),
+            ]
+        },
+        {
+            'select' => [ 'rpmsenseflag("flags")', qw(depname evr flags pkgid) ],
+            'as'     => [ qw(sense name evr flags pkgid) ],
+
+        }
+    );
+
+    $c->stash->{column} = [ qw(name sense evr flags pkgid) ];
     $c->forward('format_search', $searchspec);
 }
 
