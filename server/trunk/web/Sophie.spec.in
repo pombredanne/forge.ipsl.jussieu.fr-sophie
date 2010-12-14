@@ -34,6 +34,7 @@ BuildRequires: perl(Catalyst::Authentication::Store::DBIx::Class)
 BuildRequires: perl(Catalyst::Model::DBIC::Schema)
 BuildRequires: perl(Pod::Find)
 BuildRequires: perl(Pod::POM)
+BuildRequires: perl(XML::Simple)
 
 Requires: perl(Catalyst)
 Requires: perl(Catalyst::Plugin::ConfigLoader)
