@@ -104,7 +104,8 @@ sub format_search : Private {
     } else {
         @results = $rs->get_column($c->stash->{column})->all;
     }
-    if (1 || !$searchspec->{page}) {
+    $c->stash->{xmlrpc} = {};
+    if (!$searchspec->{nopager}) {
         my $pager = $c->stash->{rs}->pager;
         $c->stash->{pager} = $pager;
         $c->stash->{xmlrpc} = {
