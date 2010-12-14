@@ -75,12 +75,9 @@ __PACKAGE__->config(
 );
 
 __PACKAGE__->config->{session} = {
-    expires   => 3600,
+    expires   => 3600 * 24, # one day
     dbi_dbh   => 'Session',
     dbi_table => 'sessions',
-#    dbi_dsn => 'dbi:Pg:' . $config->{dbconnect},
-#    dbi_user => $config->{dbuser},
-#    dbi_pass => $config->{dbpassword},
 };
 
 # Start the application

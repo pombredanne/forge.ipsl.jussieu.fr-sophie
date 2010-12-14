@@ -56,6 +56,8 @@ sub begin : Private {
             #$c->go('/login/index');
         }
     }
+
+    $c->delete_expired_sessions;
 }
 
 =head2 index
