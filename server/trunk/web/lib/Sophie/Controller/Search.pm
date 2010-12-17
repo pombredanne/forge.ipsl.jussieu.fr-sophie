@@ -380,6 +380,14 @@ sub deps_rs : Private {
 sub file_rs : Private {
     my ( $self, $c, $searchspec, $file) = @_;
     my ($dirname, $basename) = $file =~ m:^(.*/)?([^/]+)$:;
+    $dirname =~ m:^[/]: or $dirname = undef;
+    if (!$dirname) {
+        if ($file =~ /(\*|\?)/) {
+            $file =~ tr/*?/%_/;
+        } else {
+            $file = '%' . $file;
+        }
+    }
     $searchspec ||= {};
 
     my $distrs = $c->forward('distrib_search', [ $searchspec, 1 ]);
@@ -390,6 +398,7 @@ sub file_rs : Private {
                 ($dirname
                     ? (dirname => $dirname)
                     : ()),
+                { 'dirname || basename' => { LIKE => $file } },
                 basename => $basename,
                 ($searchspec->{content} ? { has_content => 1 } : ()),
                 ($distrs 
@@ -433,7 +442,6 @@ sub bydep : XMLRPCPath('/search/rpm/bydep') {
 
 sub byfile : XMLRPCPath('/search/rpm/byfile') {
     my ( $self, $c, $searchspec, $file) = @_;
-    my ($dirname, $basename) = $file =~ m:^(.*/)?([^/]+)$:;
     $searchspec ||= {};
     my $distrs = $c->forward('distrib_search', [ $searchspec, 1 ]);
 
@@ -546,7 +554,6 @@ sub description : XMLRPCPath('/search/rpm/description') {
 
 sub file_search : XMLRPCPath('/search/file/byname') {
     my ( $self, $c, $searchspec, $file) = @_;
-    my ($dirname, $basename) = $file =~ m:^(.*/)?([^/]+)$:;
     $searchspec ||= {};
 
     $c->stash->{rs} = $c->forward('file_rs', [ $searchspec, $file ]);
