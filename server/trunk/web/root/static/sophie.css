@@ -1,19 +1,27 @@
 /* $Id$ */
-
+/* Colored links */
 a:link {
-  color: #573B1D;/*#FAD170;  */
+  color: #573B1D;
 }
 
 a:visited {
-  color: #F7B62D;/*#43A321;  */
+  color: #F7A800;
+} 
+
+/* White boxes around icones in the footer */
+.sophie_footer img {
+  color: #FFFFFF;
+  vertical-align: middle;
 }
 
 p#sitename {
-    font-size: 1.2em;
+    font-size: 1.4em;
     padding-left: 1em;
 }
 
 .flat_menu li {
+    font-size: 1.2em;
+    font-weight: bold;
     margin-left: 0em;
     display: inline;
 }
@@ -44,7 +52,11 @@ div#body_additional {
 
 div#sophie_header {
     border: outset;
-    background-color: #0DBE0D;/*#4E8E21;/*#4EB560;/*#3F98FC;*/
+    background-color: #74D100;
+}
+
+#sophie_header a:visited {
+  color: #F7A800;
 }
 
 #sophie_rpms_menu {
@@ -66,7 +78,7 @@ div#sophie_header {
 }
 
 div.sophie_package_list {
-    background: #F5E0AB; /*F5F5DC;*/
+    background: #f3f47a;
     margin-top: 2em;
 }
 
