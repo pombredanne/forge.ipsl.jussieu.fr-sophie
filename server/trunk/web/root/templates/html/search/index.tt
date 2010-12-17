@@ -1,10 +1,12 @@
 <!-- $Id$ -->
-<form action="[% c.uri_for('/search') %]" method="POST">
-<input type="text" name="search" value="[% c.req.param('search') | html %]">
-<select name="type">
-<option value="byname">rpm named</option>
-</select>
-<input type="submit">
+<form action="[% c.uri_for('/search') %]" method="POST" id="sophie_adv_search">
+[% INCLUDE 'search/adv_search.tt' %]
 </form>
+[%# c.prototype.observe_form('sophie_adv_search',
+    {
+        url => c.uri_for('/search/adv_search', { ajax => 1 }),
+        update => 'sophie_adv_search',
+        frequency => 5,
+    }) %]
 
 [% INCLUDE 'search/results.tt' %]

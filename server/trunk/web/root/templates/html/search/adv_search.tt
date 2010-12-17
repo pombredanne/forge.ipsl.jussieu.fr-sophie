@@ -1,0 +1,21 @@
+<!-- $Id$ -->
+<select name="type" OnChange="
+    if (value == 'bydep') {
+        document.getElementById('deptype').style.display = '';
+    } else {
+        document.getElementById('deptype').style.display = 'none';
+    }
+">
+<option value="byname"[% " selected=selected" IF c.req.param('type') == 'byname' %]>rpm named</option>
+<option value="bydep"[% " selected=selected" IF c.req.param('type') == 'bydep'
+%]>dependency match</option>
+</select>
+<input type="text" name="search" value="[% c.req.param('search') | html %]">
+<span id="deptype" style="[% 'display:none;' IF c.req.param('type') != 'bydep' %]">
+Dep type:
+<select id="deptype" name="deptype">
+    <option value="P">Provides</option>
+    <option value="R">Requires</option>
+</select>
+</span>
+<input type="submit">

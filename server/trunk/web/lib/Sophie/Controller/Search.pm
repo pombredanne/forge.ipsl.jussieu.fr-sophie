@@ -28,9 +28,11 @@ sub index :Path :Args(0) {
     if ($c->req->param('page')) {
         $c->req->params->{search} = $c->session->{search};
         $c->req->params->{type} = $c->session->{type};
+        $c->req->params->{deptype} = $c->session->{deptype};
     } else {
         $c->session->{search} = $c->req->params->{search};
         $c->session->{type} = $c->req->params->{type};
+        $c->session->{deptype} = $c->req->params->{deptype};
     }
 
     my $searchspec = {
@@ -41,6 +43,11 @@ sub index :Path :Args(0) {
         /^byname$/ and do {
             $c->forward('byname', [ $searchspec, $c->req->param('search') ||
                     undef ]);
+            last;
+        };
+        /^bydep$/ and do {
+            $c->forward('bydep', [ $searchspec, $c->req->param('deptype'), grep { $_ } split (/\s+/,
+                        $c->req->param('search') || '') ]);
             last;
         };
     }
@@ -63,6 +70,10 @@ sub results :Local {
                 } , grep { $_ } split(/\s/, $c->req->param('search')) ]);
 
     }
+}
+
+sub adv_search :Local {
+    my ( $self, $c ) = @_;
 }
 
 sub distrib_search : Private {
@@ -287,9 +298,9 @@ sub byname : XMLRPCPath('/search/rpm/byname') {
                         [ plain_text => $evr ],
                     ] }
                     : ()),
-                $distrs
+                ($distrs
                     ? { pkgid => { IN => $distrs->get_column('pkgid')->as_query, }, }
-                    : (),
+                    : ()),
             ]     
         },
         {
@@ -353,6 +364,9 @@ sub deps_rs : Private {
                             { issrc => $searchspec->{src} ? 1 : 0 }
                         )->get_column('pkgid')->as_query, }, }
                 : ()),
+            ($searchspec->{pkgid}
+                ? { pkgid => $searchspec->{pkgid} }
+                : ()),
             ]
         },
         {
@@ -380,6 +394,9 @@ sub file_rs : Private {
                 ($searchspec->{content} ? { has_content => 1 } : ()),
                 ($distrs 
                     ? (pkgid => { IN => $distrs->get_column('pkgid')->as_query, },)
+                    : ()),
+                ($searchspec->{pkgid}
+                    ? { pkgid => $searchspec->{pkgid} }
                     : ()),
             ],
         },
