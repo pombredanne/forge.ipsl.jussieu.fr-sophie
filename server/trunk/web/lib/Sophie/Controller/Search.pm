@@ -445,6 +445,9 @@ sub bydep : XMLRPCPath('/search/rpm/bydep') {
             pkgid => 
                 { IN => $deprs->as_query, },
         },
+        {
+            order_by => [ 'name', 'evr using >>', 'issrc', 'arch' ],
+        }
     );
     $c->forward('format_search', $searchspec);
 }
@@ -460,6 +463,9 @@ sub byfile : XMLRPCPath('/search/rpm/byfile') {
         {
             pkgid => { IN => $filers->as_query, },
         },
+        {
+            order_by => [ 'name', 'evr using >>', 'issrc', 'arch' ],
+        }
     );
     $c->forward('format_search', $searchspec);
 }
