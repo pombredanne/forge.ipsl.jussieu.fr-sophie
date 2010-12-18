@@ -259,6 +259,90 @@ sub a : XMLRPC {
     $c->forward('arch', [ @args ]);
 }
 
+=head2 group [-s] NAME
+
+Show the group of package C<NAME>.
+
+=cut 
+
+sub group : XMLRPC {
+    my ($self, $c, $reqspec, @args) = @_;
+
+    my @message;
+    $reqspec->{src} = 0;
+
+    @args = @{ $c->forward('_getopt', [
+        {
+            'd=s' => \$reqspec->{distribution},
+            'v=s' => \$reqspec->{release},
+            'a=s' => \$reqspec->{arch},
+            's'   => sub { $reqspec->{src} = 1 },
+        }, @args ]) };
+
+    my $rpmlist = $c->forward('/search/byname', [ $reqspec, $args[0] ]);
+    foreach (@{ $rpmlist->{results} }) {
+        my $info = $c->forward('/rpms/queryformat', [ $_, '%{group}' ]);
+        push @message, $info . ' // ' .
+            $c->forward('_fmt_location', [ $_ ]);
+    }
+    return $c->stash->{xmlrpc} = {
+        message => \@message,
+    }
+}
+
+=head2 g
+
+Is an alias to C<group> command.
+
+=cut 
+
+sub g : XMLRPC {
+    my ($self, $c, @args) = @_;
+    $c->forward('group', [ @args ]);
+}
+
+=head2 license [-s] NAME
+
+Show the license of package C<NAME>.
+
+=cut 
+
+sub group : XMLRPC {
+    my ($self, $c, $reqspec, @args) = @_;
+
+    my @message;
+    $reqspec->{src} = 0;
+
+    @args = @{ $c->forward('_getopt', [
+        {
+            'd=s' => \$reqspec->{distribution},
+            'v=s' => \$reqspec->{release},
+            'a=s' => \$reqspec->{arch},
+            's'   => sub { $reqspec->{src} = 1 },
+        }, @args ]) };
+
+    my $rpmlist = $c->forward('/search/byname', [ $reqspec, $args[0] ]);
+    foreach (@{ $rpmlist->{results} }) {
+        my $info = $c->forward('/rpms/queryformat', [ $_, '%{license}' ]);
+        push @message, $info . ' // ' .
+            $c->forward('_fmt_location', [ $_ ]);
+    }
+    return $c->stash->{xmlrpc} = {
+        message => \@message,
+    }
+}
+
+=head2 l
+
+Is an alias to C<license> command.
+
+=cut 
+
+sub l : XMLRPC {
+    my ($self, $c, @args) = @_;
+    $c->forward('license', [ @args ]);
+}
+
 =head2 buildtime [-s] NAME
 
 Show the build time of package C<NAME>.
