@@ -1,21 +1,44 @@
 <!-- $Id$ -->
+<table border="1">
+<tr>
+    <td></td>
+    <td>
+<input type="text" name="search" value="[% c.req.param('search') | html %]">
+    </td>
+</tr>
+<tr>
+    <td>
+    </td>
+    <td>
 <select name="type" OnChange="
     if (value == 'bydep') {
-        document.getElementById('deptype').style.display = '';
+        document.getElementById('deptype').style.visibility = '';
     } else {
-        document.getElementById('deptype').style.display = 'none';
+        document.getElementById('deptype').style.visibility = 'hidden';
     }
 ">
 <option value="byname"[% " selected=selected" IF c.req.param('type') == 'byname' %]>rpm named</option>
-<option value="bydep"[% " selected=selected" IF c.req.param('type') == 'bydep'
-%]>dependency match</option>
+<option value="bydep"[% " selected=selected" IF c.req.param('type') == 'bydep' %]>dependency match</option>
+<option value="byfile"[% " selected=selected" IF c.req.param('type') == 'byfile' %]>File</option>
 </select>
-<input type="text" name="search" value="[% c.req.param('search') | html %]">
-<span id="deptype" style="[% 'display:none;' IF c.req.param('type') != 'bydep' %]">
-Dep type:
+    </td>
+</tr>
+<tr>
+<td>
+</td>
+<td>
+<span id="deptype" style="[% 'visibility:hidden;' IF c.req.param('type') != 'bydep' %]">
 <select id="deptype" name="deptype">
-    <option value="P">Provides</option>
-    <option value="R">Requires</option>
+    <option value="P"[% " selected=selected" IF c.req.param('deptype') == 'P' %]>Provides</option>
+    <option value="R"[% " selected=selected" IF c.req.param('deptype') == 'R' %]>Requires</option>
 </select>
 </span>
+</td>
+</tr>
+<tr>
+<td></td>
+<td>
 <input type="submit">
+</td>
+</tr>
+</table>

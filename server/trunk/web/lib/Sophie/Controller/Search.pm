@@ -41,13 +41,22 @@ sub index :Path :Args(0) {
 
     for ($c->req->param('type')) {
         /^byname$/ and do {
+            $c->stash->{sargs} = [ {}, $c->req->param('search') ];
             $c->forward('byname', [ $searchspec, $c->req->param('search') ||
                     undef ]);
             last;
         };
         /^bydep$/ and do {
-            $c->forward('bydep', [ $searchspec, $c->req->param('deptype'), grep { $_ } split (/\s+/,
-                        $c->req->param('search') || '') ]);
+            my @args = ($c->req->param('deptype'), grep { $_ }
+                split(/\s+/, $c->req->param('search') || '' ));
+            $c->stash->{sargs} = [ {}, @args ],
+            $c->forward('bydep', [ $searchspec, @args ]);
+            last;
+        };
+        /^byfile$/ and do {
+            my @args = ($c->req->param('search') || '');
+            $c->stash->{sargs} = [ {}, @args ],
+            $c->forward('byfile', [ $searchspec, @args ]);
             last;
         };
     }
@@ -449,9 +458,7 @@ sub byfile : XMLRPCPath('/search/rpm/byfile') {
         ->get_column('pkgid');
     $c->stash->{rs} = $c->model('Base')->resultset('Rpms')->search(
         {
-            $distrs
-                ? { pkgid => { IN => $distrs->get_column('pkgid')->as_query, }, }
-                : (),
+            pkgid => { IN => $filers->as_query, },
         },
     );
     $c->forward('format_search', $searchspec);
