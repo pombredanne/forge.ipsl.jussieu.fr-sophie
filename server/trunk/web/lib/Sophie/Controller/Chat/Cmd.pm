@@ -184,26 +184,7 @@ Show the packager of package C<NAME>.
 sub packager : XMLRPC {
     my ($self, $c, $reqspec, @args) = @_;
 
-    my @message;
-    $reqspec->{src} = 0;
-
-    @args = @{ $c->forward('_getopt', [
-        {
-            'd=s' => \$reqspec->{distribution},
-            'v=s' => \$reqspec->{release},
-            'a=s' => \$reqspec->{arch},
-            's'   => sub { $reqspec->{src} = 1 },
-        }, @args ]) };
-
-    my $rpmlist = $c->forward('/search/byname', [ $reqspec, $args[0] ]);
-    foreach (@{ $rpmlist->{results} }) {
-        my $info = $c->forward('/rpms/queryformat', [ $_, '%{packager}' ]);
-        push @message, $info . ' // ' .
-            $c->forward('_fmt_location', [ $_ ]);
-    }
-    return $c->stash->{xmlrpc} = {
-        message => \@message,
-    }
+    $c->forward('qf', [ $reqspec, @args, '%{packager}' ]);
 }
 
 =head2 p
@@ -226,26 +207,7 @@ Show the architecture of package C<NAME>.
 sub arch : XMLRPC {
     my ($self, $c, $reqspec, @args) = @_;
 
-    my @message;
-    $reqspec->{src} = 0;
-
-    @args = @{ $c->forward('_getopt', [
-        {
-            'd=s' => \$reqspec->{distribution},
-            'v=s' => \$reqspec->{release},
-            'a=s' => \$reqspec->{arch},
-            's'   => sub { $reqspec->{src} = 1 },
-        }, @args ]) };
-
-    my $rpmlist = $c->forward('/search/byname', [ $reqspec, $args[0] ]);
-    foreach (@{ $rpmlist->{results} }) {
-        my $info = $c->forward('/rpms/queryformat', [ $_, '%{arch}' ]);
-        push @message, $info . ' // ' .
-            $c->forward('_fmt_location', [ $_ ]);
-    }
-    return $c->stash->{xmlrpc} = {
-        message => \@message,
-    }
+    $c->forward('qf', [ $reqspec, @args, '%{arch}' ]);
 }
 
 =head2 a
@@ -268,26 +230,7 @@ Show the group of package C<NAME>.
 sub group : XMLRPC {
     my ($self, $c, $reqspec, @args) = @_;
 
-    my @message;
-    $reqspec->{src} = 0;
-
-    @args = @{ $c->forward('_getopt', [
-        {
-            'd=s' => \$reqspec->{distribution},
-            'v=s' => \$reqspec->{release},
-            'a=s' => \$reqspec->{arch},
-            's'   => sub { $reqspec->{src} = 1 },
-        }, @args ]) };
-
-    my $rpmlist = $c->forward('/search/byname', [ $reqspec, $args[0] ]);
-    foreach (@{ $rpmlist->{results} }) {
-        my $info = $c->forward('/rpms/queryformat', [ $_, '%{group}' ]);
-        push @message, $info . ' // ' .
-            $c->forward('_fmt_location', [ $_ ]);
-    }
-    return $c->stash->{xmlrpc} = {
-        message => \@message,
-    }
+    $c->forward('qf', [ $reqspec, @args, '%{group}' ]);
 }
 
 =head2 g
@@ -307,29 +250,10 @@ Show the license of package C<NAME>.
 
 =cut 
 
-sub group : XMLRPC {
+sub license : XMLRPC {
     my ($self, $c, $reqspec, @args) = @_;
 
-    my @message;
-    $reqspec->{src} = 0;
-
-    @args = @{ $c->forward('_getopt', [
-        {
-            'd=s' => \$reqspec->{distribution},
-            'v=s' => \$reqspec->{release},
-            'a=s' => \$reqspec->{arch},
-            's'   => sub { $reqspec->{src} = 1 },
-        }, @args ]) };
-
-    my $rpmlist = $c->forward('/search/byname', [ $reqspec, $args[0] ]);
-    foreach (@{ $rpmlist->{results} }) {
-        my $info = $c->forward('/rpms/queryformat', [ $_, '%{license}' ]);
-        push @message, $info . ' // ' .
-            $c->forward('_fmt_location', [ $_ ]);
-    }
-    return $c->stash->{xmlrpc} = {
-        message => \@message,
-    }
+    $c->forward('qf', [ $reqspec, @args, '%{license}' ]);
 }
 
 =head2 l
@@ -352,26 +276,7 @@ Show the build time of package C<NAME>.
 sub buildtime : XMLRPC {
     my ($self, $c, $reqspec, @args) = @_;
 
-    my @message;
-    $reqspec->{src} = 0;
-
-    @args = @{ $c->forward('_getopt', [
-        {
-            'd=s' => \$reqspec->{distribution},
-            'v=s' => \$reqspec->{release},
-            'a=s' => \$reqspec->{arch},
-            's'   => sub { $reqspec->{src} = 1 },
-        }, @args ]) };
-
-    my $rpmlist = $c->forward('/search/byname', [ $reqspec, $args[0] ]);
-    foreach (@{ $rpmlist->{results} }) {
-        my $info = $c->forward('/rpms/queryformat', [ $_, '%{buildtime:date}' ]);
-        push @message, $info . ' // ' .
-            $c->forward('_fmt_location', [ $_ ]);
-    }
-    return $c->stash->{xmlrpc} = {
-        message => \@message,
-    }
+    $c->forward('qf', [ $reqspec, @args, '%{buildtime:date}' ]);
 }
 
 =head2 builddate
