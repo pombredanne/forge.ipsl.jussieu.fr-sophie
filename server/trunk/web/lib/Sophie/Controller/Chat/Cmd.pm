@@ -372,6 +372,37 @@ sub more : XMLRPC {
     }
 }
 
+=head2 buildfrom NAME
+
+Return the list of package build from source package named C<NAME>
+
+=cut
+
+sub buildfrom : XMLRPC {
+    my ($self, $c, $reqspec, @args) = @_;
+    $reqspec->{src} = 1;
+    my @message;
+    @args = @{ $c->forward('_getopt', [
+        {
+            'd=s' => \$reqspec->{distribution},
+            'v=s' => \$reqspec->{release},
+            'a=s' => \$reqspec->{arch},
+        }, @args ]) };
+    my $rpmlist = $c->forward('/search/byname', [ $reqspec, $args[0] ]);
+    foreach (@{ $rpmlist->{results} }) {
+        my $res = $c->forward('/rpms/binaries', [ $_ ]);
+        my @name;
+        foreach (@$res) {
+            push(@name, $c->forward('/rpms/basicinfo', [ $_ ])->{name});
+        }
+        push(@message, join(', ', sort @name));
+    }
+    return $c->stash->{xmlrpc} = {
+        message => \@message,
+    }
+
+}
+
 =head1 AUTHOR
 
 Olivier Thauvin
