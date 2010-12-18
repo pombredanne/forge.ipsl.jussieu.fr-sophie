@@ -34,6 +34,15 @@ p#sitename {
     font-size: 0.7em;
 }
 
+/* body_home : Id for home part of index.html */
+div#body_home {
+    float:left;
+    font-size: 1.2em;
+    padding: 0.5em;
+    width: 45%;
+    overflow: hidden;
+}
+
 div#body_main {
     float:left;
     padding-left: 1em;
@@ -78,12 +87,18 @@ div#sophie_header {
 }
 
 div.sophie_package_list {
+    float:right;
+    border: none;
+    width: 50%;
+    padding-left: 0.5em;
+    padding-top: 0.2em;
     background: #f3f47a;
     margin-top: 2em;
 }
 
 .sophie_help h2 {
     font-size: 1.2em;
+/*    margin-top: 5em;*/
     background-color: #EFF3F7;
 }
 

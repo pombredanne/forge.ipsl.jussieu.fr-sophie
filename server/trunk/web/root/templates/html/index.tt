@@ -1,6 +1,13 @@
-<!-- $Id -->
+<!-- $Id$ -->
 [% USE 'GuessEncode' %]
 [% USE 'ObfuscateMail' %]
+
+<div id="body_home">
+<p>Bonjour à tous ! <br />
+Tant que Nanar, mon misogyne de père indigne, n'écrira rien pour vous accueillir correctement ici, <br />
+je vais pouvoir ragoter sur lui sans limites :) <br />
+Naviguez bien et à bientôt ;) </p>
+</div>
 
 [% FOREACH package = xmlrpc %]
 
