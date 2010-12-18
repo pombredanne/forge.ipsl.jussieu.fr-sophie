@@ -323,7 +323,37 @@ sub qf : XMLRPC {
     my $rpmlist = $c->forward('/search/byname', [ $reqspec, $args[0] ]);
     foreach (@{ $rpmlist->{results} }) {
         my $info = $c->forward('/rpms/queryformat', [ $_, $args[1] ]);
-        push @message, $info;
+        push @message, $info . ' // ' .
+            $c->forward('_fmt_location', [ $_ ]);
+    }
+    return $c->stash->{xmlrpc} = {
+        message => \@message,
+    }
+}
+
+=head2 more NAME
+
+Show url where details about package named C<NAME> can be found
+
+=cut
+
+sub more : XMLRPC {
+    my ($self, $c, $reqspec, @args) = @_;
+    my @message;
+    $reqspec->{src} = 0;
+
+    @args = @{ $c->forward('_getopt', [
+        {
+            'd=s' => \$reqspec->{distribution},
+            'v=s' => \$reqspec->{release},
+            'a=s' => \$reqspec->{arch},
+            's'   => sub { $reqspec->{src} = 1 },
+        }, @args ]) };
+
+    my $rpmlist = $c->forward('/search/byname', [ $reqspec, $args[0] ]);
+    foreach (@{ $rpmlist->{results} }) {
+        push @message, $c->uri_for('/rpms', $_) . ' // ' .
+            $c->forward('_fmt_location', [ $_ ]);
     }
     return $c->stash->{xmlrpc} = {
         message => \@message,
