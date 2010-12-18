@@ -301,6 +301,18 @@ sub b : XMLRPC {
     $c->forward('builddate', [ @args ]);
 }
 
+=head2 cookie [-s] NAME
+
+Show the C<cookie> tag of package C<NAME>.
+
+=cut
+
+sub cookie : XMLRPC {
+    my ($self, $c, $reqspec, @args) = @_;
+
+    $c->forward('qf', [ $reqspec, @args, '%{cookie}' ]);
+}
+
 =head2 qf rpmname format
 
 Perform an rpm -q --qf on package named C<rpmname>
