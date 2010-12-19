@@ -35,7 +35,7 @@ result detail %]
 [% IF c.req.param('type') == 'bydep' %]
 [% sargs.0.pkgid = pkgid %]
 <ul>
-[% FOREACH dep = c.forward('/search/dep_search', sargs).results %]
+[% FOREACH dep = c.forward('/search/dep/match', sargs) %]
 <li>[% dep.name | html %] [% dep.sense | html %] [% dep.evr | html %]</li>
 [% END %]
 </ul>
@@ -44,7 +44,7 @@ result detail %]
 [% IF c.req.param('type') == 'byfile' %]
 [% sargs.0.pkgid = pkgid %]
 <ul class="filename">
-[% FOREACH file = c.forward('/search/file_search', sargs).results %]
+[% FOREACH file = c.forward('/search/file/byname', sargs) %]
 <li>[% file.dirname | html -%][%- file.basename | html %]</li>
 [% END %]
 </ul>
