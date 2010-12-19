@@ -573,7 +573,7 @@ sub sources : XMLRPCPath('/search/rpm/sources') {
     my $nosourcerpm = $sourcerpm;
     $nosourcerpm =~ s/\.src.rpm$/\.nosrc.rpm/;
 
-    $c->stash->{xmlrpc} = [ $c->model('Base::Rpms')->search(
+    $c->stash->{rs} = $c->model('Base::Rpms')->search(
         {
             -and => [
                 { pkgid => {
@@ -586,7 +586,9 @@ sub sources : XMLRPCPath('/search/rpm/sources') {
                     : ()),
             ],
         }
-    )->get_column('pkgid')->all ];
+    );
+
+    $c->forward('format_search', $searchspec);
 }
 
 sub binaries : XMLRPCPath('/search/rpm/binaries') {
@@ -601,7 +603,7 @@ sub binaries : XMLRPCPath('/search/rpm/binaries') {
     my $tagrs = $c->model('Base')->resultset('Tags')
         ->search({ tagname => 'sourcerpm', value => [ $sourcerpm, $nosourcerpm ] })
         ->get_column('pkgid');
-    $c->stash->{xmlrpc} = [ $c->model('Base::Rpms')->search(
+    $c->stash->{rs} = $c->model('Base::Rpms')->search(
         {
             -and => [
                 { issrc => 0 },
@@ -616,8 +618,9 @@ sub binaries : XMLRPCPath('/search/rpm/binaries') {
         {
             order_by => [ qw(arch name), 'evr using >>' ],
         },
-    )->get_column('pkgid')->all ];
+    );
 
+    $c->forward('format_search', $searchspec);
 }
 
 sub file_search : XMLRPCPath('/search/file/byname') {
