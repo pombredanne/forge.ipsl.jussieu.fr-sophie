@@ -565,6 +565,61 @@ sub description : XMLRPCPath('/search/rpm/description') {
     $c->forward('format_search', $searchspec);
 }
 
+sub sources : XMLRPCPath('/search/rpm/sources') {
+    my ( $self, $c, $searchspec, $pkgid ) = @_;
+
+    my $distrs = $c->forward('distrib_search', [ $searchspec, 1 ]);
+    my $sourcerpm = $c->forward('/rpms/queryformat', [ $pkgid, '%{SOURCERPM}' ]);
+    my $nosourcerpm = $sourcerpm;
+    $nosourcerpm =~ s/\.src.rpm$/\.nosrc.rpm/;
+
+    $c->stash->{xmlrpc} = [ $c->model('Base::Rpms')->search(
+        {
+            -and => [
+                { pkgid => {
+                    IN => $c->model('Base::RpmFile')->search(
+                        { filename => [ $sourcerpm, $nosourcerpm ] }
+                    )->get_column('pkgid')->as_query
+                }, },
+                ($distrs 
+                    ? ({ pkgid => { IN => $distrs->get_column('pkgid')->as_query, }, },)
+                    : ()),
+            ],
+        }
+    )->get_column('pkgid')->all ];
+}
+
+sub binaries : XMLRPCPath('/search/rpm/binaries') {
+    my ( $self, $c, $searchspec, $pkgid ) = @_;
+
+    my $distrs = $c->forward('distrib_search', [ $searchspec, 1 ]);
+    my $sourcerpm = $c->forward('/rpms/queryformat', [ $pkgid,
+            '%{NAME}-%{VERSION}-%{RELEASE}.src.rpm' ]);
+    my $nosourcerpm = $sourcerpm;
+    $nosourcerpm =~ s/\.src.rpm$/\.nosrc.rpm/;
+
+    my $tagrs = $c->model('Base')->resultset('Tags')
+        ->search({ tagname => 'sourcerpm', value => [ $sourcerpm, $nosourcerpm ] })
+        ->get_column('pkgid');
+    $c->stash->{xmlrpc} = [ $c->model('Base::Rpms')->search(
+        {
+            -and => [
+                { issrc => 0 },
+                { pkgid =>
+                    { IN => $tagrs->as_query, },
+                },
+                ($distrs 
+                    ? ({ pkgid => { IN => $distrs->get_column('pkgid')->as_query, }, })
+                    : ()),
+            ]
+        },
+        {
+            order_by => [ qw(arch name), 'evr using >>' ],
+        },
+    )->get_column('pkgid')->all ];
+
+}
+
 sub file_search : XMLRPCPath('/search/file/byname') {
     my ( $self, $c, $searchspec, $file) = @_;
     $searchspec ||= {};
