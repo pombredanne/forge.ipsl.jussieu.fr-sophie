@@ -96,6 +96,16 @@ div.sophie_package_list {
     margin-top: 2em;
 }
 
+div.sophie_search_list {
+    border: none;
+    padding-left: 0.5em;
+    padding-top: 0.2em;
+    background: #f3f47a;
+    margin-top: 2em;
+    margin-left: 5%;
+    margin-right: 5%;
+}
+
 .sophie_help h2 {
     font-size: 1.2em;
 /*    margin-top: 5em;*/

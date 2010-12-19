@@ -23,7 +23,7 @@ pager.next_page %]</a>
 
 [% FOREACH pkgid = xmlrpc.results %]
 [% info = c.forward('/rpms/info', [ pkgid ]) %]
-<div class="sophie_package_list">
+<div class="sophie_search_list">
 <h2><a href="[% c.uri_for('/rpms', pkgid) %]">
     [% info.name %]-[% info.version %]-[% info.release %].[% IF info.src %]src[% ELSE %][% info.arch %][% END %]</a></h2>
 <p>
