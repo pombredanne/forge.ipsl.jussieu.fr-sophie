@@ -69,7 +69,7 @@ sub set_user_data : Private {
 }
 
 sub update_data : XMLRPC {
-    my ( $self, $c, $user, $dataname, $data ) = @_;
+    my ( $self, $c, $dataname, $data ) = @_;
     $c->forward('update_user_data', [ $c->user->mail || '', $dataname, $data ]);
 }
 
