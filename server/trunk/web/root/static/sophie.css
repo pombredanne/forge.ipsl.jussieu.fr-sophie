@@ -31,7 +31,8 @@ p#sitename {
 }
 
 #sophie_site_path {
-    font-size: 0.7em;
+    font-size: 0.7em;#573B1D;
+
 }
 
 /* body_home : Id for home part of index.html */
@@ -52,15 +53,18 @@ div#body_main {
 
 div#body_additional {
     float:left;
-    border: inset;
-    font-size: 0.7em;
-    padding: 0.2em;
+    border: solid #573B1D;
+    font-size: .85em;
+    padding-left: 1.2em;
+    padding-top: 0.25em;
+    padding-bottom: 0.25em;
+    margin-top: 0.75em;
     width: 35%;
     overflow: hidden;
 }
 
 div#sophie_header {
-    border: outset;
+    border: none;
     background-color: #74D100;
 }
 

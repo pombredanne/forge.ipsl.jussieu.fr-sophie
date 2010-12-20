@@ -2,18 +2,17 @@
 [% USE 'GuessEncode' %]
 [% USE 'ObfuscateMail' %]
 
-<div id="sophie_info">
-<ul class="sophie_tag" id="sophie_tag">
-<li class="tag">Name: [% xmlrpc.info.name | html %]</li>
-<li class="tag">Version: [% xmlrpc.info.version | html %]</li>
-<li class="tag">Release: [% xmlrpc.info.release | html %]</li>
-<li class="tag">Epoch: [% xmlrpc.info.epoch | html %]</li>
-<li class="tag">Architecture: [% xmlrpc.info.arch | html %]</li>
-<li class="tag">Distribution: [% xmlrpc.info.distribution | html %]</li>
-<li class="tag">Group: [% xmlrpc.info.group | html %]</li>
-<li class="tag">License: [% xmlrpc.info.license | html %]</li>
-<li class="tag">Url: <a href="[% xmlrpc.info.url | html %]">[% xmlrpc.info.url | html %]</a></li>
-<li class="tag">Summary: [% xmlrpc.info.summary | guessencode | html %]</li>
+<ul class="sophie_tag">
+<li>Name: [% xmlrpc.info.name | html %]</li>
+<li>Version: [% xmlrpc.info.version | html %]</li>
+<li>Release: [% xmlrpc.info.release | html %]</li>
+<li>Epoch: [% xmlrpc.info.epoch | html %]</li>
+<li>Architecture: [% xmlrpc.info.arch | html %]</li>
+<li>Distribution: [% xmlrpc.info.distribution | html %]</li>
+<li>Group: [% xmlrpc.info.group | html %]</li>
+<li>License: [% xmlrpc.info.license | html %]</li>
+<li>Url: <a href="[% xmlrpc.info.url | html %]">[% xmlrpc.info.url | html %]</a></li>
+<li>Summary: [% xmlrpc.info.summary | guessencode | html %]</li>
 </ul>
 
 <div id="sophie_rpm_description">
