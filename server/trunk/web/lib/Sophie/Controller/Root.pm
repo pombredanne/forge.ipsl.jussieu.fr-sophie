@@ -81,6 +81,12 @@ sub index :Path :Args(0) {
     ); 
 }
 
+sub robots :Path('/robots.txt') {
+    my ($self, $c) = @_;
+
+    $c->serve_static_file($c->path_to('root', 'static', 'robots.txt'));
+}
+
 =head2 default
 
 Standard 404 error page
