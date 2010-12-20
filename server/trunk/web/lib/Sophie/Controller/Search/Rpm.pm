@@ -83,7 +83,16 @@ sub bytag_rpc : XMLRPCPath('bytag') {
     #$c->forward('/search/format_search', $searchspec);
 }
 
-sub bydep : XMLRPCPath('/search/rpm/bydep') {
+sub bydep : Private {
+    my ( $self, $c, $searchspec, $deptype, $depname, $depsense, $depevr ) = @_;
+    $searchspec ||= {};
+
+    $c->stash->{xmlrpc} = [ $c->forward('bydep_rpc', [ 
+                $searchspec, $deptype, $depname, $depsense, $depevr ]
+    )->get_column('pkgid')->all ];
+}
+
+sub bydep_rpc : XMLRPCPath('bydep') {
     my ( $self, $c, $searchspec, $deptype, $depname, $depsense, $depevr ) = @_;
     $searchspec ||= {};
 
@@ -106,7 +115,17 @@ sub bydep : XMLRPCPath('/search/rpm/bydep') {
     );
 }
 
-sub byfile : XMLRPCPath('byfile') {
+sub byfile : Private {
+    my ( $self, $c, $searchspec, $file) = @_;
+    $searchspec ||= {};
+    $c->stash->{xmlrpc} = [ 
+        $c->forward(
+            'byfile_rpc', [ $searchspec, $file ]
+        )->get_column('pkgid')->all
+    ];
+}
+
+sub byfile_rpc : XMLRPCPath('byfile') {
     my ( $self, $c, $searchspec, $file) = @_;
     $searchspec ||= {};
     my $distrs = $c->forward('/search/distrib_search', [ $searchspec, 1 ]);
@@ -267,6 +286,41 @@ sub binaries : XMLRPCPath('binaries') {
         },
     );
 }
+
+sub end : Private {
+    my ( $self, $c, $searchspec ) = @_;
+    $searchspec ||= {};
+    $c->stash->{rs} or return;
+
+    my $rs = $c->stash->{rs}->search(
+        {},
+        {
+            page => $searchspec->{page} || 
+                 $c->req->param('page') || 1,
+            rows => $searchspec->{rows} || 
+                 $c->req->param('rows') || 10,
+        },
+    );
+
+    $c->stash->{rs} = $rs;
+    my @results = $rs->get_column('pkgid')->all;
+    
+    $c->stash->{xmlrpc} = {};
+    if (!$searchspec->{nopager}) {
+        my $pager = $c->stash->{rs}->pager;
+        $c->stash->{pager} = $pager;
+        $c->stash->{xmlrpc} = {
+                pages => $pager->last_page,
+                current_page => $pager->current_page,
+                total_entries => $pager->total_entries,
+                entries_per_page => $pager->entries_per_page,
+        };
+    }
+    $c->stash->{xmlrpc}{results} = \@results;
+
+    #$c->forward('/end');
+}
+
 
 =head1 AUTHOR
 

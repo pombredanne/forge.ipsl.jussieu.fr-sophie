@@ -70,7 +70,7 @@ sub index :Path :Args(0) {
     my ( $self, $c ) = @_;
 
     $c->stash->{xmlrpc} = $c->forward(
-        '/search/bydate',
+        '/search/rpms/bydate',
         [
             {
                 src => 1,

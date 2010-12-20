@@ -29,7 +29,6 @@ sub index :Path :Args(0) {
 
 sub match : Private {
     my ($self, $c, $searchspec, $deptype, $depname, $depsense, $depevr) = @_;
-    my $distrs = $c->forward('/search/distrib_search', [ $searchspec, 1 ]);
     $c->stash->{xmlrpc} = [ 
         map { { $_->get_columns } }
         $c->forward(

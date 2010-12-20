@@ -317,8 +317,8 @@ sub list_srpms :Chained('distrib_view') PathPart('srpms') Args(0) {
 sub srpm_by_name :Chained('distrib_view') PathPart('srpms') {
     my ($self, $c, $name, @subpart) = @_;
     $c->stash->{dist}{src} = 1;
-    ($c->stash->{pkgid}) = @{ $c->forward('/search/bytag',
-        [ $c->stash->{dist}, 'name', $name ])->{results} };
+    ($c->stash->{pkgid}) = @{ $c->forward('/search/rpm/byname',
+        [ $c->stash->{dist}, $name ]) };
     $c->go('/404/index') unless ($c->stash->{pkgid});
     $c->go('/rpms/rpms', [ $c->stash->{pkgid}, @subpart ]);
 }
@@ -326,8 +326,8 @@ sub srpm_by_name :Chained('distrib_view') PathPart('srpms') {
 sub rpm_by_name :Chained('distrib_view') PathPart('rpms') {
     my ($self, $c, $name, @subpart) = @_;
     $c->stash->{dist}{src} = 0;
-    ($c->stash->{pkgid}) = @{ $c->forward('/search/bytag',
-        [ $c->stash->{dist}, 'name', $name ])->{results} };
+    ($c->stash->{pkgid}) = @{ $c->forward('/search/rpm/byname',
+        [ $c->stash->{dist}, $name ]) };
     $c->go('/404/index') unless ($c->stash->{pkgid});
     $c->go('/rpms/rpms', [ $c->stash->{pkgid}, @subpart ]);
 }
@@ -335,8 +335,8 @@ sub rpm_by_name :Chained('distrib_view') PathPart('rpms') {
 sub rpm_bypkgid :Chained('distrib_view') PathPart('by-pkgid') {
     my ( $self, $c, $pkgid, @subpart ) = @_;
     if ($pkgid) {
-        if (@{ $c->forward('/search/bypkgid',
-            [ $c->stash->{dist}, $pkgid ])->{results} } ) {
+        if (@{ $c->forward('/search/rpm/bypkgid',
+            [ $c->stash->{dist}, $pkgid ]) } ) {
             $c->go('/rpms/rpms', [ $pkgid, @subpart ]);
         } else {
             $c->go('/404/index');
@@ -366,8 +366,8 @@ sub media_srpm_byname :Chained('_media_list_rpms') PathPart('srpms') {
 sub media_rpm_bypkgid :Chained('_media_list_rpms') PathPart('by-pkgid') {
     my ( $self, $c, $pkgid, @part ) = @_;
     if ($pkgid) {
-        if (@{ $c->forward('/search/bypkgid', [ $c->stash->{dist}, $pkgid
-            ])->{results} } ) {
+        if (@{ $c->forward('/search/rpm/bypkgid', [ $c->stash->{dist}, $pkgid
+            ]) } ) {
             $c->stash->{pkgid} = $pkgid;
             $c->go('/rpms/rpms', [ $pkgid, @part ]);
         } else {

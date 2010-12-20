@@ -44,8 +44,8 @@ sub find_requirements : XMLRPC {
         $depname =~ /^rpmlib\(/ and next;
         my $found = 0;
         if ($depname =~ /^\//) {
-            my $res = $c->forward('/search/byfile', [ $searchspec, $depname, ]);
-            if (@{$res->{results}}) {
+            my $res = $c->forward('/search/rpm/byfile', [ $searchspec, $depname, ]);
+            if (@{$res}) {
                 $found = 1;
                 foreach (@{$res->{results}}) {
                     $need_pkgid{$_} = 1;
@@ -61,13 +61,13 @@ sub find_requirements : XMLRPC {
                 }
             }
         } else {
-            my $res = $c->forward('/search/bydep', [ $searchspec, $over,
+            my $res = $c->forward('/search/rpm/bydep', [ $searchspec, $over,
                     $depname,
                     $sense,
                     $evr ]);
-            if (@{$res->{results}}) {
+            if (@{$res}) {
                 $found = 1;
-                foreach (@{$res->{results}}) {
+                foreach (@{$res}) {
                     $need_pkgid{$_} = 1;
                 }
             } 

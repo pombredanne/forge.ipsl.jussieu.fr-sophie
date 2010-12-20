@@ -153,8 +153,8 @@ sub version : XMLRPC {
             's'   => sub { $reqspec->{src} = 1 },
         }, @args ]) };
 
-    my $rpmlist = $c->forward('/search/byname', [ $reqspec, $args[0] ]);
-    foreach (@{ $rpmlist->{results} }) {
+    my $rpmlist = $c->forward('/search/rpm/byname', [ $reqspec, $args[0] ]);
+    foreach (@{ $rpmlist }) {
         my $info = $c->forward('/rpms/basicinfo', [ $_ ]);
         push @message, $info->{evr} . ' // ' .
             $c->forward('_fmt_location', [ $_ ]);
@@ -332,8 +332,8 @@ sub qf : XMLRPC {
             's'   => sub { $reqspec->{src} = 1 },
         }, @args ]) };
 
-    my $rpmlist = $c->forward('/search/byname', [ $reqspec, $args[0] ]);
-    foreach (@{ $rpmlist->{results} }) {
+    my $rpmlist = $c->forward('/search/rpm/byname', [ $reqspec, $args[0] ]);
+    foreach (@{ $rpmlist }) {
         my $info = $c->forward('/rpms/queryformat', [ $_, $args[1] ]);
         push @message, $info . ' // ' .
             $c->forward('_fmt_location', [ $_ ]);
@@ -362,8 +362,8 @@ sub more : XMLRPC {
             's'   => sub { $reqspec->{src} = 1 },
         }, @args ]) };
 
-    my $rpmlist = $c->forward('/search/byname', [ $reqspec, $args[0] ]);
-    foreach (@{ $rpmlist->{results} }) {
+    my $rpmlist = $c->forward('/search/rpm/byname', [ $reqspec, $args[0] ]);
+    foreach (@{ $rpmlist }) {
         push @message, $c->uri_for('/rpms', $_) . ' // ' .
             $c->forward('_fmt_location', [ $_ ]);
     }
@@ -388,8 +388,8 @@ sub buildfrom : XMLRPC {
             'v=s' => \$reqspec->{release},
             'a=s' => \$reqspec->{arch},
         }, @args ]) };
-    my $rpmlist = $c->forward('/search/byname', [ $reqspec, $args[0] ]);
-    foreach (@{ $rpmlist->{results} }) {
+    my $rpmlist = $c->forward('/search/rpm/byname', [ $reqspec, $args[0] ]);
+    foreach (@{ $rpmlist }) {
         my $res = $c->forward('/rpms/binaries', [ $_ ]);
         my @name;
         foreach (@$res) {
