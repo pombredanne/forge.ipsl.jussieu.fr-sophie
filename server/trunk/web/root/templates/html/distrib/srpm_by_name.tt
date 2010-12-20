@@ -1,1 +1,2 @@
+<!-- $Id$ -->
 [% INCLUDE 'rpms/rpms.tt' %]

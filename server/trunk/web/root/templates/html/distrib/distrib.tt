@@ -1,3 +1,4 @@
+<!-- $Id$ -->
 <ol>
 [% FOREACH media = xmlrpc %]
 <li><a href="[% c.uri_for('/', c.req.path, 'media', media) %]">[% media %]</a></li>

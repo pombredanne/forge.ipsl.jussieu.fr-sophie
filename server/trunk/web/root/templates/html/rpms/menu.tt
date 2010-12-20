@@ -1,3 +1,4 @@
+<!-- $Id$ -->
 <ul id="sophie_rpms_menu" class="flat_menu">
 <li><a href="[% c.uri_for('/', rpmurl) %]">Info</a></li>
 <li><a href="[% c.uri_for('/', rpmurl, 'deps') %]">Deps</a></li>

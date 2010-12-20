@@ -1,3 +1,4 @@
+<!-- $Id$ -->
 [% FOREACH release = xmlrpc %]
 [% IF loop.first %]
 <ol>

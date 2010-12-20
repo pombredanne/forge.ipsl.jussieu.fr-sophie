@@ -1,3 +1,4 @@
+<!-- $Id$ -->
 [% FOREACH r = rpm %]
 [% IF loop.first %]
 <ol>
