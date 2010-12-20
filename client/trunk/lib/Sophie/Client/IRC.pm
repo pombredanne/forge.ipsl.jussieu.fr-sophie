@@ -130,6 +130,13 @@ sub show_reply {
 
 }
 
+sub user_config {
+    my ($self, $heap, $var, $value) = @_;
+
+    $self->set_var($heap->{heap}{server} . '@' . $heap->{from},
+        { $var => $value });
+}
+
 sub run {
     my ($self) = @_;
 

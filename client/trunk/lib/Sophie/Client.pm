@@ -62,7 +62,7 @@ sub get_var {
 sub set_var {
     my ($self, $varname, $data) = @_;
 
-    my $resp = $self->send_request('user.updatedata', $varname, $data);
+    my $resp = $self->send_request('user.update_data', $varname, $data);
     if (ref $resp) {
         return 1;
     } else {
@@ -74,7 +74,12 @@ sub handle_message {
     my ($self, $heap, $context, $message) = @_;
 
     $self->login;
-    $self->submit_query($heap, $context, $message);
+    if ($message =~ /^\s*set\s+(\w+)\s+(\S+)/) {
+        warn "$1, $2";
+        $self->user_config($heap, $1, $2);
+    } else {
+        $self->submit_query($heap, $context, $message);
+    }
 }
 
 sub submit_query {

@@ -20,6 +20,12 @@ sub show_reply {
     print "$_\n" foreach (@{$reply->{message}});
 }
 
+sub user_config {
+    my ($self, $heap, $var, $value) = @_;
+
+    $self->set_var('client', { $var => $value });
+}
+
 sub run {
     my ($self) = @_;
 
@@ -32,7 +38,7 @@ sub run {
             print $OUT "\n";
             return;
         };
-        $self->handle_message(undef, undef, $line);
+        $self->handle_message(undef, [ 'client' ], $line);
         $term->addhistory($line);
     }
 }
