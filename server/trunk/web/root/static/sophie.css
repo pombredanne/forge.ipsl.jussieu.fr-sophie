@@ -163,6 +163,13 @@ div.sophie_search_list {
     background-color: #FFFFC0;
 }
 
+.sophie_help pre {
+    background-color: #FFFFC0;
+    padding: 1em;
+    margin: 2em;
+    border: 2px inset;
+}
+
 ul.sophie_tag {
     padding-left: 0em;
 }
