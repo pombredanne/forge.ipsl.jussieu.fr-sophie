@@ -30,7 +30,7 @@ sub index :Path :Args(0) {
     $c->response->body('Matched Sophie::Controller::Rpms in Rpms.');
 }
 
-=head2 rpms.queryformat PKGID, FORMAT
+=head2 rpms.queryformat( PKGID, FORMAT )
 
 Perform an C<rpm -q --qf> on the package having C<PKGID>.
 
@@ -48,7 +48,7 @@ sub queryformat : XMLRPCLocal {
     )->next->get_column('qf');
 }
 
-=head2 rpms.tag PKGID, TAG
+=head2 rpms.tag( PKGID, TAG )
 
 Return the list of C<TAG> values for package C<PKGID>
 
@@ -184,6 +184,38 @@ sub binaries : XMLRPCLocal {
         },
     )->get_column('pkgid')->all ];
 
+}
+
+
+=head2 rpms.maintainers( PKGID )
+
+Return the maintainers for this package.
+
+The list of maintainers is limited to distribution where the package is located.
+
+If the package is a binary the C<SOURCERPM> tag is used to find the source rpm
+name.
+
+=cut
+
+sub maintainers : XMLRPCLocal {
+    my ($self, $c, $pkgid) = @_;
+
+    my $binfo = $c->forward('/rpms/basicinfo', [ $pkgid ]);
+    my $rpmname;
+    if ($binfo->{issrc}) {
+        $rpmname = $binfo->{name};
+    } else {
+        my $sourcerpm = $c->forward('queryformat', [ $pkgid, '%{SOURCERPM}' ]);
+        $sourcerpm =~ /^(.*)-([^-]+)-([^-]+)\.[^\.]+.rpm$/;
+        $rpmname = $1;
+    }
+    my %dist;
+    foreach (@{ $c->forward('/rpms/location', [ $pkgid ]) }) {
+        $dist{$_->{distribution}} = 1;
+    }
+
+    $c->forward('/maintainers/byrpm', [ $rpmname, [ keys %dist ] ]);
 }
 
 sub rpms_ :PathPrefix :Chained :CaptureArgs(1) {
@@ -334,7 +366,7 @@ sub changelog :Chained('rpms_') :PathPart('changelog') :Args(0) :XMLRPCLocal {
     $c->stash->{xmlrpc} = \@ch;
 }
 
-=head2 rpms.location (PKGID)
+=head2 rpms.location( PKGID )
 
 Return all distribution where the package having C<PKGID> can be found.
 
