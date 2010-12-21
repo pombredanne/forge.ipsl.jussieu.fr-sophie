@@ -1,0 +1,36 @@
+#!/bin/env perl
+
+use strict;
+use warnings;
+use Sophie::Base;
+
+my $sophie = Sophie::Base->connect;
+
+foreach my $maintsource (
+    $sophie->resultset('MaintSources')
+    ->search->all) {
+
+    my $realclass = 'Sophie::Maint::' . $maintsource->accessor;
+    no strict qw(refs);
+    eval "require $realclass;";
+    next if($@);
+
+    my $fetcher = $realclass->new($maintsource);
+    if (my $list = $fetcher->fetch) {
+        $sophie->resultset('MaintRpm')->search(
+            {
+                sources => $maintsource->pkey,
+            }
+        )->delete;
+
+        foreach (@$list) {
+            $_->{sources} = $maintsource->pkey;
+        }
+
+        if ($sophie->resultset('MaintRpm')->populate($list)) {
+            $sophie->storage->dbh->commit;
+        } else {
+            $sophie->storage->dbh->rollback;
+        }
+    }
+}
