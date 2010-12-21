@@ -83,19 +83,23 @@ sub message : XMLRPC {
 sub paste : XMLRPCLocal {
     my ($self, $c, $title, $text) = @_;
 
-    my @char = ('a' .. 'z', 'A' .. 'Z', 0 .. 9);
-    my $id = join('', map { $char[rand(@char)] } (0..7));
-    $c->model('Base::ChatPaste')->create(
-        {
-            id => $id,
-            user_id => $c->model('Base::Users')->find(
-                { mail => $c->user->mail })->ukey,
-            title => $title,
-            reply => $text,
-        }
-    );
-    $c->model('Base')->storage->dbh->commit;
-    $c->stash->{xmlrpc} = $id;
+    if ($c->user_exists) {
+        my @char = ('a' .. 'z', 'A' .. 'Z', 0 .. 9);
+        my $id = join('', map { $char[rand(@char)] } (0..7));
+        $c->model('Base::ChatPaste')->create(
+            {
+                id => $id,
+                user_id => $c->model('Base::Users')->find(
+                    { mail => $c->user->mail })->ukey,
+                title => $title,
+                reply => $text,
+            }
+        );
+        $c->model('Base')->storage->dbh->commit;
+        return $c->stash->{xmlrpc} = $id;
+    } else {
+        return $c->stash->{xmlrpc} = undef;
+    }
 }
 
 sub get_paste : XMLRPCLocal {
