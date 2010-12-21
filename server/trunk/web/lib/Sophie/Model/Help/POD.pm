@@ -29,7 +29,11 @@ it under the same terms as Perl itself.
 
 sub pom {
     my ($self) = @_;
-    return values %{ $self->{pom} }
+    my @pom;
+    foreach (sort keys %{ $self->{pom} }) {
+        push(@pom, $self->{pom}{$_});
+    }
+    return @pom;
 }
 
 sub bot_functions {
@@ -92,6 +96,23 @@ sub xmlrpc_functions {
                 my $title = $item->title or next;
                 $title =~ s/[^\w\._].*$//;
                 if ($self->{xmlrpc_methods}->{$title}) {
+                     push(@pod, $item);
+                }
+            }
+        }
+    }
+    my $ppvh = Pod::POM::View::HTML->new;
+    return join("\n\n", map { $_->present($ppvh) } @pod);
+}
+
+sub urls_functions {
+    my ($self) = @_;
+    my @pod;
+    foreach my $pom ($self->pom) {
+        foreach my $head1 ($pom->content) {
+            foreach my $item ($head1->content) {
+                my $title = $item->title or next;
+                if ($title =~ /^Url:/) {
                      push(@pod, $item);
                 }
             }
