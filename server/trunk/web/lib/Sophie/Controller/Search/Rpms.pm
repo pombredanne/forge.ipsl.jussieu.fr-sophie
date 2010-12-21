@@ -52,8 +52,8 @@ sub rpms_rs : Private {
                 }
             },
             {
-                select => [qw(filename pkgid name version arch label) ],
-                as => [qw(filename pkgid distribution release arch media) ],
+                select => [qw(filename pkgid name shortname version arch label) ],
+                as => [qw(filename pkgid distribution dist release arch media) ],
                 rows => $searchspec->{rows} || 10000,
                 order_by => [ 'Rpmfiles.added desc' ],
             },
@@ -152,6 +152,34 @@ sub bydate_rpc : XMLRPCPath('bydate') {
                 [ plain_text => "$date seconds" ],   
             ],
         });
+}
+
+sub byfilename : Private {
+    my ( $self, $c, $searchspec, $file ) = @_;
+    $searchspec ||= {};
+
+    return $c->stash->{xmlrpc} = [
+        map {
+            { 
+            $_->get_columns
+            }
+        }
+        $c->forward('byfilename_rpc', [ $searchspec, $file ])->all ];
+}
+
+sub byfilename_rpc : XMLRPCPath('byfilename') {
+    my ( $self, $c, $searchspec, $file ) = @_;
+    $searchspec ||= {};
+
+    $c->stash->{rs} =
+        $c->forward('rpms_rs')->search(
+        {
+            filename => { LIKE => $file },
+        },
+        {
+            order_by => [ qw(filename) ],
+        }
+    );
 }
 
 =head1 AUTHOR
