@@ -511,6 +511,55 @@ sub buildfrom : XMLRPC {
 
 }
 
+=head2 findfile
+
+=cut
+
+sub findfile : XMLRPC {
+    my ($self, $c, $reqspec, @args) = @_;
+
+    my @message;
+    $reqspec->{src} = 0;
+
+    @args = @{ $c->forward('_getopt', [
+        {
+            'd=s' => \$reqspec->{distribution},
+            'v=s' => \$reqspec->{release},
+            'a=s' => \$reqspec->{arch},
+        }, @args ]) };
+
+    if (!$c->forward('/distrib/exists', [ $reqspec ])) {
+        return $c->stash->{xmlrpc} = {
+            message => [ "I don't have such distribution" ]
+        };
+    }
+
+    my $rpmlist = $c->forward('/search/rpm/byfile', [ $reqspec, $args[0] ]);
+    if (!@{ $rpmlist }) {
+        return $c->stash->{xmlrpc} = {
+            message => [ "Sorry, no file $args[0] found" ],
+        }
+    } elsif (@{ $rpmlist } > 20) {
+        foreach (@{ $rpmlist }) {
+            my $info = $c->forward('/rpms/basicinfo', [ $_ ]);
+            push @message, $info->{name} . ' // ' .
+                $c->forward('_fmt_location', [ $reqspec, $_ ]);
+        }
+        return $c->stash->{xmlrpc} = {
+            message => \@message,
+        }
+    } else {
+        my %list;
+        foreach (@{ $rpmlist }) {
+            my $info = $c->forward('/rpms/basicinfo', [ $_ ]);
+            $list{$info->{name}} = 1;
+        }
+        return $c->stash->{xmlrpc} = {
+            message => [ join(', ', sort keys %list) ],
+        };
+    }
+}
+
 =head1 AUTHOR
 
 Olivier Thauvin

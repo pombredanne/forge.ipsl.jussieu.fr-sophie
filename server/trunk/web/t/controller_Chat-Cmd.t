@@ -14,4 +14,8 @@ foreach (qw(version v packager p arch a buildfrom)) {
     );
 }
 
+ok( xmlrequest_ok("chat.cmd.findfile", {}, "/bin/rpm"),
+    "XML::RPC chat.cmd.findfile"
+);
+
 done_testing();
