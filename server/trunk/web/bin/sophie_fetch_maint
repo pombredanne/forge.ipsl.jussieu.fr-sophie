@@ -28,6 +28,7 @@ foreach my $maintsource (
         }
 
         if ($sophie->resultset('MaintRpm')->populate($list)) {
+            $maintsource->update({ lastupdated => 'now()' });
             $sophie->storage->dbh->commit;
         } else {
             $sophie->storage->dbh->rollback;
