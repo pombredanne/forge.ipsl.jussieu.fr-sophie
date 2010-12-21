@@ -511,7 +511,9 @@ sub buildfrom : XMLRPC {
 
 }
 
-=head2 findfile
+=head2 findfile FILE
+
+Return the rpm owning the file C<FILE>. 
 
 =cut
 
