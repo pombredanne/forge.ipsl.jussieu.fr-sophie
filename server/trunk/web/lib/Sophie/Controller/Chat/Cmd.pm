@@ -44,7 +44,9 @@ sub end : Private {
 
     if ($needpaste) {
         my $id = $c->forward('/chat/paste', [ 'Bot paste', join("\n", @backup) ]);
-        push(@{ $message->{message} }, 'All results availlable here: ' . $c->uri_for('/chat', $id));
+        if ($id) {
+            push(@{ $message->{message} }, 'All results availlable here: ' . $c->uri_for('/chat', $id));
+        }
     }
 
     $c->stash->{xmlrpc} = $message;
@@ -74,7 +76,7 @@ sub _getopt : Private {
 }
 
 sub _fmt_location : Private {
-    my ($self, $c, $pkgid) = @_;
+    my ($self, $c, $searchspec, $pkgid) = @_;
 
     my @loc;
     foreach (@{ $c->forward('/rpms/location', [ $pkgid ]) }) {
@@ -87,6 +89,33 @@ sub _fmt_location : Private {
         );
     }
     return join(', ', @loc);
+}
+
+sub _find_rpm_elsewhere : Private {
+    my ($self, $c, $searchspec, $name) = @_;
+    if ($searchspec->{distribution}) {
+        my $rpmlist = $c->forward('/search/rpm/byname', [ 
+                {
+                    distribution => $searchspec->{distribution},
+                    rows => 1,
+                }, $name ]);
+        if (@{$rpmlist}) {
+            return $c->forward('_fmt_location', [ { 
+                        distribution => $searchspec->{distribution}
+                    }, $rpmlist->[0] ]);
+        }
+    }
+    my $rpmlist = $c->forward('/search/rpm/byname', [ {}, $name ]);
+    my %dist;
+    foreach(@$rpmlist) {
+        foreach (@{ $c->forward('/rpms/location', [ $_ ]) }) {
+            $dist{$_->{dist} || $_->{distribution}} = 1;
+        }
+    }
+    if (keys %dist) {
+        return join(', ', sort keys %dist);
+    }
+    return;
 }
 
 =head1 AVAILLABLE FUNCTIONS
@@ -153,11 +182,31 @@ sub version : XMLRPC {
             's'   => sub { $reqspec->{src} = 1 },
         }, @args ]) };
 
+    if (!$c->forward('/distrib/exists', [ $reqspec ])) {
+        return $c->stash->{xmlrpc} = {
+            message => [ "I don't have such distribution" ]
+        };
+    }
+
     my $rpmlist = $c->forward('/search/rpm/byname', [ $reqspec, $args[0] ]);
+    if (!@{ $rpmlist }) {
+        my $else = $c->forward('_find_rpm_elsewhere', [ $reqspec, $args[0] ]);
+        if ($else) {
+            return $c->stash->{xmlrpc} = {
+                message => [ 
+                    "The rpm named `$args[0]' has not been found but found in " . $else
+                ],
+            }
+        } else {
+            return $c->stash->{xmlrpc} = {
+                message => [ "The rpm named `$args[0]' has not been found" ],
+            }
+        }
+    }
     foreach (@{ $rpmlist }) {
         my $info = $c->forward('/rpms/basicinfo', [ $_ ]);
         push @message, $info->{evr} . ' // ' .
-            $c->forward('_fmt_location', [ $_ ]);
+            $c->forward('_fmt_location', [ $reqspec, $_ ]);
     }
     return $c->stash->{xmlrpc} = {
         message => \@message,
@@ -332,11 +381,31 @@ sub qf : XMLRPC {
             's'   => sub { $reqspec->{src} = 1 },
         }, @args ]) };
 
+    if (!$c->forward('/distrib/exists', [ $reqspec ])) {
+        return $c->stash->{xmlrpc} = {
+            message => [ "I don't have such distribution" ]
+        };
+    }
+
     my $rpmlist = $c->forward('/search/rpm/byname', [ $reqspec, $args[0] ]);
+    if (!@{ $rpmlist }) {
+        my $else = $c->forward('_find_rpm_elsewhere', [ $reqspec, $args[0] ]);
+        if ($else) {
+            return $c->stash->{xmlrpc} = {
+                message => [ 
+                    "The rpm named `$args[0]' has not been found but found in " . $else
+                ],
+            }
+        } else {
+            return $c->stash->{xmlrpc} = {
+                message => [ "The rpm named `$args[0]' has not been found" ],
+            }
+        }
+    }
     foreach (@{ $rpmlist }) {
         my $info = $c->forward('/rpms/queryformat', [ $_, $args[1] ]);
         push @message, $info . ' // ' .
-            $c->forward('_fmt_location', [ $_ ]);
+            $c->forward('_fmt_location', [ $reqspec, $_ ]);
     }
     return $c->stash->{xmlrpc} = {
         message => \@message,
@@ -362,10 +431,30 @@ sub more : XMLRPC {
             's'   => sub { $reqspec->{src} = 1 },
         }, @args ]) };
 
+    if (!$c->forward('/distrib/exists', [ $reqspec ])) {
+        return $c->stash->{xmlrpc} = {
+            message => [ "I don't have such distribution" ]
+        };
+    }
+
     my $rpmlist = $c->forward('/search/rpm/byname', [ $reqspec, $args[0] ]);
+    if (!@{ $rpmlist }) {
+        my $else = $c->forward('_find_rpm_elsewhere', [ $reqspec, $args[0] ]);
+        if ($else) {
+            return $c->stash->{xmlrpc} = {
+                message => [ 
+                    "The rpm named `$args[0]' has not been found but found in " . $else
+                ],
+            }
+        } else {
+            return $c->stash->{xmlrpc} = {
+                message => [ "The rpm named `$args[0]' has not been found" ],
+            }
+        }
+    }
     foreach (@{ $rpmlist }) {
         push @message, $c->uri_for('/rpms', $_) . ' // ' .
-            $c->forward('_fmt_location', [ $_ ]);
+            $c->forward('_fmt_location', [ $reqspec, $_ ]);
     }
     return $c->stash->{xmlrpc} = {
         message => \@message,
@@ -388,7 +477,26 @@ sub buildfrom : XMLRPC {
             'v=s' => \$reqspec->{release},
             'a=s' => \$reqspec->{arch},
         }, @args ]) };
+    if (!$c->forward('/distrib/exists', [ $reqspec ])) {
+        return $c->stash->{xmlrpc} = {
+            message => [ "I don't have such distribution" ]
+        };
+    }
     my $rpmlist = $c->forward('/search/rpm/byname', [ $reqspec, $args[0] ]);
+    if (!@{ $rpmlist }) {
+        my $else = $c->forward('_find_rpm_elsewhere', [ $reqspec, $args[0] ]);
+        if ($else) {
+            return $c->stash->{xmlrpc} = {
+                message => [ 
+                    "The rpm named `$args[0]' has not been found but found in " . $else
+                ],
+            }
+        } else {
+            return $c->stash->{xmlrpc} = {
+                message => [ "The rpm named `$args[0]' has not been found" ],
+            }
+        }
+    }
     foreach (@{ $rpmlist }) {
         my $res = $c->forward('/rpms/binaries', [ $_ ]);
         my @name;
