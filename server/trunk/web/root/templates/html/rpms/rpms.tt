@@ -19,5 +19,4 @@
 <h2>Description:</h2>
 <p>[% xmlrpc.info.description | guessencode | html | html_line_break %]</p>
 </div>
-</div>
 
