@@ -562,6 +562,55 @@ sub findfile : XMLRPC {
     }
 }
 
+=head2 maint RPMNAME
+
+Show the maintainers for the rpm named C<RPMNAME>.
+
+=cut
+
+sub maint : XMLRPC {
+    my ($self, $c, $reqspec, @args) = @_;
+    $reqspec->{src} = 0;
+    my @message;
+    @args = @{ $c->forward('_getopt', [
+        {
+            'd=s' => \$reqspec->{distribution},
+            'v=s' => \$reqspec->{release},
+            'a=s' => \$reqspec->{arch},
+        }, @args ]) };
+    if (!$c->forward('/distrib/exists', [ $reqspec ])) {
+        return $c->stash->{xmlrpc} = {
+            message => [ "I don't have such distribution" ]
+        };
+    }
+    my $rpmlist = $c->forward('/search/rpm/byname', [ $reqspec, $args[0] ]);
+    if (!@{ $rpmlist }) {
+        my $else = $c->forward('_find_rpm_elsewhere', [ $reqspec, $args[0] ]);
+        if ($else) {
+            return $c->stash->{xmlrpc} = {
+                message => [ 
+                    "The rpm named `$args[0]' has not been found but found in " . $else
+                ],
+            }
+        } else {
+            return $c->stash->{xmlrpc} = {
+                message => [ "The rpm named `$args[0]' has not been found" ],
+            }
+        }
+    }
+    my %maint;
+    foreach (@{ $rpmlist }) {
+        my $res = $c->forward('/rpms/maintainers', [ $_ ]);
+        foreach (@$res) {
+            my $m = 'For ' . $_->{vendor} . ': ' . $_->{owner};
+            $maint{$m} = 1;
+        }
+    }
+    return $c->stash->{xmlrpc} = {
+        message => [ sort keys %maint ],
+    }
+}
+
 =head1 AUTHOR
 
 Olivier Thauvin
