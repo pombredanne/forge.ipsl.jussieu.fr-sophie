@@ -8,12 +8,6 @@ use POE qw(Component::IRC);
 
 our $VERSION = '0.01';
 
-sub handle_message {
-    my ($self, $heap, $context, $message) = @_;
-
-    $self->submit_query($heap, $context, $message);
-}
-
 sub setup_server {
     my ($self, $server, $nick, $password) = @_;
 
@@ -30,7 +24,7 @@ sub setup_server {
         Nick     => $nick,
         Server   => $server,
         Ircname  => 'Rpm2sql',
-        Debug    => 1,
+        Debug    => 0,
     );
  
     POE::Session->create(
@@ -133,7 +127,7 @@ sub show_reply {
 sub user_config {
     my ($self, $heap, $var, $value) = @_;
 
-    $self->set_var($heap->{heap}{server} . '@' . $heap->{from},
+    $self->set_var($heap->{heap}{server} . '@' . lc($heap->{from}),
         { $var => $value });
 }
 

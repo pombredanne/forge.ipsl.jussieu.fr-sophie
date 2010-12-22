@@ -12,12 +12,26 @@ GetOptions(
     'p=s' => \my $pass,
     't=s' => \my $type,
     'd=s' => \my @options,
+    'daemon' => \my $daemon,
 ) or pod2usage;
 
 my %options;
 foreach (@options) {
     m/([^=]+)\s*=\s*(.*)/ or next;
     $options{$1} = $2;
+}
+
+if ($daemon) {
+    my $pid = fork();
+
+    if (defined($pid)) {
+        if ($pid) {
+            # father, exiting;
+            exit(0);
+        } else {
+            # child
+        }
+    }
 }
 
 my $sc = Sophie::Client->new(
