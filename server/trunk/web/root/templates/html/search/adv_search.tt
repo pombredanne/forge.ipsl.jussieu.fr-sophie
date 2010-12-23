@@ -28,7 +28,7 @@
 </td>
 <td>
 <span id="deptype" style="[% 'visibility:hidden;' IF c.req.param('type') != 'bydep' %]">
-<select id="deptype" name="deptype">
+<select name="deptype">
     <option value="P"[% " selected=selected" IF c.req.param('deptype') == 'P' %]>Provides</option>
     <option value="R"[% " selected=selected" IF c.req.param('deptype') == 'R' %]>Requires</option>
 </select>
