@@ -33,6 +33,7 @@ requires 'Catalyst::Model::DBIC::Schema';
 requires 'Catalyst::Authentication::Store::DBIx::Class';
 requires 'Pod::Find';
 requires 'Pod::POM';
+requires 'XML::RSS';
 requires 'XML::Simple';
 requires 'Config::General'; # This should reflect the config file format you've chosen
                  # See Catalyst::Plugin::ConfigLoader for supported formats

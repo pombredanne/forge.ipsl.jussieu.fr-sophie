@@ -35,6 +35,7 @@ BuildRequires: perl(Catalyst::Model::DBIC::Schema)
 BuildRequires: perl(Pod::Find)
 BuildRequires: perl(Pod::POM)
 BuildRequires: perl(XML::Simple)
+BuildRequires: perl(XML::RSS)
 
 Requires: perl(Catalyst)
 Requires: perl(Catalyst::Plugin::ConfigLoader)
@@ -51,6 +52,7 @@ Requires: perl(Catalyst::Plugin::Compress::Zlib)
 Requires: perl-Catalyst-Plugin-Server
 Requires: perl(Catalyst::Plugin::Session::Store::DBI)
 Requires: perl(Catalyst::Authentication::Store::DBIx::Class)
+Requires: perl(XML::RSS)
 # Requires: apache-mod_fastcgi
 # Requires: perl(FCGI)
 # Requires: apache-mod_proxy
