@@ -95,6 +95,14 @@ div#sophie_search_form {
     padding-left: 0.2em;
 }
 
+.result_pager {
+    text-align: center;
+}
+
+.result_pager img {
+    vertical-align: middle;
+}
+
 div.sophie_package_list {
     float:right;
     border: none;
