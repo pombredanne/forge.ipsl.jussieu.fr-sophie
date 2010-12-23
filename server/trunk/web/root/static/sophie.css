@@ -31,8 +31,8 @@ p#sitename {
 }
 
 #sophie_site_path {
-    font-size: 0.7em;#573B1D;
-
+    font-size: 0.9em;
+    padding-left: 0.2em;
 }
 
 /* body_home : Id for home part of index.html */
@@ -151,6 +151,41 @@ div.sophie_search_list {
     padding-bottom: 0em;
     margin: 0em;
     margin-bottom: 0.2em;
+}
+
+#explorer_d {
+    margin-top: 0.5em;
+    margin-left: 0.2em;
+}
+
+div#exp_dir {
+    margin-top: 0.5em;
+    margin-left: 0.2em;
+}
+
+div#exp_file {
+    padding-left: 0.2em;
+    padding-right: 0.2em;
+    padding-top: 0.2em;
+    padding-bottom: 0.2em;
+    margin-top: 0.5em;
+    margin-left: 0.2em;
+    float: left;
+    border: solid #573B1D;
+    width: 65%;
+}
+
+div#sophie_explorer_form {
+    padding-left: 0.2em;
+    padding-right: 0.2em;
+    padding-top: 0.2em;
+    padding-bottom: 0.2em;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    margin-left: 0.2em;
+    float: left;
+    border: solid #573B1D;
+    width: 30%;
 }
 
 .sophie_help h2 {
