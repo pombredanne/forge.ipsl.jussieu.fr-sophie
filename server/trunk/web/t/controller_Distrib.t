@@ -17,12 +17,21 @@ BEGIN { use_ok 'Catalyst::Test', 'Sophie' }
 BEGIN { use_ok 'Sophie::Controller::Distrib' }
 
 ok( request('/distrib')->is_success, 'Request should succeed' );
-ok( request("/distrib/$distribution")->is_success, 'Request should succeed' );
+ok( request('/distrib', { ajax => 1 })->is_success, 'Request ajax should succeed' );
+ok( request('/distrib', { json => 1 })->is_success, 'Request json should succeed' );
+ok( request("/distrib/$distribution")->is_success, 'Request distribution should succeed' );
+ok( request("/distrib/$distribution", { ajax => 1 })->is_success,
+    'Request distribution as ajax should succeed' );
+ok( request("/distrib/$distribution", { json => 1 })->is_success,
+    'Request distribution as ajax should succeed' );
 ok( xmlrequest_ok( 'distrib.list'), "XMLRPC");
 ok( xmlrequest_ok( 'distrib.list', $distribution), "XMLRPC");
 ok( request("/distrib/$distribution/$release")->is_success, 'Request should succeed' );
 ok( request("/distrib/$distribution/$release/$arch")->is_success, 'Request should succeed' );
 ok( request("/distrib/$distribution/$release/$arch/media")->is_success, 'Request should succeed' );
+
+ok( request("/distrib/$distribution/$release/rpms")->is_success, 'Request should succeed' );
+
 ok(
     request("/distrib/$distribution/$release/$arch/media/$media/by-pkgid/$pkgid")
     ->is_success, "request media/pkgid");

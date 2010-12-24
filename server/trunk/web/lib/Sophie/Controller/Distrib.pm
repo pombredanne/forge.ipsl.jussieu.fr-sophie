@@ -16,6 +16,17 @@ Catalyst Controller.
 
 =cut
 
+=head2 distrib.list( [ DISTRIBUTION [, RELEASE [, ARCH ]]]
+
+List content of distrib according arguments given. IE list availlable
+C<distribution> if no argument is given, list C<release> if C<DISTRIBUTION> is
+given, list C<arch> if both C<DISTRIBUTION> and C<RELEASE> are given. Etc... Up
+to give C<MEDIA> if C<ARCH> is specified.
+
+Results are given as C<ARRAY>.
+
+=cut
+
 sub list :XMLRPC {
     my ( $self, $c, $distrib, $release, $arch ) = @_;
 
@@ -132,6 +143,32 @@ sub distrib_rs : Private {
         );
 }
 
+=head2 distrib.exists( DISTRIB )
+
+Return true or false if disteibution C<DISTRIB> exists.
+
+C<DISTRIB> is a structure with following key/value:
+
+=over 4
+
+=item distribution
+
+The distribution name
+
+=item release
+
+The release name
+
+=item arch
+
+The arch name
+
+=back
+
+This function is usefull to check if a search have chance to suceed, eg if the
+user is not searching a rpm on a not existing ditribution.
+
+=cut
 
 sub exists : XMLRPC {
     my ( $self, $c, $d ) = @_;
@@ -149,13 +186,25 @@ sub exists : XMLRPC {
 
 =cut
 
+=head2 Url: /distrib
+
+Return the list of currently stored distributions.
+
+=cut
+
 sub index :Path :Chained :Args(0)  {
     my ( $self, $c ) = @_;
 
     $c->forward('list');
 }
 
-=head release
+=head2 release
+
+=cut
+
+=head2 Url: /distrib/<DISTRIBUTION>
+
+Return the list of availlaible release for given C<DISTRIBUTION>.
 
 =cut
 
@@ -167,6 +216,13 @@ sub list_release :Path :Args(1) {
     }
     $c->forward('list', [ $c->stash->{dist} ] );
 }
+
+=head2 Url: /distrib/<DISTRIBUTION>/<RELEASE>
+
+Return the list of availlaible architecture for given C<DISTRIBUTION>,
+C<RELEASE>.
+
+=cut
 
 sub list_arch :Path :Args(2) {
     my ( $self, $c, $distribution, $release ) = @_;
@@ -184,6 +240,13 @@ sub distrib_view :PathPrefix :Chained :CaptureArgs(3) {
     $c->stash->{distrib} = $c->stash->{dist};
 }
 
+=head2 Url: /distrib/<DISTRIBUTION>/<RELEASE>/<ARCH>
+
+Return the list of availlaible medias for given C<DISTRIBUTION>,
+C<RELEASE>, C<ARCH>.
+
+=cut
+
 sub distrib :Chained('distrib_view') PathPart('') :Args(0) {
     my ( $self, $c ) = @_;
     $c->forward('list', [ $c->stash->{dist} ]);
@@ -195,6 +258,30 @@ sub media :Chained('/distrib/distrib_view') PathPart('media') :Args(0) {
     my ( $self, $c ) = @_;
     $c->forward('struct', [ $c->stash->{dist} ]);
 }
+
+=head2 distrib.anyrpms( DISTRIB )
+
+Return a list of packages availlable for C<DISTRIB>.
+
+C<DISTRIB> is a struct with following keys/values:
+
+=over 4
+
+=item distribution
+
+The distribution name
+
+=item release
+
+The release name
+
+=item arch
+
+The arch name
+
+=back
+
+=cut
 
 sub anyrpms :XMLRPC {
     my ( $self, $c, $distribution, $release, $arch ) = @_;
@@ -221,6 +308,30 @@ sub anyrpms :XMLRPC {
 
     $c->stash->{xmlrpc} = $c->stash->{rpm};
 }
+
+=head2 distrib.rpms( DISTRIB )
+
+Return a list of binary packages availlable for C<DISTRIB>.
+
+C<DISTRIB> is a struct with following keys/values:
+
+=over 4
+
+=item distribution
+
+The distribution name
+
+=item release
+
+The release name
+
+=item arch
+
+The arch name
+
+=back
+
+=cut
 
 sub rpms :XMLRPC {
     my ( $self, $c, $distribution, $release, $arch ) = @_;
@@ -250,6 +361,30 @@ sub rpms :XMLRPC {
 
     $c->stash->{xmlrpc} = $c->stash->{rpm};
 }
+
+=head2 distrib.srpms( DISTRIB )
+
+Return a list of sources packages availlable for C<DISTRIB>.
+
+C<DISTRIB> is a struct with following keys/values:
+
+=over 4
+
+=item distribution
+
+The distribution name
+
+=item release
+
+The release name
+
+=item arch
+
+The arch name
+
+=back
+
+=cut
 
 sub srpms :XMLRPC {
     my ( $self, $c, $distribution, $release, $arch ) = @_;
@@ -304,14 +439,22 @@ sub rpms_name :XMLRPC {
         )->get_column('name')->all ];
 }
 
+
+=head2 Url: /distrib/<DISTRIBUTION>/<RELEASE>/<ARCH>/RPMS
+
+Return the list of availlaible rpms for given C<DISTRIBUTION>,
+C<RELEASE>, C<ARCH>.
+
+=cut
+
 sub list_rpms :Chained('distrib_view') PathPart('rpms') Args(0) {
     my ( $self, $c ) = @_;
-    $c->forward('rpms', $c->stash->{dist});
+    $c->forward('rpms', [ $c->stash->{dist} ]);
 }
 
 sub list_srpms :Chained('distrib_view') PathPart('srpms') Args(0) {
     my ( $self, $c ) = @_;
-    $c->forward('srpms', $c->stash->{dist});
+    $c->forward('srpms', [ $c->stash->{dist} ]);
 }
 
 sub srpm_by_name :Chained('distrib_view') PathPart('srpms') {
