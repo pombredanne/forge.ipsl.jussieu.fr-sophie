@@ -76,6 +76,28 @@ sub add_media :XMLRPC {
     }
 }
 
+sub remove_media :XMLRPC {
+    my ( $self, $c, $distribspec, $medianame) = @_;
+
+    my $med = $c->model('Base::Medias')->find(
+        {
+            label => $medianame,
+            d_arch => $c->model('Base')->resultset('Distribution')
+                ->search(name => $distribspec->{distribution})
+                ->search_related('Release', version => $distribspec->{release})
+                ->search_related('Arch', arch =>
+                    $distribspec->{arch})->next->d_arch_key,
+        }
+    );
+
+    if ($med->delete) {
+            $c->stash->{xmlrpc} = 'OK';
+            $c->model('Base')->storage->dbh->commit;
+    } else {
+            $c->stash->{xmlrpc} = "Cannot delete $medianame";
+    }
+}
+
 sub list_path :XMLRPC {
     my ($self, $c, $distribution, $version, $arch, $media) = @_;
     
@@ -195,6 +217,21 @@ sub replace_path : XMLRPC {
     ) and $c->model('Base')->storage->dbh->commit;
     return $c->stash->{xmlrpc} = 'OK';
 }
+
+sub remove_path : XMLRPC {
+    my ($self, $c, $path) = @_;
+
+    my $dpath = $c->model('Base::Paths')->find({
+        path => $path,
+    }) or do {
+        return $c->stash->{xmlrpc} = 'Path not found';
+    };
+
+
+    $dpath->delete and $c->model('Base')->storage->dbh->commit;
+    return $c->stash->{xmlrpc} = 'OK';
+}
+
 
 sub dump_distrib : XMLRPC {
     my ($self, $c, $distribution, $version, $arch) = @_;
