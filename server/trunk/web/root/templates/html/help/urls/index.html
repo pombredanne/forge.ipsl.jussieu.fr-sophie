@@ -1,5 +1,46 @@
 <!-- $Id$ -->
 
 <div class="sophie_help">
+<h1>Formating results</h1>
+
+<p>This page describe supporting URLs on the website.</p>
+
+<p>Normally all urls support output as:
+
+<ul>
+    <li><code>HTML</code> format</li>
+    <li><code>AJAX</code> format, IE <code>HTML</code> format w/o standard html
+    headers. This is usefull to include part of website using
+    <code>Javascript</code> code.</li>
+    <li><code>JSON</code> format</li>
+</ul>
+
+For <code>XMLRPC</code> functions, see <a href="[% c.uri_for('/help', 'xmlrpc') %]">XMLRPC
+    Help</a> page.
+</p>
+
+<p>The default output is of course <code>HTML</code> format, like any website
+would do.</p>
+
+<p>Alternative output is obtain by passing argument either as <code>POST</code>
+or <code>GET</code>:
+
+<ul>
+    <li>setting <code>json</code> for json output,</li>
+    <li>setting <code>ajax</code> for ajax output.</li>
+</ul>
+</p>
+
+<p>Examples:
+
+<pre>
+    [% c.uri_for('/distrib') %]
+    [% c.uri_for('/distrib', { ajax => 1 }) %]
+    [% c.uri_for('/distrib', { json => 1 }) %]
+</pre>
+</p>
+
+<h1>Urls:</h1>
+
 [% c.model('Help::POD').urls_functions %]
 </div>
