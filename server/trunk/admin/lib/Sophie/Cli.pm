@@ -120,6 +120,49 @@ sub denv {
             },
         }
     );
+    $env->add_func('replace_path',
+        {
+            help => '',
+            code => sub {
+                my ($self, $path, $newpath) = @_;
+                my $res = $self->xmlreq(
+                    '/admin/replace_path', $path, $newpath);
+                print $OUT join (' ', map { $_ } @{ $res->value });
+                print $OUT "\n";
+            },
+            completion => sub {
+                my ($self, $start, $oldpath) = @_;
+                if ($oldpath) {
+                    my $res = $self->xmlreq('admin.ls_local', $start);
+                    return @{ $res->value };
+                } else {
+                    my $res = $self->xmlreq('admin.list_path',
+                        $self->{dist},
+                    );
+                    return @{ $res->value };
+                }
+            },
+        }
+    );
+    $env->add_func('remove_media',
+        {
+            help => '',
+            code => sub {
+                my ($self, $media) = @_;
+                my $res = $self->xmlreq(
+                    '/admin/remove_media', $self->{dist}, $media);
+                print $OUT join (' ', map { $_ } @{ $res->value });
+                print $OUT "\n";
+            },
+            completion => sub {
+                my ($self) = @_;
+                my $res = $self->xmlreq('distrib.struct',
+                    $self->{dist},
+                );
+                return map { $_->{label} } @{ $res->value };
+            },
+        }
+    );
     $env->add_func('addmedia', {
             code => sub {
                 my ($self, $media, $group) = @_;
