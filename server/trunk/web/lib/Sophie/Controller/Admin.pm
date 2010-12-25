@@ -316,6 +316,11 @@ sub set_user_data : XMLRPC {
     $c->forward('/user/set_user_data', [ $user, $dataname, $data ]);
 }
 
+sub get_user_data : XMLRPC {
+    my ( $self, $c, $user, $dataname ) = @_;
+    $c->forward('/user/fetch_user_data', [ $user, $dataname ]);
+}
+
 sub update_user_data : XMLRPC {
     my ( $self, $c, $user, $dataname, $data ) = @_;
     $c->forward('/user/update_user_data', [ $user, $dataname, $data ]);
