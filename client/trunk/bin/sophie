@@ -5,8 +5,10 @@ use warnings;
 use Sophie::Client;
 use Getopt::Long;
 use Pod::Usage;
+use Config::General;
 
 GetOptions(
+    'c=s' => \my $configfile,
     'u=s' => \my $url,
     'l=s' => \my $login,
     'p=s' => \my $pass,
@@ -19,6 +21,16 @@ my %options;
 foreach (@options) {
     m/([^=]+)\s*=\s*(.*)/ or next;
     $options{$1} = $2;
+}
+
+$configfile ||= "$ENV{HOME}/.sophie.conf";
+
+if (my $conf = Config::General->new($configfile)) {
+    my %config = $conf->getall;
+    $url         ||= $config{url};
+    $login       ||= $config{login};
+    $pass        ||= $config{pass};
+    $daemon      ||= $config{daemon};
 }
 
 if ($daemon) {
