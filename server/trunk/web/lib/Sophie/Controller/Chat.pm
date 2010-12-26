@@ -64,10 +64,8 @@ sub message : XMLRPC {
     );
 
     foreach my $co (@contexts) {
-        warn $co;
         if (ref($co) eq 'HASH') {
             foreach (keys %$co) {
-                warn $_;
                 $reqspec->{$_} = $co->{$_};
             }
         } else {
