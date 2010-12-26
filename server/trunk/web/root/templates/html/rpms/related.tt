@@ -1,5 +1,6 @@
 <!-- $Id$ -->
 [% info = c.forward('/rpms/basicinfo', [ pkgid ]) %]
+[% thisinfo = info %]
 [% IF info.issrc %]
 [% FOREACH pkgid = c.forward('/rpms/binaries', [ pkgid ]) %]
 [% IF loop.first %]
@@ -29,4 +30,19 @@
 [% END %]
 [% END %]
 
+[% END %]
+
+[% FOREACH pkgid = c.forward('/search/rpm/byname', [ { rows => 5, src =>
+thisinfo.issrc }, thisinfo.name ]).slice(0, 4) %]
+[% IF loop.first %]
+<p>Other version of this rpm:</p>
+<ul>
+[% END %]
+[% info = c.forward('/rpms/basicinfo', [ pkgid ]) %]
+<li><a href="[% c.uri_for('/rpms', pkgid ) %]">
+[% info.name | html %]-[% info.version | html %]-[% info.release %].[% info.arch %]
+</a></li>
+[% IF loop.last %]
+</ul>
+[% END %]
 [% END %]
