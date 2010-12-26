@@ -1,1 +1,26 @@
 <!-- $Id$ -->
+
+<div style="float: left; width: 35%">
+    <form id="botform" action="[% c.uri_for('/chat') %]">
+            <div id="distribselect">
+            [% INCLUDE 'ajax/forms/distribselect.tt' %]
+            </div>
+            [% c.prototype.observe_form('botform',
+            {
+            url => c.uri_for('/ajax/forms/distribselect', {
+            'ajax' => 1 }),
+            frequency => 2,
+            update => 'distribselect',
+            }
+            ) %]
+        <input name="cmd" value="[% c.req.param('cmd') | html %]">
+        <input type="submit">
+    </form>
+</div>
+<div id="sophie_bot_help" style="float: left; width: 50%">
+    <p>This page simulate the Bot behavior you may meet on IRC.</p>
+</div>
+
+<div id="sophie_bot_reply" style="clear: both">
+    [% INCLUDE 'chat/index.tt' %]
+</div>

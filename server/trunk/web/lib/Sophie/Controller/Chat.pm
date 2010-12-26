@@ -26,6 +26,17 @@ Catalyst Controller.
 sub index :Path :Args(0) {
     my ( $self, $c ) = @_;
 
+    $c->stash->{template} = 'chat/index.html';
+    if (my $cmd = $c->req->param('cmd')) {
+        $c->forward('message', [
+            [{
+                distribution => $c->req->param('distribution') || undef,
+                release => $c->req->param('release') || undef,
+                arch => $c->req->param('arch') || undef,
+                max_line => 30,
+                no_paste => 1,
+            }], $cmd ]);
+    }
 
 }
 
@@ -44,18 +55,19 @@ sub message : XMLRPC {
     my $reqspec = {};
     my @contexts = grep { $_ } (
         $c->user_exists
-        ? ( 'default',
-            (ref $contexts
-                ? (@$contexts)
-                : ($contexts)
-            ),
-        )
-        : ()
+        ? ( 'default' )
+        : (),
+        (ref $contexts
+            ? (@$contexts)
+            : ($contexts)
+        ),
     );
 
     foreach my $co (@contexts) {
+        warn $co;
         if (ref($co) eq 'HASH') {
             foreach (keys %$co) {
+                warn $_;
                 $reqspec->{$_} = $co->{$_};
             }
         } else {

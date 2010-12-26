@@ -196,6 +196,11 @@ div#sophie_explorer_form {
     width: 30%;
 }
 
+div#sophie_bot_reply {
+    padding: 1em;
+    border: solid;
+}
+
 .sophie_help h2 {
     font-size: 1.2em;
 /*    margin-top: 5em;*/

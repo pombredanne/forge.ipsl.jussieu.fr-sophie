@@ -42,7 +42,7 @@ sub end : Private {
         $needpaste = 1;
     } 
 
-    if ($needpaste) {
+    if ($needpaste && !$reqspec->{nopaste}) {
         my $id = $c->forward('/chat/paste', [ 'Bot paste', join("\n", @backup) ]);
         if ($id) {
             push(@{ $message->{message} }, 'All results availlable here: ' . $c->uri_for('/chat', $id));

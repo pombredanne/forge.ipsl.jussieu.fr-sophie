@@ -1,0 +1,4 @@
+<!-- $Id$ -->
+<pre>
+[% xmlrpc.message.join("\n") %]
+</pre>
