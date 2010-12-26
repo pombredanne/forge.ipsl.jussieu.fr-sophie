@@ -440,7 +440,7 @@ sub rpms_name :XMLRPC {
 }
 
 
-=head2 Url: /distrib/<DISTRIBUTION>/<RELEASE>/<ARCH>/RPMS
+=head2 Url: /distrib/<DISTRIBUTION>/<RELEASE>/<ARCH>/rpms
 
 Return the list of availlaible rpms for given C<DISTRIBUTION>,
 C<RELEASE>, C<ARCH>.
@@ -452,10 +452,24 @@ sub list_rpms :Chained('distrib_view') PathPart('rpms') Args(0) {
     $c->forward('rpms', [ $c->stash->{dist} ]);
 }
 
+=head2 Url: /distrib/<DISTRIBUTION>/<RELEASE>/<ARCH>/srpms
+
+Return the list of availlaible sources rpms for given C<DISTRIBUTION>,
+C<RELEASE>, C<ARCH>.
+
+=cut
+
 sub list_srpms :Chained('distrib_view') PathPart('srpms') Args(0) {
     my ( $self, $c ) = @_;
     $c->forward('srpms', [ $c->stash->{dist} ]);
 }
+
+=head2 Url: /distrib/<DISTRIBUTION>/<RELEASE>/<ARCH>/srpms/<RPMNAME>
+
+Show the highter version of source rpm named C<RPMNAME> for given
+C<DISTRIBUTION>, C<RELEASE>, C<ARCH>.
+
+=cut
 
 sub srpm_by_name :Chained('distrib_view') PathPart('srpms') {
     my ($self, $c, $name, @subpart) = @_;
@@ -466,6 +480,13 @@ sub srpm_by_name :Chained('distrib_view') PathPart('srpms') {
     $c->go('/rpms/rpms', [ $c->stash->{pkgid}, @subpart ]);
 }
 
+=head2 Url: /distrib/<DISTRIBUTION>/<RELEASE>/<ARCH>/rpms/<RPMNAME>
+
+Show the highter version of binary rpm named C<RPMNAME> for given
+C<DISTRIBUTION>, C<RELEASE>, C<ARCH>.
+
+=cut
+
 sub rpm_by_name :Chained('distrib_view') PathPart('rpms') {
     my ($self, $c, $name, @subpart) = @_;
     $c->stash->{dist}{src} = 0;
@@ -474,6 +495,17 @@ sub rpm_by_name :Chained('distrib_view') PathPart('rpms') {
     $c->go('/404/index') unless ($c->stash->{pkgid});
     $c->go('/rpms/rpms', [ $c->stash->{pkgid}, @subpart ]);
 }
+
+
+=head2 Url: /distrib/<DISTRIBUTION>/<RELEASE>/<ARCH>/by-pkgid/<PKGID>
+
+Show information about rpm having pkgid C<PKGID> for given
+C<DISTRIBUTION>, C<RELEASE>, C<ARCH>.
+
+This is likelly the same thing than C</rpm/<PKGID>> but website will return 404
+errur if the rpm is not in this distrib
+
+=cut
 
 sub rpm_bypkgid :Chained('distrib_view') PathPart('by-pkgid') {
     my ( $self, $c, $pkgid, @subpart ) = @_;

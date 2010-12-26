@@ -30,7 +30,29 @@ ok( request("/distrib/$distribution/$release")->is_success, 'Request should succ
 ok( request("/distrib/$distribution/$release/$arch")->is_success, 'Request should succeed' );
 ok( request("/distrib/$distribution/$release/$arch/media")->is_success, 'Request should succeed' );
 
-ok( request("/distrib/$distribution/$release/rpms")->is_success, 'Request should succeed' );
+ok( request("/distrib/$distribution/$release/$arch/rpms")->is_success,
+    '/distrib/dist/release/arch/rpms' );
+ok( request("/distrib/$distribution/$release/$arch/rpms?ajax")->is_success,
+    '/distrib/dist/release/arch/rpms ajax' );
+ok( request("/distrib/$distribution/$release/$arch/srpms")->is_success,
+    '/distrib/dist/release/arch/srpms' );
+ok( request("/distrib/$distribution/$release/$arch/srpms?ajax")->is_success,
+    '/distrib/dist/release/arch/srpms ajax' );
+
+ok( request("/distrib/$distribution/$release/$arch/srpms/$rpmname")->is_success,
+    '/distrib/dist/release/arch/srpms/RPM' );
+ok( request("/distrib/$distribution/$release/$arch/srpms/$rpmname?ajax")->is_success,
+    '/distrib/dist/release/arch/srpms/RPM ajax' );
+
+ok( request("/distrib/$distribution/$release/$arch/rpms/$rpmname")->is_success,
+    '/distrib/dist/release/arch/rpms/RPM' );
+ok( request("/distrib/$distribution/$release/$arch/rpms/$rpmname?ajax")->is_success,
+    '/distrib/dist/release/arch/rpms/RPM ajax' );
+
+ok( request("/distrib/$distribution/$release/$arch/by-pkgid/$pkgid")->is_success,
+    '/distrib/dist/release/arch/by-pkgid/PKGID' );
+ok( request("/distrib/$distribution/$release/$arch/by-pkgid/$pkgid?ajax")->is_success,
+    '/distrib/dist/release/arch/by-pkgid/PKGID ajax' );
 
 ok(
     request("/distrib/$distribution/$release/$arch/media/$media/by-pkgid/$pkgid")
