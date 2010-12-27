@@ -7,7 +7,7 @@
     <meta name="GENERATOR" content="Sophie [% sophieversion %]">
     <meta name="AUTHOR" content="Nanardon">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <meta name="KEYWORDS" content="Sophie, rpm[% IF keywords.size -%], [%- keywords.join(', ') | html -%][% END %]">
+    <meta name="KEYWORDS" content="Sophie[% IF keywords.size -%], [%- keywords.unique.join(', ') | html -%][% END %]">
     <meta name="REVISIT-AFTER" content="[% IF metarevisite %][% metarevisite %][% ELSE %]15[% END %] days">
     <link rel="icon" href="[%- c.uri_for('/static', 'sophie.ico') -%]" type="image/x-icon">
     <script type="text/javascript" language="JavaScript" src="[% c.uri_for('/static', 'prototype.js') %]"></script>
