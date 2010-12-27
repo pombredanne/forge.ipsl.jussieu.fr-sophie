@@ -3,10 +3,25 @@
 [% USE 'ObfuscateMail' %]
 
 <div id="body_home">
+<!-- Bonus for who will read this :)
 <p>Bonjour à tous ! <br />
 Tant que Nanar, mon misogyne de père indigne, n'écrira rien pour vous accueillir correctement ici, <br />
 je vais pouvoir ragoter sur lui sans limites :) <br />
-Naviguez bien et à bientôt ;) </p>
+Naviguez bien et à bientôt ;) </p> -->
+
+<p>Welcome on Sophie's home</p>
+
+<p>This website allow you to search and analyze Rpm formated packages on various
+distributions.</p>
+
+<p>This website can now be used in various way, see <a href="[%
+c.uri_for('/help') %]">the help page</a>.</p>
+
+<p>Send bug bug report, request and comment to <b>nanardon at nanardon dot zarb dot
+org</b>.</p>
+
+<p>Thanks to all boys and girl who helped me to make this working.</p>
+
 </div>
 
 [% FOREACH package = xmlrpc %]
