@@ -47,6 +47,11 @@
 <select name="deptype">
     <option value="P"[% " selected=selected" IF c.req.param('deptype') == 'P' %]>Provides</option>
     <option value="R"[% " selected=selected" IF c.req.param('deptype') == 'R' %]>Requires</option>
+    <option value="C"[% " selected=selected" IF c.req.param('deptype') == 'C' %]>Conflict</option>
+    <option value="O"[% " selected=selected" IF c.req.param('deptype') == 'O' %]>Obsoletes</option>
+    <option value="T"[% " selected=selected" IF c.req.param('deptype') == 'T' %]>Trigger</option>
+    <option value="S"[% " selected=selected" IF c.req.param('deptype') == 'S' %]>Suggest</option>
+    <option value="E"[% " selected=selected" IF c.req.param('deptype') == 'E' %]>Enhanced</option>
 </select>
 </span>
 </td>
