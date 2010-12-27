@@ -240,7 +240,7 @@ sub rpms_ :PathPrefix :Chained :CaptureArgs(1) {
     $c->stash->{metarevisit} = 30;
 
     # for later usage, keep history of visited rpms
-    $c->session->{visited_rpms}{$pkgid} = time;
+    $c->session->{visited_rpms}{$c->stash->{pkgid}} = time;
     if (keys %{ $c->session->{visited_rpms} } > 20) {
         my @visited = sort
         { $c->session->{visited_rpms}{$b} <=> $c->session->{visited_rpms}{$a} }
