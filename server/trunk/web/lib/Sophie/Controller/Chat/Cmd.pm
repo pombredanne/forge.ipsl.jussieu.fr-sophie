@@ -562,6 +562,44 @@ sub findfile : XMLRPC {
     }
 }
 
+sub what : XMLRPC {
+    my ($self, $c, $reqspec, @args) = @_;
+        
+    @args = @{ $c->forward('_getopt', [
+        {
+            'd=s' => \$reqspec->{distribution},
+            'v=s' => \$reqspec->{release},
+            'a=s' => \$reqspec->{arch},
+            's'   => \$reqspec->{src},
+        }, @args ]) };
+
+    my ($type, $depname, $sense, $evr) = @args;
+
+    my $deptype = uc(substr($type, 0, 1));
+    my $rpmlist = $c->forward('/search/rpm/bydep',
+        [ $reqspec, $deptype, $depname, $sense, $evr ]);
+
+    if (@{ $rpmlist } < 20) {
+        my @name;
+        foreach (@{ $rpmlist }) {
+            my $info = $c->forward('/rpms/basicinfo', [ $_ ]);
+            push @name, $info->{name} . '-' . $info->{evr};
+        }
+        return $c->stash->{xmlrpc} = {
+            message => [
+                "Package requiring $depname" . ($evr ? " $sense $evr" : '') .
+                ':', 
+                join(' ', @name),
+            ],
+        }
+    } else {
+        return $c->stash->{xmlrpc} = {
+            message => [ 'Too many result' ],
+        };
+    }
+
+}
+
 =head2 maint RPMNAME
 
 Show the maintainers for the rpm named C<RPMNAME>.
