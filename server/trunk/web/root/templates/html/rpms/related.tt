@@ -33,7 +33,7 @@
 [% END %]
 
 [% FOREACH pkgid = c.forward('/search/rpm/byname', [ { rows => 5, src =>
-thisinfo.issrc }, thisinfo.name ]).slice(0, 4) %]
+thisinfo.issrc }, thisinfo.name ]).slice(0, 4).grep('.') %]
 [% IF loop.first %]
 <p>Other version of this rpm:</p>
 <ul>
