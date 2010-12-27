@@ -224,7 +224,9 @@ sub rpms_ :PathPrefix :Chained :CaptureArgs(1) {
     {
         my $match = $c->stash->{pkgid};
     }
-    #$c->model('Base')->resultset('Rpms')->search(pkgid => $pkgid)->next;
+    if (!$c->model('Base::Rpms')->find({ pkgid => $pkgid })) {
+        $c->go('/404/index');
+    }
     $c->stash->{rpms}{info} =
         $c->forward('info', [ $c->stash->{pkgid} ]);
     $c->stash->{rpms}{location} =
