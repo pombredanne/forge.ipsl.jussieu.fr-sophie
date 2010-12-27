@@ -239,6 +239,16 @@ sub rpms_ :PathPrefix :Chained :CaptureArgs(1) {
         $info->{issrc} ? 'src' : $info->{arch},);
     $c->stash->{metarevisit} = 30;
 
+    # for later usage, keep history of visited rpms
+    $c->session->{visited_rpms}{$pkgid} = time;
+    if (keys %{ $c->session->{visited_rpms} } > 20) {
+        my @visited = sort
+        { $c->session->{visited_rpms}{$b} <=> $c->session->{visited_rpms}{$a} }
+        keys %{ $c->session->{visited_rpms} };
+        splice(@visited, 0, 20);
+        delete $c->session->{visited_rpms}{$_} foreach (@visited);
+    }
+
     $c->stash->{rpms}{location} =
         $c->forward('location', [ $c->stash->{pkgid} ]);
 }
