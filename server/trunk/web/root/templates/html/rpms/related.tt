@@ -40,7 +40,8 @@ thisinfo.issrc }, thisinfo.name ]).slice(0, 4).grep('.') %]
 [% END %]
 [% info = c.forward('/rpms/basicinfo', [ pkgid ]) %]
 <li><a href="[% c.uri_for('/rpms', pkgid ) %]">
-[% info.name | html %]-[% info.version | html %]-[% info.release %].[% info.arch %]
+[% info.name | html %]-[% info.version | html %]-[% info.release | html -%]
+[%- IF NOT info.issrc %].[% info.arch | html %][% END %]
 </a></li>
 [% IF loop.last %]
 </ul>
