@@ -69,6 +69,7 @@ The root page (/)
 sub index :Path :Args(0) {
     my ( $self, $c ) = @_;
 
+    $c->stash->{metarevisite} = 1;
     $c->stash->{xmlrpc} = $c->forward(
         '/search/rpms/bydate',
         [
@@ -95,8 +96,7 @@ Standard 404 error page
 
 sub default :Path {
     my ( $self, $c ) = @_;
-    $c->response->body( 'Page not found' );
-    $c->response->status(404);
+    $c->go('/404/index');
 }
 
 =head2 end

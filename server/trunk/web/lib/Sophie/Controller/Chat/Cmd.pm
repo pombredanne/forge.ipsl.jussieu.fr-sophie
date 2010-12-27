@@ -45,7 +45,7 @@ sub end : Private {
     if ($needpaste && !$reqspec->{nopaste}) {
         my $id = $c->forward('/chat/paste', [ 'Bot paste', join("\n", @backup) ]);
         if ($id) {
-            push(@{ $message->{message} }, 'All results availlable here: ' . $c->uri_for('/chat', $id));
+            push(@{ $message->{message} }, 'All results available here: ' . $c->uri_for('/chat', $id));
         }
     }
 
@@ -124,7 +124,7 @@ sub _find_rpm_elsewhere : Private {
 
 =head2 help [cmd]
 
-Return help about command cmd or list availlable command. 
+Return help about command cmd or list available command. 
 
 =cut
 
@@ -132,7 +132,7 @@ sub help : XMLRPC {
     my ( $self, $c, $reqspec, $cmd ) = @_;
     if ($cmd) {
         my @message = grep { /\S+/ } split(/\n/,
-            $c->model('Help::POD')->bot_help_text($cmd) || 'No help availlable');
+            $c->model('Help::POD')->bot_help_text($cmd) || 'No help available');
         return $c->{stash}->{xmlrpc} = {
             private_reply => 1,
             message => \@message,
@@ -141,7 +141,7 @@ sub help : XMLRPC {
         return $c->{stash}->{xmlrpc} = {
             private_reply => 1,
             message => [
-                'availlable command:',
+                'available command:',
                 join(', ', sort grep { $_ !~ /^end$/ } @{ $self->_commands }),
             ],
         }

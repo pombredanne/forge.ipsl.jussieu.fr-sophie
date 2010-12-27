@@ -18,7 +18,7 @@ Catalyst Controller.
 
 =head2 distrib.list( [ DISTRIBUTION [, RELEASE [, ARCH ]]]
 
-List content of distrib according arguments given. IE list availlable
+List content of distrib according arguments given. IE list available
 C<distribution> if no argument is given, list C<release> if C<DISTRIBUTION> is
 given, list C<arch> if both C<DISTRIBUTION> and C<RELEASE> are given. Etc... Up
 to give C<MEDIA> if C<ARCH> is specified.
@@ -195,6 +195,9 @@ Return the list of currently stored distributions.
 sub index :Path :Chained :Args(0)  {
     my ( $self, $c ) = @_;
 
+    $c->stash->{metarevisite} = 60;
+    $c->stash->{metatitle} = 'Available Distribution';
+    push(@{$c->stash->{keywords}}, 'Rpm Distribution');
     $c->forward('list');
 }
 
@@ -214,6 +217,9 @@ sub list_release :Path :Args(1) {
     if (!$c->forward('exists', [ $c->stash->{dist} ])) {
         $c->go('/404/index');
     }
+    $c->stash->{metarevisite} = 60;
+    $c->stash->{metatitle} = 'Available release for ' . $distribution;
+    push(@{$c->stash->{keywords}}, $distribution);
     $c->forward('list', [ $c->stash->{dist} ] );
 }
 
@@ -228,6 +234,13 @@ sub list_arch :Path :Args(2) {
     my ( $self, $c, $distribution, $release ) = @_;
     $c->stash->{dist}{distribution} = $distribution;
     $c->stash->{dist}{release} = $release;
+    if (!$c->forward('exists', [ $c->stash->{dist} ])) {
+        $c->go('/404/index');
+    }
+    $c->stash->{metarevisite} = 60;
+    $c->stash->{metatitle} =
+        'Available architecture for ' . $distribution . ' / ' . $release;
+    push(@{$c->stash->{keywords}}, $distribution, $release);
     $c->forward('list', [ $c->stash->{dist} ] );
 }
 
@@ -237,6 +250,13 @@ sub distrib_view :PathPrefix :Chained :CaptureArgs(3) {
     $c->stash->{dist}{distribution} = $distribution;
     $c->stash->{dist}{release} = $release;
     $c->stash->{dist}{arch} = $arch;
+    if (!$c->forward('exists', [ $c->stash->{dist} ])) {
+        $c->go('/404/index');
+    }
+    $c->stash->{metarevisite} = 60;
+    $c->stash->{metatitle} =
+        'Available medias for ' . $distribution . ' / ' . $release . ' / ' . $arch;
+    push(@{$c->stash->{keywords}}, $distribution, $release, $arch);
     $c->stash->{distrib} = $c->stash->{dist};
 }
 
@@ -261,7 +281,7 @@ sub media :Chained('/distrib/distrib_view') PathPart('media') :Args(0) {
 
 =head2 distrib.anyrpms( DISTRIB )
 
-Return a list of packages availlable for C<DISTRIB>.
+Return a list of packages available for C<DISTRIB>.
 
 C<DISTRIB> is a struct with following keys/values:
 
@@ -311,7 +331,7 @@ sub anyrpms :XMLRPC {
 
 =head2 distrib.rpms( DISTRIB )
 
-Return a list of binary packages availlable for C<DISTRIB>.
+Return a list of binary packages available for C<DISTRIB>.
 
 C<DISTRIB> is a struct with following keys/values:
 
@@ -364,7 +384,7 @@ sub rpms :XMLRPC {
 
 =head2 distrib.srpms( DISTRIB )
 
-Return a list of sources packages availlable for C<DISTRIB>.
+Return a list of sources packages available for C<DISTRIB>.
 
 C<DISTRIB> is a struct with following keys/values:
 

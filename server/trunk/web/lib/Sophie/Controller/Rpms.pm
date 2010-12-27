@@ -227,8 +227,18 @@ sub rpms_ :PathPrefix :Chained :CaptureArgs(1) {
     if (!$c->model('Base::Rpms')->find({ pkgid => $pkgid })) {
         $c->go('/404/index');
     }
-    $c->stash->{rpms}{info} =
+    my $info = $c->stash->{rpms}{info} =
         $c->forward('info', [ $c->stash->{pkgid} ]);
+
+    $c->stash->{metatitle} = sprintf("%s-%s %s",
+        $info->{name},
+        $info->{evr},
+        $info->{issrc} ? 'src' : $info->{arch},
+    );
+    push(@{ $c->stash->{keywords} }, $info->{name}, $info->{evr},
+        $info->{issrc} ? 'src' : $info->{arch},);
+    $c->stash->{metarevisit} = 30;
+
     $c->stash->{rpms}{location} =
         $c->forward('location', [ $c->stash->{pkgid} ]);
 }
