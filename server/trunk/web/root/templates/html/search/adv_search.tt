@@ -7,6 +7,22 @@
     </td>
 </tr>
 <tr>
+    <td></td>
+    <td>
+    <span id="distribselect">
+    [% INCLUDE 'ajax/forms/distribselect.tt' %]
+    </span>
+    [% c.prototype.observe_form('sophie_adv_search',
+            {
+            url => c.uri_for('/ajax/forms/distribselect', {
+                'ajax' => 1 }),
+            frequency => 2,
+            update => 'distribselect',
+            }
+            ) %]
+    </td>
+</tr>
+<tr>
     <td>
     </td>
     <td>

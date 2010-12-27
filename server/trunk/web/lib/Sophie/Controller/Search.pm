@@ -29,14 +29,19 @@ sub index :Path :Args(0) {
         $c->req->params->{search} = $c->session->{search};
         $c->req->params->{type} = $c->session->{type};
         $c->req->params->{deptype} = $c->session->{deptype};
+        foreach (qw(distribution release arch)) {
+            $c->req->params->{$_} = $c->session->{search_dist}{$_};
+        }
     } else {
         $c->session->{search} = $c->req->params->{search};
         $c->session->{type} = $c->req->params->{type};
         $c->session->{deptype} = $c->req->params->{deptype};
+        foreach (qw(distribution release arch)) {
+            $c->session->{search_dist}{$_} = $c->req->params->{$_};
+        }
     }
 
-    my $searchspec = {
-    };
+    my $searchspec = { %{ $c->session->{search_dist} } };
 
     for ($c->req->param('type')) {
         /^byname$/ and do {
