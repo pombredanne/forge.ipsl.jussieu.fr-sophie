@@ -587,7 +587,7 @@ sub what : XMLRPC {
         }
         return $c->stash->{xmlrpc} = {
             message => [
-                "Package requiring $depname" . ($evr ? " $sense $evr" : '') .
+                "Package matching $depname" . ($evr ? " $sense $evr" : '') .
                 ':', 
                 join(' ', @name),
             ],
