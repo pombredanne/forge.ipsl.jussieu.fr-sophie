@@ -3,6 +3,7 @@ use Moose;
 use namespace::autoclean;
 use MIME::Base64;
 use Storable qw/nfreeze thaw/;
+use YAML;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -54,6 +55,14 @@ sub fetchdata : XMLRPC {
     return $c->forward('fetch_user_data', [ $c->user->mail || '', $dataname ]);
 }
 
+sub dumpdata : XMLRPC {
+    my ( $self, $c, $dataname ) = @_;
+
+    return $c->stash->{xmlrpc} = YAML::freeze(
+        $c->forward('fetchdata', [ $dataname ])
+    );
+}
+
 sub set_user_data : Private {
     my ( $self, $c, $user, $dataname, $data ) = @_;
 
@@ -66,6 +75,19 @@ sub set_user_data : Private {
         value => encode_base64( nfreeze($data) ),
     });
     $c->model('Base')->storage->dbh->commit;
+    return $c->stash->{xmlrpc} = 'Updated';
+}
+
+sub setdata : XMLRPC {
+    my ( $self, $c, $dataname, $data ) = @_;
+
+    return $c->forward('set_user_data', [ $c->user->mail, $dataname, $data ]);
+}
+
+sub loaddata : XMLRPC {
+    my ( $self, $c, $dataname, $data ) = @_;
+
+    $c->forward('setdata', [ $dataname, YAML::thaw($data) ]);
 }
 
 sub update_data : XMLRPC {
@@ -87,10 +109,40 @@ sub update_user_data : Private {
     $c->forward('set_user_data', [ $user, $dataname, $prev_data ]);
 }
 
-sub setdata : XMLRPC {
-    my ( $self, $c, $dataname, $data ) = @_;
+sub set_user_password : Private {
+    my ($self, $c, $user, $clear_password ) = @_;
 
-    return $c->forward('set_user_data', [ $c->user->mail, $dataname, $data ]);
+    my @random = (('a'..'z'), ('A'..'Z'), (0 .. 9));
+    my $salt = join('', map { $random[rand(@random)] } (0..5));
+
+    my $pass = crypt($clear_password, '$1$' . $salt);
+    if (my $rsuser = $c->model('Base::Users')->find({
+            mail => $user,
+        }
+    )) {
+        $rsuser->update({ password => $pass });
+        $c->model('Base')->storage->dbh->commit;
+        return $c->stash->{xmlrpc} = 'Password changed for user ' . $user;
+    } else {
+        $c->error( 'No such user' );
+    }
+}
+
+=head2 user.set_password( PASSWORD )
+
+Change the password for the current user to password C<PASSWORD>.
+
+The change take effect immediately, so user must login again with the new
+password to continue to use the website.
+
+The password is stored internally crypted using UNIX MD5 method.
+
+=cut
+
+sub set_password : XMLRPC {
+    my ( $self, $c, $clear_password ) = @_;
+
+    $c->forward('set_user_password', [ $c->user->mail, $clear_password ]);
 }
 
 =head1 AUTHOR

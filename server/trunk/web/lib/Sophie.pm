@@ -50,6 +50,7 @@ __PACKAGE__->config(
     default_view => 'TT',
     xmlrpc => {
         xml_encoding => 'UTF-8',
+        show_errors => 1,
     },
 
     'authentication' => {
