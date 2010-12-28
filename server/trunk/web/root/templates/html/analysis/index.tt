@@ -1,0 +1,35 @@
+<!-- $Id$ -->
+
+<div style="float: right">
+[% INCLUDE 'user/folder/list.tt' xmlrpc = c.forward('/user/folder/list') %]
+</div>
+
+<div id="upload_rpm">
+<p>Upload an XML header dump:</p>
+<form action="[% c.uri_for('/', c.req.path) %]" method="POST"
+    enctype="multipart/form-data">
+
+<input type="file" name="file">
+<input type="submit">
+<p>Such file can be obtain by using command <code>rpm --qf '[\%{*:xml}\n]'</code></p>
+</form>
+</div>
+
+
+<form action="[% c.uri_for('/', c.req.path) %]" id="analysis_form" method="POST">
+    <span id="distribselect">
+    [% INCLUDE 'ajax/forms/distribselect.tt' %]
+    </span>
+[% c.prototype.observe_form('analysis_form',
+    {
+    url => c.uri_for('/ajax/forms/distribselect', { 'ajax' => 1 }),
+    frequency => 2,
+    update => 'distribselect',
+    }
+) %]
+<input type="submit" name="analyse">
+</form>
+
+[% IF c.req.param('analyse') %]
+[% INCLUDE 'analysis/analyse_folder.tt' %]
+[% END %]

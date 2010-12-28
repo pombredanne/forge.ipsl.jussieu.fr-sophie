@@ -29,6 +29,65 @@ sub index :Path :Args(0) {
     $c->response->body('Matched Sophie::Controller::User::folder in User::folder.');
 }
 
+sub list :XMLRPC :Local {
+    my ($self, $c ) = @_;
+
+    $c->stash->{xmlrpc} = [
+        map { { $_->get_columns } }
+        $c->model('Base::UsersRpms')->search(
+        {
+            ($c->user_exists
+            ? ( user_fkey => $c->model('Base::Users')->find({ mail =>
+                        $c->user->mail })->ukey )
+            : ( sessions_fkey => 'session:' . $c->sessionid ) ),
+        }
+    )->all ]
+}
+
+sub delete :XMLRPC :Local {
+    my ($self, $c, $pid ) = @_;
+    $pid ||= $c->req->param('delete');
+
+    my $pkg = $c->model('Base::UsersRpms')->search(
+        {
+            -and => [ {
+            ($c->user_exists
+            ? ( user_fkey => $c->model('Base::Users')->find({ mail =>
+                        $c->user->mail })->ukey )
+            : ( sessions_fkey => 'session:' . $c->sessionid ) ),
+            },
+            { id => $pid },
+            ]
+        }
+    )->first;
+    if ($pkg) {
+        $pkg->delete;
+        $c->model('Base')->storage->dbh->commit;
+        $c->stash->{xmlrpc} = 'Delete';
+    } else {
+        $c->stash->{xmlrpc} = 'No package found';
+    }
+}
+
+sub clear : XMLRPC : Local {
+    my ($self, $c, $pid ) = @_;
+    $pid ||= $c->req->param('delete');
+
+    my $pkg = $c->model('Base::UsersRpms')->search(
+        {
+            -and => [ {
+            ($c->user_exists
+            ? ( user_fkey => $c->model('Base::Users')->find({ mail =>
+                        $c->user->mail })->ukey )
+            : ( sessions_fkey => 'session:' . $c->sessionid ) ),
+            },
+            ]
+        }
+    )->delete;
+    $c->model('Base')->storage->dbh->commit;
+    $c->stash->{xmlrpc} = 'Empty';
+}
+
 sub load_rpm : XMLRPCLocal {
     my ($self, $c, $string) = @_;
 

@@ -1,0 +1,18 @@
+<!-- $Id$ -->
+
+[% FOREACH pkg = c.forward('/user/folder/list') %]
+<h2>[% pkg.name | html %]</h2>
+<div id="req[% pkg.id %]">
+Loading...
+</div>
+[% END %] 
+
+<script>
+[% FOREACH pkg = c.forward('/user/folder/list') %]
+
+new Ajax.Updater('req[% pkg.id %]',
+        '[% c.uri_for('/analysis/required_by', pkg.id, { ajax => 1 }) %]',
+        { asynchronous: 1 } );
+
+[% END %]
+</script> 

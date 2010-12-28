@@ -247,6 +247,10 @@ pre.filedata {
     border: outset;
 }
 
+.alert {
+    color: red;
+}
+
 #w3c {
     float: right;
 }

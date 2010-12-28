@@ -33,6 +33,7 @@ sub find_requirements : XMLRPC {
     $searchspec->{nopager} = 1;
     my %need_pkgid;
     my %need_pool;
+    my %bydep;
     my @unresolved;
     foreach my $dep (@{ $deplist || []}) {
         my ($depname, $sense, $evr) = ref $dep
@@ -42,13 +43,17 @@ sub find_requirements : XMLRPC {
         $evr ||= '';
 
         $depname =~ /^rpmlib\(/ and next;
+        my $depdisplay = $depname . ($sense ? " $sense $evr" : '');
+        $bydep{$depdisplay} and next; # same already searched
+        $bydep{$depdisplay} = {};
         my $found = 0;
         if ($depname =~ /^\//) {
             my $res = $c->forward('/search/rpm/byfile', [ $searchspec, $depname, ]);
             if (@{$res}) {
                 $found = 1;
-                foreach (@{$res->{results}}) {
+                foreach (@{$res}) {
                     $need_pkgid{$_} = 1;
+                    $bydep{$depdisplay}{pkg}{$_} = 1;
                 }
             } 
             if ($pool) {
@@ -57,6 +62,8 @@ sub find_requirements : XMLRPC {
                     $found = 1;
                     foreach (@{$res}) {
                         $need_pool{$_} = 1;
+                        $bydep{$depdisplay}{pool}{$_} = 1;
+
                     }
                 }
             }
@@ -69,6 +76,7 @@ sub find_requirements : XMLRPC {
                 $found = 1;
                 foreach (@{$res}) {
                     $need_pkgid{$_} = 1;
+                    $bydep{$depdisplay}{pkg}{$_} = 1;
                 }
             } 
             if ($pool) {
@@ -81,6 +89,7 @@ sub find_requirements : XMLRPC {
                     $found = 1;
                     foreach (@{$res}) {
                         $need_pool{$_} = 1;
+                        $bydep{$depdisplay}{pool}{$_} = 1;
                     }
                 }
             }
@@ -96,10 +105,18 @@ sub find_requirements : XMLRPC {
         }
     }
 
+    foreach my $d (keys %bydep) {
+        foreach my $t (keys %{ $bydep{$d} || {} }) {
+            $bydep{$d}{$t} = [ keys %{ $bydep{$d}{$t} } ];
+        }
+    }
+
+
     $c->stash->{xmlrpc} = {
         unresolved => \@unresolved,
         pkg => [ keys %need_pkgid ],
         pool => [ keys %need_pool ],
+        bydep => \%bydep,
     };
 }
 

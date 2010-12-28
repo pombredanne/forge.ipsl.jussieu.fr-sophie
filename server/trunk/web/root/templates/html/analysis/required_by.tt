@@ -1,0 +1,24 @@
+[% IF xmlrpc.unresolved.size %]
+<p class="alert">Unresolved dependencies:</p>
+<ul class="alert">
+[% FOREACH dep = xmlrpc.unresolved %]
+<li>[% dep | html %]</li>
+[% END %]
+</ul>
+[% END %]
+
+[% FOREACH dep = xmlrpc.bydep.keys %]
+
+<p>[% dep | html %]</p>
+[% FOREACH pkg = xmlrpc.bydep.$dep.pkg %]
+[% IF loop.first %]
+<ul>
+[% END %]
+[% info = c.forward('/rpms/basicinfo', [ pkg ]) %]
+<li>[% info.name | html %]-[% info.evr %]</li>
+[% IF loop.last %]
+</ul>
+[% END %]
+[% END %]
+
+[% END %]

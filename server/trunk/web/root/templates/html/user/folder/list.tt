@@ -1,0 +1,35 @@
+<!-- $Id$ -->
+[% folder = xmlrpc %]
+[% FOREACH pkg = folder %]
+[% IF loop.first %]
+<div id="sophie_rpm_basket">
+[% c.prototype.link_to_remote(
+    'delete all stored rpms:', {
+    url    => c.uri_for('/user/folder/clear', { ajax => 1, delete => pkg.id }),
+    complete => 'new Ajax.Updater(
+        \'sophie_rpm_basket\',
+        \'' _ c.uri_for('/user/folder/list', { ajax => 1 }) _ '\', { asynchronous: 1 } ); false'
+    },
+) %]
+<ul class="rpm_basket">
+[% END %]
+<li id="li[% pkg.id %]">[% pkg.name %]-[% pkg.evr %]
+[% c.prototype.link_to_remote(
+    '<img 
+        src="' _ c.uri_for('/static', 'images', 'draw-eraser.png') _ '" 
+        alt="delete" title="Delete">', 
+    {
+    url    => c.uri_for('/user/folder/delete', { ajax => 1, delete => pkg.id }),
+    complete => 'new Ajax.Updater(
+        \'sophie_rpm_basket\',
+        \'' _ c.uri_for('/user/folder/list', { ajax => 1 }) _ '\', { asynchronous: 1 } ); false'
+    },
+    { entities => '' },
+) %]
+
+</li>
+[% IF loop.last %]
+</ul>
+</div>
+[% END %]
+[% END %]
