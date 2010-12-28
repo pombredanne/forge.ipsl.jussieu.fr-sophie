@@ -6,6 +6,7 @@ use Sophie::Client;
 use Getopt::Long;
 use Pod::Usage;
 use Config::General;
+use File::Temp;
 
 GetOptions(
     'c=s' => \my $configfile,
@@ -15,6 +16,10 @@ GetOptions(
     't=s' => \my $type,
     'd=s' => \my @options,
     'daemon' => \my $daemon,
+
+    # Command option:
+    'set-password=s' => \my $password,
+    'edit-var=s'       => \my $data,
 ) or pod2usage;
 
 my %options;
@@ -33,6 +38,48 @@ if (my $conf = Config::General->new($configfile)) {
     $daemon      ||= $config{daemon};
 }
 
+my $sc = Sophie::Client->new(
+    server => $url,
+    login => $login,
+    password => $pass,
+    type => $type,
+);
+
+if ($password) {
+    my $res = $sc->send_request('user.set_password', $password);
+    if (ref $res && !$res->is_fault) {
+        print $res->value . "\n";
+        exit(0);
+    } else {
+        print( (ref $res ? $res->string : $res) . "\n");
+        exit(1);
+    }
+} elsif ($data) {
+    my $res = $sc->send_request('user.dumpdata', $data);
+    if (ref $res && !$res->is_fault) {
+        my $tmp = File::Temp->new();
+        print $tmp $res->value . "\n";
+        close($tmp);
+        system($ENV{EDITOR} || 'vi', $tmp->filename);
+        if (open(my $fh, '<', $tmp->filename)) {
+            my $string = join('', <$fh>);
+            close($fh);
+            unlink($tmp->filename);
+            my $res2 = $sc->send_request('user.loaddata', $data, $string);
+            if (ref $res2 && !$res2->is_fault) {
+                print $res2->value . "\n";
+                exit(0);
+            } else {
+                print( (ref $res2 ? $res2->string : $res2) . "\n");
+                exit(1);
+            }
+        }
+    } else {
+        print( (ref $res ? $res->string : $res) . "\n");
+        exit(1);
+    }
+}
+
 if ($daemon) {
     my $pid = fork();
 
@@ -45,12 +92,5 @@ if ($daemon) {
         }
     }
 }
-
-my $sc = Sophie::Client->new(
-    server => $url,
-    login => $login,
-    password => $pass,
-    type => $type,
-);
 
 $sc->run;

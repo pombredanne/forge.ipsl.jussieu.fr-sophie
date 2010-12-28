@@ -121,7 +121,6 @@ sub show_reply {
             sprintf("%s%s", ($heap->{to} ? $prefix : ''), $_)
         );
     }
-
 }
 
 sub user_config {
