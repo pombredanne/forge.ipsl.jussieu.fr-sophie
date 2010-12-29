@@ -4,7 +4,7 @@
 <ul>
 [% END %]
 <li>
-    <a href="[% c.uri_for('/', c.req.path, rpm.pkgid) %]"><span class="pkgid">[%
+    <a href="[% c.uri_for('/', c.req.path, rpm.pkgid) %]"><span class="sophie_pkgid">[%
 rpm.pkgid %]</span></a>
 ([% rpm.filename | html %])
 </li>

@@ -2,7 +2,7 @@
 [% USE 'GuessEncode' %]
 [% USE 'ObfuscateMail' %]
 
-<div id="body_home">
+<div id="sophie_body_home">
 <!-- Bonus for who will read this :)
 <p>Bonjour à tous ! <br />
 Tant que Nanar, mon misogyne de père indigne, n'écrira rien pour vous accueillir correctement ici, <br />

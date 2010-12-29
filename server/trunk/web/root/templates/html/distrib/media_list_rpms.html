@@ -1,10 +1,9 @@
 <!-- $Id$ -->
-<div Id="body_main">
+<div Id="sophie_body_main">
 [% INCLUDE 'distrib/media_list_rpms.tt' %]
 </div>
 
-<div Id="body_additional">
-    <!-- <p> Slurp !</p> -->
+<div Id="sophie_body_additional">
     <p>Other medias:</p>
     [% INCLUDE 'distrib/distrib.tt'
         xmlrpc = c.forward('/distrib/list', [ dist ]) %]

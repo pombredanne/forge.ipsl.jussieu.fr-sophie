@@ -1,7 +1,8 @@
 <!-- $Id$ -->
-
+<div id="sophie_rpms_menu">
 <h2>[% rpms.info.filename | html %]</h2>
 
+<!-- <ul id="sophie_rpms_menu" class="flat_menu"> -->
 <ul id="sophie_rpms_menu" class="flat_menu">
 <li><a href="[% c.uri_for('/', rpmurl) %]">Info</a></li>
 <li><a href="[% c.uri_for('/', rpmurl, 'deps') %]">Deps</a></li>
@@ -10,3 +11,4 @@
 <li><a href="[% c.uri_for('/', rpmurl, 'location') %]">Location</a></li>
 <li><a href="[% c.uri_for('/', rpmurl, 'analyse') %]">Analyse</a></li>
 </ul>
+</div>

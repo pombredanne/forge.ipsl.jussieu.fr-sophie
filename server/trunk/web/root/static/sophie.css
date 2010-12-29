@@ -1,4 +1,5 @@
 /* $Id$ */
+
 /* global look */
 a:link {
   color: #573B1D;
@@ -14,6 +15,61 @@ body {
 
 div#distribselect {
     padding-bottom: 0.2em;
+}
+
+ul.sophie_tag {
+    padding-left: 0em;
+}
+
+.sophie_tag li {
+    list-style-type: none;
+}
+
+div#sophie_body_main {
+    float:left;
+    padding-left: 1em;
+    padding-right: 1em;
+    width: 60%;
+}
+
+div#sophie_body_additional {
+    float:left;
+    border: solid #573B1D;
+    font-size: .85em;
+    padding-left: 1.2em;
+    padding-top: 0.25em;
+    padding-bottom: 0.25em;
+    margin-top: 0.75em;
+    width: 35%;
+    overflow: hidden;
+}
+
+.filename {
+    font-family: monospace;
+}
+
+.filename td {
+    padding-left: 1em;
+    padding-right: 1em;
+    font-size: 1.2em;
+}
+
+pre.filedata {
+    padding: 2em;
+    margin: 2em;
+    background: #F5F5DC;
+    border: outset;
+}
+
+.flat_menu li {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-left: 0em;
+    display: inline;
+}
+
+.flat_menu {
+    padding-left: 0em;
 }
 
 /* header look */
@@ -54,7 +110,7 @@ div#sophie_header_search {
   float: right;
 }
 
-/* foot look */
+/* footer look */
 div.sophie_footer img {
   color: #FFFFFF;
   vertical-align: middle;
@@ -64,13 +120,42 @@ div.sophie_footer p {
   text-align: center;
 }
 
+#w3c {
+    float: right;
+}
+
 /* home look */
-div#body_home {
+div#sophie_body_home {
     float:left;
     font-size: 1.2em;
     padding: 0.5em;
     width: 45%;
     overflow: hidden;
+}
+
+div.sophie_package_list {
+    float:right;
+    border: none;
+    width: 50%;
+    padding-left: 0.5em;
+    padding-top: 0.2em;
+    background: #f3f47a;
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+.sophie_package_list h2 {
+    margin-top: 0em;
+    margin-bottom: 0.5em;
+}
+
+.sophie_package_list p {
+    padding-left: 2em;
+    padding-right: 0em;
+    padding-top: 0em;
+    padding-bottom: 0em;
+    margin: 0em;
+    margin-bottom: 0.2em;
 }
 
 /* search look */
@@ -121,92 +206,28 @@ div.sophie_search_list {
     margin-bottom: 0.2em;
 }
 
-/* Tout ce qui reste */
-.flat_menu li {
-    font-size: 1.2em;
-    font-weight: bold;
-    margin-left: 0em;
-    display: inline;
+/* distrib look */
+.sophie_pkgid {
+    font-family: monospace;
 }
 
-.flat_menu {
-    padding-left: 0em;
-}
-
-/* body_home : Id for home part of index.html */
-
-div#body_main {
-    float:left;
-    padding-left: 1em;
-    padding-right: 1em;
-    width: 60%;
-}
-
-div#body_additional {
-    float:left;
-    border: solid #573B1D;
-    font-size: .85em;
-    padding-left: 1.2em;
-    padding-top: 0.25em;
-    padding-bottom: 0.25em;
-    margin-top: 0.75em;
-    width: 35%;
-    overflow: hidden;
-}
-
-#sophie_rpms_menu {
-    margin-left: 1em;
-    padding-left: 0em;
-    padding-top: 0.5em;
-    padding-bottom: 0.5em;
-}
-
-#sophie_rpms_menu li {
-    margin-left: 0em;
-    display: inline;
-}
-
-#sophie_rpm_description p {
-    padding-left: 0em;
-    padding-right: 0em;
-    font-size: 0.9em;
-}
-
-div#sophie_chat {
-    float: left;
-    width: 35%;
-    padding-top: 1em;
-    padding-left: 0.2em;
-}
-
-div.sophie_package_list {
-    float:right;
-    border: none;
-    width: 50%;
-    padding-left: 0.5em;
-    padding-top: 0.2em;
-    background: #f3f47a;
-    margin-top: 1em;
-    margin-bottom: 1em;
-}
-
-.sophie_package_list h2 {
-    margin-top: 0em;
-    margin-bottom: 0.5em;
-}
-
-.sophie_package_list p {
-    padding-left: 2em;
-    padding-right: 0em;
-    padding-top: 0em;
-    padding-bottom: 0em;
-    margin: 0em;
-    margin-bottom: 0.2em;
-}
-
+/* explorer look */
 #explorer_d {
     margin-top: 0.5em;
     margin-left: 0.2em;
+}
+
+div#explorer_form {
+    padding-left: 0.2em;
+    padding-right: 0.2em;
+    padding-top: 0.2em;
+    padding-bottom: 0.2em;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    margin-left: 0.2em;
+    float: left;
+    border: solid #573B1D;
+    width: 30%;
 }
 
 div#exp_dir {
@@ -226,19 +247,39 @@ div#exp_file {
     width: 65%;
 }
 
-div#sophie_explorer_form {
-    padding-left: 0.2em;
-    padding-right: 0.2em;
-    padding-top: 0.2em;
-    padding-bottom: 0.2em;
-    margin-top: 0.5em;
-    margin-bottom: 0.5em;
-    margin-left: 0.2em;
-    float: left;
-    border: solid #573B1D;
-    width: 30%;
+/* source & patches look */
+div#sophie_sources {
+  padding-left: 0.5em;
 }
 
+/* rpms look */
+#sophie_rpms_menu {
+    margin-left: 1em;
+    padding-left: 0em;
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+}
+
+#sophie_rpms_menu ul {
+  margin-left: 0.0em;
+}
+
+#sophie_rpms_menu li {
+    margin-left: 0em;
+    display: inline;
+}
+
+#sophie_rpms_menu h2 {
+  margin-left: 0.5em;
+}
+
+#sophie_rpm_description p {
+    padding-left: 0em;
+    padding-right: 0em;
+    font-size: 0.9em;
+}
+
+/* chat look */
 div#sophie_bot_reply {
     padding: 1em;
     margin: 0.2em;
@@ -252,56 +293,36 @@ div#sophie_bot_help {
     width: 50%;
 }
 
+div#sophie_chat {
+    float: left;
+    width: 35%;
+    padding-top: 1em;
+    padding-left: 0.2em;
+}
+
+/* help look */
 .sophie_help h2 {
     font-size: 1.2em;
-/*    margin-top: 5em;*/
-    background-color: #EFF3F7;
+    background-color: #c0f57d;
 }
 
 .sophie_help code {
-    background-color: #FFFFC0;
+    background-color: #f3f47a;/*#FFFFC0;*/
 }
 
 .sophie_help pre {
-    background-color: #FFFFC0;
+    background-color: #f3f47a;/*##FFFFC0;*/
     padding: 1em;
     margin: 2em;
     border: 2px inset;
 }
 
-ul.sophie_tag {
-    padding-left: 0em;
-}
-
-.sophie_tag li {
-    list-style-type: none;
-}
-
-.pkgid {
-    font-family: monospace;
-}
-
-.filename {
-    font-family: monospace;
-}
-
-.filename td {
-    padding-left: 1em;
-    padding-right: 1em;
-    font-size: 1.2em;
-}
-
-pre.filedata {
-    padding: 2em;
-    margin: 2em;
-    background: #F5F5DC;
-    border: outset;
-}
-
+/* analysis look */
 .alert {
     color: red;
 }
 
+/* login look */
 div.sophie_auth {
     width: 40%;
     margin: auto;
@@ -316,6 +337,3 @@ div.sophie_auth {
 .sophie_auth input {
 }
 
-#w3c {
-    float: right;
-}

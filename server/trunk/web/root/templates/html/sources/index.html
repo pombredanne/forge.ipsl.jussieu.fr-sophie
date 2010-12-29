@@ -1,4 +1,5 @@
 <!-- $Id$ -->
+<div id="sophie_sources">
 <p>Search source rpm having name starting by:</p>
 <form action="[% c.uri_for('/sources') %]" method="POST">
     <input type="text" name="search" value="[% c.req.param('search') | html %]">
@@ -7,7 +8,7 @@
 
 [% FOREACH rpm = xmlrpc %]
 [% IF loop.first %]
-<ul>
+<ul class="sophie_tag">
 [% END %]
 <li><a href="[% c.uri_for('/sources', rpm) %]">[% rpm | html %]</a></li>
 [% IF loop.last %]
@@ -15,3 +16,4 @@
 [% END %]
 
 [% END %]
+</div>
