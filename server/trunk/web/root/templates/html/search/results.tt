@@ -4,7 +4,7 @@
 [% USE 'ObfuscateMail' %]
 
 [% IF pager %]
-<p class="result_pager">
+<p class="sophie_search_result_pager">
 [% IF pager.current_page != pager.first_page %]
 <a href="[% c.uri_for('/', c.req.path, { 'page' => pager.first_page }) %]">
 <img 

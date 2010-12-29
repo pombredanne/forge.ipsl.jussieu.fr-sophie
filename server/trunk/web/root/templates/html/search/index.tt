@@ -1,5 +1,5 @@
 <!-- $Id$ -->
-<div Id="sophie_search_form">
+<div id="sophie_search_form">
 <form action="[% c.uri_for('/search') %]" method="POST" id="sophie_adv_search">
 [% INCLUDE 'search/adv_search.tt' %]
 </form>

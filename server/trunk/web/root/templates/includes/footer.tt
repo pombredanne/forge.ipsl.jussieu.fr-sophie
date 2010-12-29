@@ -2,7 +2,7 @@
 </div>
 <div class="sophie_footer">
 <hr style="clear: both">
-<p style="text-align: center">
+<p>
 <a href="http://www.perl.org/"><img height="64" width="64" src="[% c.uri_for('/static/images', 'perl.png') -%]" alt="Perl"></a> ::
 <a href="http://catalyst.perl.org/"><img height="64" src="[% c.uri_for('/static/images', 'catalyst.png') -%]" alt="Catalyst"></a> ::
 <a href="http://www.postgresql.org/"><img height="64" width="64" src="[% c.uri_for('/static/images', 'postgresql.png') -%]" alt="PostgreSQL"></a> ::
