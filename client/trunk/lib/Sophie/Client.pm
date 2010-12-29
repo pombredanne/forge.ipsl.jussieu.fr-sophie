@@ -78,7 +78,9 @@ sub handle_message {
         warn "$1, $2";
         $self->user_config($heap, $1, $2);
     } else {
-        $self->submit_query($heap, $context, $message);
+        eval {
+            $self->submit_query($heap, $context, $message);
+        }
     }
 }
 
