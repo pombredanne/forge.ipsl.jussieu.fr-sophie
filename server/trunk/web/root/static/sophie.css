@@ -1,5 +1,5 @@
 /* $Id$ */
-/* Colored links */
+/* global look */
 a:link {
   color: #573B1D;
 }
@@ -8,15 +8,44 @@ a:visited {
   color: #F7A800;
 } 
 
+/* header look */
+div#sophie_header {
+  border: none;
+  background-color: #74D100;
+}
+
+#sophie_header a:visited {
+  color: #F7A800;
+}
+
+span#sophie_login {
+  float: right;
+} 
+
+p#sophie_sitename {
+    font-size: 1.4em;
+    padding-left: 1em;
+}
+
+div#sophie_header_menu {
+  float: left;
+  padding: 0.5em;
+}
+
+#sophie_site_path {
+  font-size: 0.9em;
+  padding-left: 0.2em;
+  float: left;
+}
+
+div#sophie_header_search {
+  float: right;
+}
+
 /* White boxes around icones in the footer */
 .sophie_footer img {
   color: #FFFFFF;
   vertical-align: middle;
-}
-
-p#sitename {
-    font-size: 1.4em;
-    padding-left: 1em;
 }
 
 .flat_menu li {
@@ -28,11 +57,6 @@ p#sitename {
 
 .flat_menu {
     padding-left: 0em;
-}
-
-#sophie_site_path {
-    font-size: 0.9em;
-    padding-left: 0.2em;
 }
 
 /* body_home : Id for home part of index.html */
@@ -63,15 +87,6 @@ div#body_additional {
     overflow: hidden;
 }
 
-div#sophie_header {
-    border: none;
-    background-color: #74D100;
-}
-
-#sophie_header a:visited {
-  color: #F7A800;
-}
-
 #sophie_rpms_menu {
     margin-left: 1em;
     padding-left: 0em;
@@ -95,11 +110,19 @@ div#sophie_search_form {
     padding-left: 0.2em;
 }
 
+div#sophie_chat {
+    float: left;
+    width: 35%;
+    padding-top: 1em;
+    padding-left: 0.2em;
+}
+
 .result_pager {
     text-align: center;
 }
 
 .result_pager img {
+    color: #FFFFFF;
     vertical-align: middle;
 }
 
@@ -198,7 +221,19 @@ div#sophie_explorer_form {
 
 div#sophie_bot_reply {
     padding: 1em;
-    border: solid;
+    margin: 0.2em;
+    border: solid #573B1D;
+    clear: both;
+}
+
+div#sophie_bot_help {
+    padding: 1em;
+    float: left;
+    width: 50%;
+}
+
+div#distribselect {
+    padding-bottom: 0.2em;
 }
 
 .sophie_help h2 {

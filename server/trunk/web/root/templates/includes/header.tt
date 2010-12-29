@@ -21,14 +21,14 @@
     <a href="[% c.uri_for('/') %]">
     <img src="[% c.uri_for('/static', 'sophie.png') -%]" alt="Sophie" style="float:left">
     </a>
-    <!-- No yet display:
-    <span id="header_login" style="float: right">
+    <!-- Not yet displayed:
+    <span id="sophie_login">
         [%# INCLUDE 'login/invit_login.tt' %]
     </span>
     -->
-    <div style="float:left; padding: 0.5em;">
-        <p id="sitename">Sophie</p>
-        <ul id="sophie_menu" class="flat_menu">
+    <div id="sophie_header_menu">
+        <p id="sophie_sitename">Sophie</p>
+        <ul class="flat_menu">
         <li><a href="[% c.uri_for('/search') %]">Search</a></li>
         <li><a href="[% c.uri_for('/distrib') %]">Distribution</a></li>
         <li><a href="[% c.uri_for('/explorer') %]">Explorer</a></li>
@@ -38,15 +38,13 @@
         </ul>
     </div>
     <div style="clear:both"></div>
-    <div style="float: left" id="sophie_site_path">
+    <div id="sophie_site_path">
         [% FOREACH p = sitepath %]
         <a href="[% p.path %]">[% p.name | html %]</a>
         [% IF NOT loop.last %]&gt;[% END %]
         [% END %]
     </div>
-    <div style="float: right">
-        [% INCLUDE 'search/simple_search.tt' %]
-    </div>
+    [% INCLUDE 'search/simple_search.tt' %]
     <div style="clear:both"></div>
     </div>
 

@@ -1,6 +1,6 @@
 <!-- $Id$ -->
 
-<div style="float: left; width: 35%">
+<div id="sophie_chat">
     <form id="botform" action="[% c.uri_for('/chat') %]">
             <div id="distribselect">
             [% INCLUDE 'ajax/forms/distribselect.tt' %]
@@ -17,10 +17,10 @@
         <input type="submit">
     </form>
 </div>
-<div id="sophie_bot_help" style="float: left; width: 50%">
+<div id="sophie_bot_help">
     <p>This page simulate the Bot behavior you may meet on IRC.</p>
 </div>
 
-<div id="sophie_bot_reply" style="clear: both">
+<div id="sophie_bot_reply">
     [% INCLUDE 'chat/index.tt' %]
 </div>
