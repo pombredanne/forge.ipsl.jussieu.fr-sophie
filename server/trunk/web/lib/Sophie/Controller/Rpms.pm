@@ -66,8 +66,53 @@ sub tag : XMLRPCLocal {
     )->all ]
 }
 
-sub basicinfo : XMLRPCLocal {
+=head2 rpms.basicinfo( PKGID )
+
+Return a struct about basic informations about rpm having pkgid C<PKGID>.
+
+Example of information return:
+
+    {
+          'arch' => 'x86_64',
+          'version' => '0.0.3',
+          'src' => '1',
+          'issrc' => '1',
+          'name' => 'ecap-samples',
+          'release' => '1mdv2010.2',
+          'description' => 'The sample contains three basic adapters.',
+          'pkgid' => 'aa17ce95dd816e0817da78d7af54abdb',
+          'summary' => 'Simple ecap samples',
+          'filename' => 'ecap-samples-0.0.3-1mdv2010.2.src.rpm',
+          'evr' => '0.0.3-1mdv2010.2'
+    };
+
+=head2 Url: /rpms/<PKGID>/basicinfo?json
+
+Return a struct about basic informations about rpm having pkgid C<PKGID>.
+
+Example of information return:
+
+    {
+          'arch' => 'x86_64',
+          'version' => '0.0.3',
+          'src' => '1',
+          'issrc' => '1',
+          'name' => 'ecap-samples',
+          'release' => '1mdv2010.2',
+          'description' => 'The sample contains three basic adapters.',
+          'pkgid' => 'aa17ce95dd816e0817da78d7af54abdb',
+          'summary' => 'Simple ecap samples',
+          'filename' => 'ecap-samples-0.0.3-1mdv2010.2.src.rpm',
+          'evr' => '0.0.3-1mdv2010.2'
+    };
+
+NB: This url works only in JSON format.
+
+=cut
+
+sub basicinfo :XMLRPCLocal :Chained('rpms_') :PathPart('basicinfo') :Args(0) {
     my ($self, $c, $pkgid) = @_;
+    $pkgid ||= $c->stash->{pkgid};
 
     my $rpm = $c->model('base::Rpms')->find(
         { pkgid => $pkgid },
@@ -95,10 +140,21 @@ sub basicinfo : XMLRPCLocal {
     return $c->stash->{xmlrpc} = \%info;
 }
 
+=head2 rpms.info( PKGID )
 
-sub info : XMLRPCLocal {
+Like rpms.basicinfo return a struct containing single information about the request rpm.
+
+=head2 Url: /rpms/<PKGID>/info?json
+
+Like rpms/<PKGID>basicinfo return a struct containing single information about the request rpm.
+
+NB: This url works only in JSON format.
+
+=cut
+
+sub info : XMLRPCLocal :Chained('rpms_') :PathPart('info') :Args(0) {
     my ($self, $c, $pkgid) = @_;
-
+    $pkgid ||= $c->stash->{pkgid};
 
     my $info = $c->forward('basicinfo', [ $pkgid ]);
     foreach (qw(name epoch url group size packager
@@ -119,8 +175,63 @@ sub info : XMLRPCLocal {
     return $c->stash->{xmlrpc} = $info;
 }
 
-sub deps : XMLRPCLocal {
+=head2 rpms.dependency(PKGID, DEPTYPE)
+
+Return a list of C<DEPTYPE> dependencies for package C<PKGID> where C<DEPTYPE>
+is one of:
+
+=over 4
+
+=item C<P> for Provides
+
+=item C<R> for Requires
+
+=item C<C> for Conflicts
+
+=item C<O> for Obsoletes
+
+=item C<E> for Enhanced
+
+=item C<S> for Suggests
+
+=back
+
+=cut
+
+sub xmlrpc_dependency : XMLRPCPath('dependency') {
+    my ($self, $c, @args) = @_;
+    $c->forward('dependency', [ @args ]);
+}
+
+=head2 Url: /rpms/<PKGID>/dependency/<DEPTYPE>?json
+
+Return a list of C<DEPTYPE> dependencies for package C<PKGID> where C<DEPTYPE>
+is one of:
+
+=over 4
+
+=item C<P> for Provides
+
+=item C<R> for Requires
+
+=item C<C> for Conflicts
+
+=item C<O> for Obsoletes
+
+=item C<E> for Enhanced
+
+=item C<S> for Suggests
+
+=back
+
+=cut
+
+sub dependency :XMLRPC :Chained('rpms_') :PathPart('dependency') :Args(1) {
     my ($self, $c, $pkgid, $deptype) = @_;
+    if (!$deptype) {
+        $deptype = $pkgid;
+        $pkgid = $c->stash->{pkgid};
+    }
 
     $c->stash->{xmlrpc} = [ 
         map { 
@@ -262,12 +373,15 @@ sub rpms : Private {
     # Because $c->forward don't take into account Chained sub
     $c->forward('rpms_', [ $pkgid ]);
     for ($subpart || '') {
-        /^deps$/      and $c->go('alldeps',   [ $pkgid, @args ]);
-        /^files$/     and $c->go('files',     [ $pkgid, @args ]);
-        /^changelog$/ and $c->go('changelog', [ $pkgid, @args ]);
-        /^location$/  and $c->go('location',  [ $pkgid, @args ]);
-        /^analyse$/   and $c->go('analyse',  [ $pkgid, @args ]);
-        /./           and $c->go('/404/index'); # other subpart dont exists
+        /^deps$/       and $c->go('deps',        [ $pkgid, @args ]);
+        /^files$/      and $c->go('files',       [ $pkgid, @args ]);
+        /^changelog$/  and $c->go('changelog',   [ $pkgid, @args ]);
+        /^location$/   and $c->go('location',    [ $pkgid, @args ]);
+        /^basicinfo$/  and $c->go('basicinfo',   [ $pkgid, @args ]);
+        /^info$/       and $c->go('info',        [ $pkgid, @args ]);
+        /^analyse$/    and $c->go('analyse',     [ $pkgid, @args ]);
+        /^dependency$/ and $c->go('dependency',  [ $pkgid, @args ]);
+        /./            and $c->go('/404/index'); # other subpart dont exists
     }
     $c->stash->{rpmurl} = $c->req->path;
 
@@ -281,7 +395,7 @@ sub rpms__ : Chained('/rpms/rpms_') :PathPart('') :Args(0) :XMLRPCLocal {
 }
 
 
-sub alldeps :Chained('rpms_') :PathPart('deps') :Args(0) :XMLRPCLocal {
+sub deps :Chained('rpms_') :PathPart('deps') :Args(0) :XMLRPCLocal {
     my ( $self, $c, $pkgid ) = @_;
     $c->stash->{rpmurl} = ($c->req->path =~ m:(.*)/[^/]+:)[0];
     $pkgid ||= $c->stash->{pkgid};
@@ -440,7 +554,7 @@ sub analyse :Chained('rpms_') :PathPart('analyse') :Args(0) :XMLRPC {
 
         my @deplist = map {
             [ $_->{name}, $_->{sense}, $_->{evr} ]
-        } @{ $c->forward('deps', [ $pkgid, 'R' ]) };
+        } @{ $c->forward('dependency', [ $pkgid, 'R' ]) };
 
         $c->stash->{xmlrpc} = $c->forward(
             '/analysis/solver/find_requirements',
