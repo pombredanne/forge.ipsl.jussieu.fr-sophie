@@ -4,5 +4,8 @@
 </div>
 
 <div Id="body_additional">
-<p> Slurp !</p>
+    <!-- <p> Slurp !</p> -->
+    <p>Other medias:</p>
+    [% INCLUDE 'distrib/distrib.tt'
+        xmlrpc = c.forward('/distrib/list', [ dist ]) %]
 </div>

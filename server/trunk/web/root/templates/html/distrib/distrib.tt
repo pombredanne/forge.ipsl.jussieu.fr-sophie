@@ -1,6 +1,6 @@
 <!-- $Id$ -->
 <ol>
 [% FOREACH media = xmlrpc %]
-<li><a href="[% c.uri_for('/', c.req.path, 'media', media) %]">[% media %]</a></li>
+<li><a href="[% c.uri_for('/distrib', dist.distribution, dist.release, dist.arch, 'media', media) %]">[% media %]</a></li>
 [% END %]
 </ol>
