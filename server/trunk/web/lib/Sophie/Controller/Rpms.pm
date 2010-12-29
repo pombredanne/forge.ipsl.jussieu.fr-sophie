@@ -263,6 +263,7 @@ sub rpms : Private {
         /^changelog$/ and $c->go('changelog', [ $pkgid, @args ]);
         /^location$/  and $c->go('location',  [ $pkgid, @args ]);
         /^analyse$/   and $c->go('analyse',  [ $pkgid, @args ]);
+        /./           and $c->go('/404/index'); # other subpart dont exists
     }
     $c->stash->{rpmurl} = $c->req->path;
 
