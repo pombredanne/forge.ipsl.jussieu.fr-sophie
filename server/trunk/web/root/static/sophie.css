@@ -8,6 +8,10 @@ a:visited {
   color: #F7A800;
 } 
 
+body {
+  background-color: #FFFFFF;
+}
+
 /* header look */
 div#sophie_header {
   border: none;
@@ -42,7 +46,7 @@ div#sophie_header_search {
   float: right;
 }
 
-/* White boxes around icones in the footer */
+/* foot look */
 .sophie_footer img {
   color: #FFFFFF;
   vertical-align: middle;
