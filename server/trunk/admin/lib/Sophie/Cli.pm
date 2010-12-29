@@ -191,6 +191,17 @@ sub globalenv {
     my ($base) = @_;
     my $env = __PACKAGE__->new({}, $base);
 
+    $env->add_func('create_user',
+        {
+            code => sub {
+                my ($self, $user, $password) = @_;
+                my $res = $self->xmlreq('admin.create_user', $user, $password);
+                if ($res) {
+                    print $OUT $res->value . "\n";
+                }
+            },
+        }
+    );
     $env->add_func('select',
         {
             code => sub {
@@ -363,7 +374,7 @@ sub run {
 
 sub xmlreq {
     my ($self, $code, @args) = @_;
-    $self->base->send_request(
+    my $res = $self->base->send_request(
         $code, @args,
     );
 }
