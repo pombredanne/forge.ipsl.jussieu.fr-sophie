@@ -87,6 +87,10 @@ sub basicinfo : XMLRPCLocal {
             $info{$_} = $r->get_column('qf');
         }
     }
+    $info{filename} = $c->forward('queryformat',
+        [ $pkgid,
+            '%{NAME}-%{VERSION}-%{RELEASE}.%|SOURCERPM?{%{ARCH}}:{src}|.rpm'
+        ]);
 
     return $c->stash->{xmlrpc} = \%info;
 }
