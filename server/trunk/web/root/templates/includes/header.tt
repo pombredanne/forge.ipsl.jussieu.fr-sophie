@@ -21,6 +21,9 @@
     <a href="[% c.uri_for('/') %]">
     <img src="[% c.uri_for('/static', 'sophie.png') -%]" alt="Sophie" style="float:left">
     </a>
+    <span id="header_login" style="float: right">
+        [% INCLUDE 'login/invit_login.tt' %]
+    </span>
     <div style="float:left; padding: 0.5em;">
         <p id="sitename">Sophie</p>
         <ul id="sophie_menu" class="flat_menu">

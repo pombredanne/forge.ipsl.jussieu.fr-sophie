@@ -46,6 +46,17 @@ sub index :Path :Args(0) :XMLRPCPath('/login') {
     }
 }
 
+sub invit_login : Local {
+    my ($self, $c) = @_;
+
+}
+
+sub logout :Local {
+    my ($self, $c) = @_;
+
+    $c->logout;
+}
+
 sub create :Local {
     my ($self, $c) = @_;
 
