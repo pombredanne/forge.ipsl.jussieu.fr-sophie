@@ -232,6 +232,12 @@ C<RELEASE>.
 
 sub list_arch :Path :Args(2) {
     my ( $self, $c, $distribution, $release ) = @_;
+
+    # Compatability with Sophie1
+    if ($distribution =~ /^([^,]+,)?[^,]+,[^,]+$/) {
+        $c->go('/compat/distrib', [ $distribution, $release ]);
+    }
+
     $c->stash->{dist}{distribution} = $distribution;
     $c->stash->{dist}{release} = $release;
     if (!$c->forward('exists', [ $c->stash->{dist} ])) {

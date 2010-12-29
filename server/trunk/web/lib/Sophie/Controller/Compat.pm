@@ -47,6 +47,17 @@ sub srpm :Path('/srpm') :Args(2) {
     $c->res->redirect($c->uri_for('/distrib', @args, 'srpms', $rpm));
 }
 
+# /distrib/foo,bar,baz/RPM
+sub distrib :Private {
+    my ($self, $c, $distrib, $rpm) = @_;
+
+    my @args = split(',', $distrib);
+    if (@args == 2) {
+        unshift(@args, '');
+    }
+    $c->res->redirect($c->uri_for('/distrib', @args, 'rpms', $rpm));
+}
+
 =head1 AUTHOR
 
 Olivier Thauvin
