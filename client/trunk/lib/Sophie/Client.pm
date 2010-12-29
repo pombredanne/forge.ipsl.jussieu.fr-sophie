@@ -1,6 +1,6 @@
 package Sophie::Client;
 
-use 5.012002;
+use 5.010000;
 use strict;
 use warnings;
 use RPC::XML;
@@ -15,7 +15,7 @@ sub new {
     my $self = $class->SUPER::new(
         $options{server} || 'http://sophie2.aero.jussieu.fr/rpc'
     );
-    $self->timeout(20);
+    $self->timeout(20) if ($self->can('timeout'));
     $self->{options} = { %options };
 
     if ($options{login}) {

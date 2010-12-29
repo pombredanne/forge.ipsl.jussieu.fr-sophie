@@ -1,6 +1,6 @@
 package Sophie::Client::Term;
 
-use 5.012002;
+use 5.010000;
 use strict;
 use warnings;
 use Term::ReadLine;

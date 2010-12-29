@@ -1,6 +1,6 @@
 package Sophie::Client::IRC;
 
-use 5.012002;
+use 5.010000;
 use strict;
 use warnings;
 use base qw(Sophie::Client);
