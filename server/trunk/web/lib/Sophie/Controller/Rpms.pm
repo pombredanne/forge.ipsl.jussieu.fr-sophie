@@ -118,7 +118,7 @@ sub info : XMLRPCLocal {
 sub deps : XMLRPCLocal {
     my ($self, $c, $pkgid, $deptype) = @_;
 
-    @{ $c->stash->{xmlrpc}{deps}{$deptype} } = 
+    $c->stash->{xmlrpc} = [ 
         map { 
             { 
                 name => $_->get_column('depname'),
@@ -138,7 +138,7 @@ sub deps : XMLRPCLocal {
                 as => [ qw'sense depname flags evr' ],
 
             },
-        )->all;
+        )->all ];
 }
 
 sub sources : XMLRPCLocal {
@@ -262,6 +262,7 @@ sub rpms : Private {
         /^files$/     and $c->go('files',     [ $pkgid, @args ]);
         /^changelog$/ and $c->go('changelog', [ $pkgid, @args ]);
         /^location$/  and $c->go('location',  [ $pkgid, @args ]);
+        /^analyse$/   and $c->go('analyse',  [ $pkgid, @args ]);
     }
     $c->stash->{rpmurl} = $c->req->path;
 
@@ -420,6 +421,30 @@ sub location :Chained('rpms_') :PathPart('location') :Args(0) {
                 order_by => [ qw(name version arch label) ],
             }
         )->all ]
+}
+
+sub analyse :Chained('rpms_') :PathPart('analyse') :Args(0) :XMLRPC {
+    my ( $self, $c, $pkgid, $dist ) = @_;
+    $pkgid ||= $c->stash->{pkgid};
+    $c->stash->{rpmurl} = ($c->req->path =~ m:(.*)/[^/]+:)[0];
+    $dist->{distribution} ||= $c->req->param('distribution');
+    $dist->{release} ||= $c->req->param('release');
+    $dist->{arch} ||= $c->req->param('arch');
+
+    if ($c->req->param('analyse')) {
+
+        my @deplist = map {
+            [ $_->{name}, $_->{sense}, $_->{evr} ]
+        } @{ $c->forward('deps', [ $pkgid, 'R' ]) };
+
+        $c->stash->{xmlrpc} = $c->forward(
+            '/analysis/solver/find_requirements',
+            [ $dist,
+                'P', \@deplist, [] ]
+        );
+    } else {
+        $c->stash->{xmlrpc} = '';
+    }
 }
 
 =head1 AUTHOR

@@ -1,0 +1,24 @@
+<!-- $Id$ -->
+
+[% INCLUDE 'rpms/menu.tt' %]
+
+<p>Find dependencies on distribution:</p>
+
+<form id="analysis_form" action="[% c.uri_for('/', c.req.path) %]" method="POST">
+    <span id="distribselect">
+    [% INCLUDE 'ajax/forms/distribselect.tt' %]
+    </span>
+    [% c.prototype.observe_form('analysis_form',
+    {
+        url => c.uri_for('/ajax/forms/distribselect', { 'ajax' => 1 }),
+        frequency => 2,
+        update => 'distribselect',
+    }
+    ) %] 
+    <input type="submit" name="analyse">
+</form>
+
+<div id="body_main">
+    [% INCLUDE 'rpms/analyse.tt' %]
+</div>
+
