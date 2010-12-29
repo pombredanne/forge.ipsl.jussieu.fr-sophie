@@ -15,6 +15,7 @@ GetOptions(
     'p=s' => \my $pass,
     't=s' => \my $type,
     'd=s' => \my @options,
+    'proxy' => \my $proxy,
     'daemon' => \my $daemon,
 
     # Command option:
@@ -36,6 +37,7 @@ if (my $conf = Config::General->new($configfile)) {
     $login       ||= $config{login};
     $pass        ||= $config{pass};
     $daemon      ||= $config{daemon};
+    $proxy       ||= $config{proxy};
 }
 
 my $sc = Sophie::Client->new(
@@ -43,6 +45,7 @@ my $sc = Sophie::Client->new(
     login => $login,
     password => $pass,
     type => $type,
+    proxy => $proxy,
 );
 
 if ($password) {

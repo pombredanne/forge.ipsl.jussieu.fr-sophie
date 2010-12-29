@@ -16,7 +16,14 @@ sub new {
         $options{server} || 'http://sophie2.aero.jussieu.fr/rpc'
     );
     $self->timeout(20) if ($self->can('timeout'));
+    if ($options{proxy}) {
+        $self->useragent->proxy([ 'http' ], $options{proxy});
+    } else {
+        $self->useragent->env_proxy;
+    }
+
     $self->{options} = { %options };
+
 
     if ($options{login}) {
         login($self) or die "Can't login";
