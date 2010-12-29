@@ -110,7 +110,7 @@ sub irc_msg {
 sub show_reply {
     my ($self, $heap, $reply) = @_;
 
-    my ($replyto, $prefix) = $heap->{to}
+    my ($replyto, $prefix) = $heap->{to} && !$reply->{private_reply}
         ? ($heap->{to}, $heap->{from} . ': ')
         : ($heap->{from}, '');
     
