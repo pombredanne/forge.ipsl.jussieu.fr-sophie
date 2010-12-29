@@ -251,6 +251,20 @@ pre.filedata {
     color: red;
 }
 
+div.sophie_auth {
+    width: 40%;
+    margin: auto;
+}
+
+.sophie_auth label {
+    width: 10em;
+    display: block;
+    float:left;
+}
+
+.sophie_auth input {
+}
+
 #w3c {
     float: right;
 }

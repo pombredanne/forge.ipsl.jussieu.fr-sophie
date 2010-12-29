@@ -326,6 +326,25 @@ sub update_user_data : XMLRPC {
     $c->forward('/user/update_user_data', [ $user, $dataname, $data ]);
 }
 
+sub set_user_password : XMLRPC {
+    my ( $self, $c, $user, $password ) = @_;
+
+    $c->forward('/user/set_user_password', $user, $password);
+}
+
+sub create_user : XMLRPC {
+    my ($self, $c, $user, $password) = @_;
+
+    if ($c->model('Base::Users')->create({
+            mail => $user,
+        })) {
+        $c->forward('set_user_password', [ $user, $password ]);
+        return $c->stash->{xmlrpc} = "User $user created";
+    } else {
+        return;
+    }
+}
+
 =head1 AUTHOR
 
 Olivier Thauvin
