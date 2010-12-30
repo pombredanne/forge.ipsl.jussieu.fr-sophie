@@ -37,7 +37,7 @@ sub rpm :Path('/rpm') :Args(2) {
     $c->res->redirect($c->uri_for('/distrib', @args, 'rpms', $rpm));
 }
 
-sub srpms :Path('/srpms') :Args(2) {
+sub srpm :Path('/srpm') :Args(2) {
     my ($self, $c, $dist, $rpm) = @_;
     
     my @args = split(',', $dist);
