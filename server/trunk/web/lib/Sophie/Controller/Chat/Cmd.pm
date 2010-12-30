@@ -337,6 +337,29 @@ sub a : XMLRPC {
     $c->forward('arch', [ @args ]);
 }
 
+=head2 url [-s] NAME
+
+Show the url of package C<NAME>.
+
+=cut 
+
+sub url : XMLRPC {
+    my ($self, $c, $reqspec, @args) = @_;
+
+    $c->forward('qf', [ $reqspec, @args, '%{url}' ]);
+}
+
+=head2 u
+
+Is an alias to C<url> command.
+
+=cut 
+
+sub u : XMLRPC {
+    my ($self, $c, @args) = @_;
+    $c->forward('url', [ @args ]);
+}
+
 =head2 group [-s] NAME
 
 Show the group of package C<NAME>.
