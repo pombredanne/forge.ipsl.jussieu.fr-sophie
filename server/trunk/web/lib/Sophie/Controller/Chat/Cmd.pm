@@ -146,6 +146,7 @@ sub help : XMLRPC {
             message => [
                 'available command:',
                 join(', ', sort grep { $_ !~ /^end$/ } @{ $self->_commands }),
+                'Find more at ' . $c->uri_for('/help/chat'),
             ],
         }
     }
