@@ -46,7 +46,10 @@ sub end : Private {
     } 
 
     if ($needpaste && !$reqspec->{nopaste}) {
-        my $id = $c->forward('/chat/paste', [ 'Bot paste', join("\n", @backup) ]);
+        my $cmd = ($c->action =~ /([^\/]+)$/)[0];
+        my (undef, undef, @args) = @{ $c->req->arguments };
+        my $title = join(' ', $cmd, @args); 
+        my $id = $c->forward('/chat/paste', [ $title, join("\n", @backup) ]);
         if ($id) {
             push(@{ $message->{message} }, 'All results available here: ' . $c->uri_for('/chat', $id));
         }

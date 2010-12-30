@@ -1,6 +1,6 @@
 <!-- $Id$ -->
 
-<p>[% xmlrpc.title %]</p>
+<p>[% xmlrpc.title %] (the [% xmlrpc.whenpaste %])</p>
 
 <pre class="filedata">
 [% xmlrpc.reply | html %]
