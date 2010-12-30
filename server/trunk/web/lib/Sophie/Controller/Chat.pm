@@ -49,6 +49,27 @@ sub viewpaste :Path :Args(1) {
     }
 }
 
+
+sub update_statistic : Private {
+    my ($self, $c, $cmd) = @_;
+
+    $c->model('Base::ChatStat')->search(
+        {
+            -nest => \[
+            "day < now() - ?::interval",
+            [ plain_text => "365 days" ],
+        ],
+        }
+    )->delete;
+    my $stat = $c->model('Base::ChatStat')->find_or_create({
+        cmd => $cmd,
+        day => 'now()',
+    });
+    $stat->update({ count => ($stat->count || 0) + 1 });
+    $c->model('Base')->storage->dbh->commit;
+}
+
+
 sub message : XMLRPC {
     my ($self, $c, $contexts, $message, @msgargs) = @_;
     

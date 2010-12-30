@@ -28,6 +28,9 @@ Catalyst Controller.
 
 sub end : Private {
     my ($self, $c ) = @_;
+    
+    $c->forward('/chat/update_statistic', [ ($c->action =~ /([^\/]+)$/)[0] ]);
+
     my $reqspec = $c->req->arguments->[0];
     $reqspec->{max_line} ||= 4;
     my $message =  $c->stash->{xmlrpc};
