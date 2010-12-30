@@ -54,9 +54,12 @@ sub end : Private {
         my $info = $c->forward('/rpms/basicinfo', [ $item->{pkgid} ]);
         $c->stash->{rss}->add_item(
             title => $item->{filename},
-            permaLink => $c->uri_for('/rpms', $item->{pkgid}),
+            permaLink => $c->uri_for('/distrib', $item->{distribution},
+                $item->{release}, $item->{arch}, 'by-pkgid', $item->{pkgid}),
             guid => $item->{pkgid},
-            description => $info->{description},
+            description => "In " . join('/', $item->{distribution},
+                $item->{release}, $item->{arch}) . ":\n" .
+                $info->{description},
         );
     }
 

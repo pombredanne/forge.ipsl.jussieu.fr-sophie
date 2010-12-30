@@ -16,8 +16,12 @@ Catalyst Controller.
 
 =cut
 
+sub topfeed :Path :Args(1) {
+    my ( $self, $c, $feed ) = @_;
+    $c->forward('feed', [ '', $feed ]);
+}
 
-sub index :Path :Args(2) {
+sub feed :Path :Args(2) {
     my ( $self, $c, $dist, $feed ) = @_;
     
     my @args = split(',', $dist);
@@ -47,28 +51,7 @@ sub index :Path :Args(2) {
 
 sub end : Private {
     my ( $self, $c ) = @_;
-    $c->stash->{current_view} = 'Rss';
-    $c->stash->{rss} = $c->model('Rss');
-    foreach my $item (@{ $c->forward(
-        '/search/rpms/bydate',
-        [
-            {
-                %{ $c->stash->{dist} || {}},
-                src => $c->stash->{src},
-                rows => 50,
-            }, 1
-        ]
-    ) }) {
-        my $info = $c->forward('/rpms/basicinfo', [ $item->{pkgid} ]);
-        $c->stash->{rss}->add_item(
-            title => $item->{filename},
-            permaLink => $c->uri_for('/rpms', $item->{pkgid}),
-            guid => $item->{pkgid},
-            description => $info->{description},
-        );
-    }
-
-    $c->forward('/feed/end');
+    $c->forward('/feed/distrib/end');
 }
 
 =head1 AUTHOR
