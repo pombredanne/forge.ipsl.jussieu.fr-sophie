@@ -381,6 +381,7 @@ sub rpms : Private {
         /^info$/       and $c->go('info',        [ $pkgid, @args ]);
         /^analyse$/    and $c->go('analyse',     [ $pkgid, @args ]);
         /^dependency$/ and $c->go('dependency',  [ $pkgid, @args ]);
+        /^query$/      and $c->go('query',       [ $pkgid, @args ]);
         /./            and $c->go('/404/index'); # other subpart dont exists
     }
     $c->stash->{rpmurl} = $c->req->path;
@@ -564,6 +565,14 @@ sub analyse :Chained('rpms_') :PathPart('analyse') :Args(0) :XMLRPC {
     } else {
         $c->stash->{xmlrpc} = '';
     }
+}
+
+# compat URL:
+sub query :Chained('rpms_') :PathPart('analyse') :Args(0) :XMLRPC {
+    my ( $self, $c, $pkgid, $dist ) = @_;
+    $pkgid ||= $c->stash->{pkgid};
+    $c->stash->{rpmurl} = ($c->req->path =~ m:(.*)/[^/]+:)[0];
+    $c->res->redirect($c->uri_for('/', $c->stash->{rpmurl}, 'analyse'));
 }
 
 =head1 AUTHOR
