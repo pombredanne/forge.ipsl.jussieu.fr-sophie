@@ -142,13 +142,20 @@ sub byfile_rpc : XMLRPCPath('byfile') {
     );
 }
 
-sub fuzzy : XMLRPCPath('fuzzy') {
+sub fuzzy : Private {
+    my ($self, $c, $searchspec, $name) = @_;
+    $c->forward('fuzzy_rpc', [ $searchspec, $name ]);
+    $c->stash->{xmlrpc} = 
+        [ $c->stash->{rs}->get_column('pkgid')->all ];
+}
+
+sub fuzzy_rpc : XMLRPCPath('fuzzy') {
     my ($self, $c, $searchspec, $name) = @_;
     $searchspec ||= {};
 
-    my $deprs = $c->model('Base')->resultset('Deps')->search(
-        { deptype => 'P', depname => { '~*' => $name } }
-    )->get_column('pkgid');
+    # my $deprs = $c->model('Base')->resultset('Deps')->search(
+    #    { deptype => 'P', depname => { '~*' => $name } }
+    # )->get_column('pkgid');
     my $distrs = $c->forward('/search/distrib_search', [ $searchspec, 1 ]);
 
     $c->stash->{rs} = 

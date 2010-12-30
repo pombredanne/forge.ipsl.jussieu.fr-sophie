@@ -162,6 +162,50 @@ sub asv : XMLRPC {
     };
 }
 
+=head2 q REGEXP
+
+Search rpm name matching C<REGEXP>.
+
+NB: C<.>, C<*>, C<+> have special meaning
+and have to be escaped.
+
+=cut
+
+sub q : XMLRPC {
+    my ($self, $c, $reqspec, @args) = @_;
+
+    $reqspec->{src} = 0;
+
+    @args = @{ $c->forward('_getopt', [
+        {
+            'd=s' => \$reqspec->{distribution},
+            'v=s' => \$reqspec->{release},
+            'a=s' => \$reqspec->{arch},
+            's'   => sub { $reqspec->{src} = 1 },
+        }, @args ]) };
+
+    my $res = $c->forward('/search/tags/name_regexp', $reqspec, $args[0]);
+    if (!@{ $res }) {
+        return $c->stash->{xmlrpc} = {
+            message => [ 'Nothing match `' . $args[0] . '\'' ]
+        };
+    } else {
+        my @message = 'rpm name matching `' . $args[0] . '\':';
+        while (@{ $res }) {
+            my $str = '';
+            do {
+                my $item = shift(@{ $res }) or last;
+                $str .= ', ' if ($str);
+                $str .= $item->{name};
+            } while (length($str) < 70);
+            push(@message, $str);
+        }
+        return $c->stash->{xmlrpc} = {
+            message => \@message,
+        };
+    }
+}
+
 =head2 version [-s] NAME
 
 Show the version of package C<NAME>.
