@@ -268,6 +268,29 @@ sub v : XMLRPC {
     $c->forward('version', [ @args ]);
 }
 
+=head2 summary [-s] NAME
+
+Show the summary of package C<NAME>.
+
+=cut
+
+sub summary : XMLRPC {
+    my ($self, $c, $reqspec, @args) = @_;
+
+    $c->forward('qf', [ $reqspec, @args, '%{summary}' ]);
+}
+
+=head2 s
+
+Is an alias for C<summary> command.
+
+=cut
+
+sub s : XMLRPC {
+    my ($self, $c, @args) = @_;
+    $c->forward('summary', [ @args ]);
+}
+
 =head2 packager [-s] NAME
 
 Show the packager of package C<NAME>.
