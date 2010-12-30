@@ -2,6 +2,8 @@
 
 [% INCLUDE 'rpms/menu.tt' %]
 
+<div id="sophie_body_main">
+
 <p>Find dependencies on distribution:</p>
 
 <form id="analysis_form" action="[% c.uri_for('/', c.req.path) %]" method="POST">
@@ -11,7 +13,26 @@
     <input type="submit" name="analyse">
 </form>
 
-<div id="sophie_body_main">
     [% INCLUDE 'rpms/analyse.tt' %]
 </div>
 
+
+<div id="sophie_body_additional">
+    [% FOREACH loc = c.forward('/rpms/location', [ pkgid ]) %]
+    [% IF loop.first %]
+    <p>Analyse over:</p>
+    <ul>
+    [% END %]
+    <li><a href="[% c.uri_for('/', c.req.path, {
+        distribution => loc.distribution,
+        release => loc.release,
+        arch => loc.arch,
+        analyse => 1,
+        }) %]">
+        [% loc.distribution | html %] / [% loc.release | html %] / [% loc.arch | html %]</a>
+    </li>
+    [% IF loop.last %]
+    </ul>
+    [% END %]
+    [% END %]
+</div>
