@@ -1,8 +1,18 @@
 <!-- $Id$ -->
 
+<script>
+function upd_distrib_sel() {
+    var serial = Form.serialize('[% form %]');
+    new Ajax.Updater(
+        'distrib_sel',
+        '[% c.uri_for('/ajax/forms/distribselect', { ajax=> 1}) %]', { parameters: serial ,asynchronous: 1 } );    
+}
+</script>
+
+<span id="distrib_sel">
 [% FOREACH dist = c.forward('/distrib/list', []) %]
 [% IF loop.first %]
-<select name="distribution">
+<select name="distribution" onChange="upd_distrib_sel()">
 <option value="">--</option>
 [% END %]
 <option [% 'selected="selected"' IF c.req.param('distribution') == dist %]>
@@ -20,7 +30,7 @@
     } 
 ]) %]
 [% IF loop.first %]
-<select name="release">
+<select name="release" onChange="upd_distrib_sel()">
 <option value="">--</option>
 [% END %]
 <option [% 'selected="selected"' IF c.req.param('release') == dist %]>
@@ -40,7 +50,7 @@
     } 
 ]) %]
 [% IF loop.first %]
-<select name="arch">
+<select name="arch" onChange="upd_distrib_sel()">
 <option value="">--</option>
 [% END %]
 <option [% 'selected="selected"' IF c.req.param('arch') == dist %]>
@@ -53,3 +63,4 @@
 [% END %]
 
 [% END %]
+</span>

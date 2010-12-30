@@ -3,16 +3,8 @@
 <div id="sophie_chat">
     <form id="botform" action="[% c.uri_for('/chat') %]">
             <div id="distribselect">
-            [% INCLUDE 'ajax/forms/distribselect.tt' %]
+            [% INCLUDE 'ajax/forms/distribselect.tt' form = 'botform' %]
             </div>
-            [% c.prototype.observe_form('botform',
-            {
-            url => c.uri_for('/ajax/forms/distribselect', {
-            'ajax' => 1 }),
-            frequency => 2,
-            update => 'distribselect',
-            }
-            ) %]
         <input name="cmd" value="[% c.req.param('cmd') | html %]">
         <input type="submit">
     </form>
