@@ -18,15 +18,8 @@
 
 <form action="[% c.uri_for('/', c.req.path) %]" id="analysis_form" method="POST">
     <span id="distribselect">
-    [% INCLUDE 'ajax/forms/distribselect.tt' %]
+    [% INCLUDE 'ajax/forms/distribselect.tt' form = 'analysis_form' %]
     </span>
-[% c.prototype.observe_form('analysis_form',
-    {
-    url => c.uri_for('/ajax/forms/distribselect', { 'ajax' => 1 }),
-    frequency => 2,
-    update => 'distribselect',
-    }
-) %]
 <input type="submit" name="analyse">
 </form>
 
