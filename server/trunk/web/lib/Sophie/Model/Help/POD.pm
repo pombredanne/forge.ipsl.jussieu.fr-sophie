@@ -40,7 +40,7 @@ sub bot_functions {
     my ($self) = @_;
     my $botpom = $self->{pom}{'Chat::Cmd'};
     foreach my $head1 ($botpom->content) {
-        $head1->title eq 'AVAILLABLE FUNCTIONS' or next;
+        $head1->title eq 'AVAILABLE FUNCTIONS' or next;
         return map { $_->title } $head1->content;
     }
 }
@@ -49,7 +49,7 @@ sub bot_help_text {
     my ($self, $cmd) = @_;
     my $botpom = $self->{pom}{'Chat::Cmd'};
     foreach my $head1 ($botpom->content) {
-        $head1->title eq 'AVAILLABLE FUNCTIONS' or next;
+        $head1->title eq 'AVAILABLE FUNCTIONS' or next;
         foreach ($head1->content) {
             $_->title =~ /^\Q$cmd\E( |$)/ or next;
             my $ppvt = Pod::POM::View::Text->new;
@@ -64,7 +64,7 @@ sub bot_help_html {
     my ($self, $cmd) = @_;
     my $botpom = $self->{pom}{'Chat::Cmd'};
     foreach my $head1 ($botpom->content) {
-        $head1->title eq 'AVAILLABLE FUNCTIONS' or next;
+        $head1->title eq 'AVAILABLE FUNCTIONS' or next;
         foreach ($head1->content) {
             $_->title =~ /^\Q$cmd\E( |$)/ or next;
             my $ppvh = Pod::POM::View::HTML->new;
