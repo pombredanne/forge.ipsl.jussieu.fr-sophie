@@ -22,7 +22,7 @@ require Data::Dumper;
 my $xmlcli = RPC::XML::Client->new($server || 'http://sophie.zarb.org/rpc');
 
 my $res = $xmlcli->send_request('login', 'admin', $password);
-if (ref $res) {
+if (ref $res && !$res->is_fault) {
     $xmlcli->request->header('cookie', $$res);
 } else {
     die "Can't login";
