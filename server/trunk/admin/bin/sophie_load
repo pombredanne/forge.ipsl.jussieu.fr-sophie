@@ -38,4 +38,4 @@ if ($file) {
 }
 
 my $res = $xmlcli->send_request('admin.load_distrib', $string);
-print $res->value;
+print $res->value . "\n";
