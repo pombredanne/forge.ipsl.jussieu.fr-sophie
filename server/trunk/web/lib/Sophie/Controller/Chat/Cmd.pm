@@ -124,7 +124,7 @@ sub _find_rpm_elsewhere : Private {
     return;
 }
 
-=head1 AVAILLABLE FUNCTIONS
+=head1 AVAILABLE FUNCTIONS
 
 =cut
 

@@ -79,7 +79,7 @@ sub chat_functions {
     my ($self) = @_;
     my $botpom = $self->{pom}{'Chat::Cmd'};
     foreach my $head1 ($botpom->content) {
-        $head1->title eq 'AVAILLABLE FUNCTIONS' or next;
+        $head1->title eq 'AVAILABLE FUNCTIONS' or next;
         my $ppvh = Pod::POM::View::HTML->new;
         return $head1->present($ppvh);
     }
