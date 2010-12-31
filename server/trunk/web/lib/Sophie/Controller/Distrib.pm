@@ -207,7 +207,7 @@ sub index :Path :Chained :Args(0)  {
 
 =head2 Url: /distrib/<DISTRIBUTION>
 
-Return the list of availlaible release for given C<DISTRIBUTION>.
+Return the list of available release for given C<DISTRIBUTION>.
 
 =cut
 
@@ -225,7 +225,7 @@ sub list_release :Path :Args(1) {
 
 =head2 Url: /distrib/<DISTRIBUTION>/<RELEASE>
 
-Return the list of availlaible architecture for given C<DISTRIBUTION>,
+Return the list of available architecture for given C<DISTRIBUTION>,
 C<RELEASE>.
 
 =cut
@@ -268,7 +268,7 @@ sub distrib_view :PathPrefix :Chained :CaptureArgs(3) {
 
 =head2 Url: /distrib/<DISTRIBUTION>/<RELEASE>/<ARCH>
 
-Return the list of availlaible medias for given C<DISTRIBUTION>,
+Return the list of available medias for given C<DISTRIBUTION>,
 C<RELEASE>, C<ARCH>.
 
 =cut
@@ -472,7 +472,7 @@ sub rpms_name :XMLRPC {
 
 =head2 Url: /distrib/<DISTRIBUTION>/<RELEASE>/<ARCH>/rpms
 
-Return the list of availlaible rpms for given C<DISTRIBUTION>,
+Return the list of available rpms for given C<DISTRIBUTION>,
 C<RELEASE>, C<ARCH>.
 
 =cut
@@ -484,7 +484,7 @@ sub list_rpms :Chained('distrib_view') PathPart('rpms') Args(0) {
 
 =head2 Url: /distrib/<DISTRIBUTION>/<RELEASE>/<ARCH>/srpms
 
-Return the list of availlaible sources rpms for given C<DISTRIBUTION>,
+Return the list of available sources rpms for given C<DISTRIBUTION>,
 C<RELEASE>, C<ARCH>.
 
 =cut
