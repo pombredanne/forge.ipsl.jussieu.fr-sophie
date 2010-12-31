@@ -27,24 +27,24 @@ sub viewrpms :Path('/viewrpm') :Args {
     $c->res->redirect($c->uri_for('/rpms', $pkgid, @args));
 }
 
-sub rpm :Path('/rpm') :Args(2) {
-    my ($self, $c, $dist, $rpm) = @_;
+sub rpm :Path('/rpm') :Args {
+    my ($self, $c, $dist, $rpm, @uargs) = @_;
     
     my @args = split(',', $dist);
     if (@args == 2) {
         unshift(@args, '');
     }
-    $c->res->redirect($c->uri_for('/distrib', @args, 'rpms', $rpm));
+    $c->res->redirect($c->uri_for('/distrib', @args, 'rpms', $rpm, @uargs));
 }
 
-sub srpm :Path('/srpm') :Args(2) {
-    my ($self, $c, $dist, $rpm) = @_;
+sub srpm :Path('/srpm') :Args {
+    my ($self, $c, $dist, $rpm, @uargs) = @_;
     
     my @args = split(',', $dist);
     if (@args == 2) {
         unshift(@args, '');
     }
-    $c->res->redirect($c->uri_for('/distrib', @args, 'srpms', $rpm));
+    $c->res->redirect($c->uri_for('/distrib', @args, 'srpms', $rpm, @uargs));
 }
 
 # /distrib/foo,bar,baz/RPM
