@@ -191,6 +191,54 @@ sub globalenv {
     my ($base) = @_;
     my $env = __PACKAGE__->new({}, $base);
 
+    $env->add_func('list_user',
+        {
+            code => sub {
+                my ($self, $match) = @_;
+                my $res = $self->xmlreq('admin.list_user', $match);
+                if ($res) {
+                    print $OUT (map { "$_\n" } @{ $res->value });
+                }
+            }
+        }
+    );
+    $env->add_func('delete_user',
+        {
+            code => sub {
+                my ($self, $match) = @_;
+                my $res = $self->xmlreq('admin.delete_user', $match);
+                if ($res) {
+                    print $OUT $res->value . "\n";
+                }
+            },
+            completion => sub {
+                my ($self, undef, @args) = @_;
+                my $res = $self->xmlreq(
+                    'admin.list_user');
+                return @{$res->value};
+            },
+        }
+    );
+    $env->add_func('set_password',
+        {
+            code => sub {
+                my ($self, $match, $password) = @_;
+                my $res = $self->xmlreq('admin.set_user_password', $match,
+                    $password);
+                if ($res) {
+                    print $OUT $res->value . "\n";
+                }
+            },
+            completion => sub {
+                my ($self, undef, $user) = @_;
+                if (!$user) {
+                my $res = $self->xmlreq(
+                    'admin.list_user');
+                return @{$res->value};
+                } else { return }
+            },
+        }
+    );
     $env->add_func('create_user',
         {
             code => sub {
@@ -216,7 +264,7 @@ sub globalenv {
                 my ($self, undef, @args) = @_;
                 my $res = $self->xmlreq(
                     'distrib.list', @args);
-                return  map { $_ } @{$res->value};
+                return @{$res->value};
             },
         },
     );

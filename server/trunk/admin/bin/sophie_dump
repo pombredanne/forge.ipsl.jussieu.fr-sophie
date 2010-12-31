@@ -3,12 +3,13 @@
 use Sophie::Cli;
 require RPC::XML;
 require RPC::XML::Client;
-use Getopt::Long;
 use Term::ReadKey;
+use Getopt::Long;
 
 GetOptions(
-	's=s' => \my $server,
-) or die "Wrong options";
+    'o=s' => \my $file,
+    's=s' => \my $server,
+);
 
 ReadMode('noecho');
 print "Enter password: ";
@@ -17,6 +18,7 @@ ReadMode 0;
 print "\n";
 chomp($password);
 
+require Data::Dumper;
 my $xmlcli = RPC::XML::Client->new($server || 'http://sophie.zarb.org/rpc');
 
 my $res = $xmlcli->send_request('login', 'admin', $password);
@@ -26,10 +28,15 @@ if (ref $res) {
     die "Can't login";
 }
 
-my $globalenv = Sophie::Cli::globalenv($xmlcli);
+my $res = $xmlcli->send_request('admin.dump_distrib', @ARGV);
+if (!ref $res || $res->is_fault) {
+    die (ref $res ? $res->string : $res) . "\n";
+}
 
-if (@ARGV) {
-    $globalenv->run(@ARGV);
+if ($file) {
+    open(my $handle, '>', $file) or die "Can't open file $!";
+    print $handle $res->value;
+    close($handle);
 } else {
-    $globalenv->cli;
+    print $res->value;
 }
