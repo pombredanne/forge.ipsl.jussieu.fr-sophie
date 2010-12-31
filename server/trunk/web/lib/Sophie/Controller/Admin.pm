@@ -244,6 +244,11 @@ sub dump_distrib : XMLRPC {
         };
     }
 
+    $c->forward('/distrib/exists', [ $distribution ]) or do {
+        $c->error('No such distribution');
+        return;
+    };
+
     my $ref = {
         distrib => $distribution,
     };
@@ -330,6 +335,29 @@ sub set_user_password : XMLRPC {
     my ( $self, $c, $user, $password ) = @_;
 
     $c->forward('/user/set_user_password', $user, $password);
+}
+
+sub list_user : XMLRPC {
+    my ($self, $c, $match) = @_;
+
+    $c->stash->{xmlrpc} = [
+        $c->model('Base::Users')->search(
+            {
+                $match ? ( mail => { '~' => $match } ) : (),
+            }
+        )->get_column('mail')->all ];
+}
+
+sub delete_user : XMLRPC {
+    my ($self, $c, $mail) = @_;
+
+    if (my $user = $c->model('Base::Users')->find({ mail => $mail })) {
+        if ($user->delete) {
+            $c->model('Base')->storage->dbh->commit;
+            return $c->stash->{xmlrpc} = "User $mail deleted";
+        }
+    }
+    $c->stash->{xmlrpc} = "No user $mail";
 }
 
 sub create_user : XMLRPC {
