@@ -29,7 +29,7 @@ if (ref $res) {
 }
 
 my $string;
-if (my $file) {
+if ($file) {
     open($handle, '<', $file) || die "can't open file $!";
     $string = join('', <$handle>);
     close($handle);
