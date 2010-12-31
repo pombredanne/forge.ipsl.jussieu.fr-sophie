@@ -34,6 +34,8 @@ sub rpm :Path('/rpm') :Args {
     if (@args == 2) {
         unshift(@args, '');
     }
+    $c->forward('/distrib/exists', [ { distribution => $args[0], release =>
+            $args[1], arch => $args[2] } ]) or $c->go('/404/index');
     $c->res->redirect($c->uri_for('/distrib', @args, 'rpms', $rpm, @uargs));
 }
 
@@ -44,6 +46,8 @@ sub srpm :Path('/srpm') :Args {
     if (@args == 2) {
         unshift(@args, '');
     }
+    $c->forward('/distrib/exists', [ { distribution => $args[0], release =>
+            $args[1], arch => $args[2] } ]) or $c->go('/404/index');
     $c->res->redirect($c->uri_for('/distrib', @args, 'srpms', $rpm, @uargs));
 }
 
@@ -55,6 +59,8 @@ sub distrib :Private {
     if (@args == 2) {
         unshift(@args, '');
     }
+    $c->forward('/distrib/exists', [ { distribution => $args[0], release =>
+            $args[1], arch => $args[2] } ]) or $c->go('/404/index');
     $c->res->redirect($c->uri_for('/distrib', @args, 'rpms', $rpm));
 }
 
