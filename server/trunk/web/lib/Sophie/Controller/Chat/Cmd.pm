@@ -478,6 +478,11 @@ sub qf : XMLRPC {
             's'   => sub { $reqspec->{src} = 1 },
         }, @args ]) };
 
+    @args == 2 or do {
+        $c->error('No argument given');
+        return;
+    };
+
     if (!$c->forward('/distrib/exists', [ $reqspec ])) {
         return $c->stash->{xmlrpc} = {
             message => [ "I don't have such distribution" ]
