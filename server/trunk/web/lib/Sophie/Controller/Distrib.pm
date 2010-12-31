@@ -329,7 +329,7 @@ sub anyrpms :XMLRPC {
         $c->forward('distrib_rs', [ $distribution ])
         ->search_related('MediasPaths')
         ->search_related('Paths')
-        ->search_related('Rpmfiles')
+        ->search_related('Rpmfiles', {}, { order_by => qw(filename) })
         ->all;
 
     $c->stash->{xmlrpc} = $c->stash->{rpm};
@@ -383,7 +383,9 @@ sub rpms :XMLRPC {
             pkgid => {
                 IN => $c->model('Base')->resultset('Rpms')
                 ->search({ issrc => 'false' })->get_column('pkgid') ->as_query }
-        } )->all ];
+        },
+        { order_by => [ qw(filename) ] }
+        )->all ];
 
     $c->stash->{xmlrpc} = $c->stash->{rpm};
 }
@@ -436,7 +438,9 @@ sub srpms :XMLRPC {
             pkgid => {
                 IN => $c->model('Base')->resultset('Rpms')
                 ->search({ issrc => 'true' })->get_column('pkgid') ->as_query }
-        } )->all;
+        },
+        { order_by => [ qw(filename) ] }
+        )->all;
 
     $c->stash->{xmlrpc} = $c->stash->{rpm};
 }
