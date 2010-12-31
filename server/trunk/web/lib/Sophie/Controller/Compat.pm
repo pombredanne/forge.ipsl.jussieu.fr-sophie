@@ -30,7 +30,7 @@ sub viewrpms :Path('/viewrpm') :Args {
 sub rpm :Path('/rpm') :Args {
     my ($self, $c, $dist, $rpm, @uargs) = @_;
     
-    my @args = split(',', $dist);
+    my @args = split(',', $dist, 3);
     if (@args == 2) {
         unshift(@args, '');
     }
@@ -42,7 +42,7 @@ sub rpm :Path('/rpm') :Args {
 sub srpm :Path('/srpm') :Args {
     my ($self, $c, $dist, $rpm, @uargs) = @_;
     
-    my @args = split(',', $dist);
+    my @args = split(',', $dist, 3);
     if (@args == 2) {
         unshift(@args, '');
     }
