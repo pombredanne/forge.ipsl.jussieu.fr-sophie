@@ -608,7 +608,7 @@ Return C<404> error if such rpm does not exists
 
 sub media_srpm_byname :Chained('_media_list_rpms') PathPart('srpms') {
     my ( $self, $c, $name, @subpart ) = @_;
-    $c->stash->{dist}{src} = 0;
+    $c->stash->{dist}{src} = 1;
     ($c->stash->{pkgid}) = @{ $c->forward('/search/rpm/byname',
         [ $c->stash->{dist}, $name ]) };
     $c->go('/404/index') unless ($c->stash->{pkgid});
