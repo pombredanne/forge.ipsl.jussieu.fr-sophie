@@ -532,8 +532,8 @@ sub rpm_by_name :Chained('distrib_view') PathPart('rpms') {
 Show information about rpm having pkgid C<PKGID> for given
 C<DISTRIBUTION>, C<RELEASE>, C<ARCH>.
 
-This is likelly the same thing than C</rpm/<PKGID>> but website will return 404
-errur if the rpm is not in this distrib
+This is likelly the same thing than C</rpm/PKGID> but website will return 404
+error if the rpm is not in this distrib
 
 =cut
 
@@ -556,17 +556,72 @@ sub _media_list_rpms :Chained('distrib_view') PathPart('media') CaptureArgs(1) {
     $c->stash->{dist}{media} = $media;
 }
 
+=head2 Url: /distrib/<DISTRIB>/<RELEASE>/<ARCH>/media/<MEDIA>
+
+Return the list of rpms in media C<MEDIA> for distribution C<DISTRIB>,
+C<RELEASE>, C<ARCH>.
+
+The return list is an array of struct:
+
+    [
+        {
+            filename => 'zvbi-0.2.33-5.fc14.x86_64.rpm',
+            pkgid => 'bb9cc5113f0de3e4c7140a1ee8694900'
+        },
+        {
+            filename => 'zvbi-devel-0.2.33-5.fc14.i686.rpm',
+            pkgid => '2c3b41c5e1c475dfa31492998eb4de9f'
+        }
+    ]
+
+=cut
+
 sub media_list_rpms :Chained('_media_list_rpms') PathPart('') :Args(0) {
     my ( $self, $c ) = @_;
     $c->forward('anyrpms', [ $c->stash->{dist} ]);
 }
 
+=head2 Url: /distrib/<DISTRIB>/<RELEASE>/<ARCH>/media/<MEDIA>/rpms/<NAME>
+
+Show binary rpm named C<NAME> in this distribution/media.
+
+Return C<404> error if such rpm does not exists
+
+=cut
+
 sub media_rpm_byname :Chained('_media_list_rpms') PathPart('rpms') {
-    my ( $self, $c, $name ) = @_;
+    my ( $self, $c, $name, @subpart ) = @_;
+    $c->stash->{dist}{src} = 0;
+    ($c->stash->{pkgid}) = @{ $c->forward('/search/rpm/byname',
+        [ $c->stash->{dist}, $name ]) };
+    $c->go('/404/index') unless ($c->stash->{pkgid});
+    $c->go('/rpms/rpms', [ $c->stash->{pkgid}, @subpart ]);
 }
+
+=head2 Url: /distrib/<DISTRIB>/<RELEASE>/<ARCH>/media/<MEDIA>/srpms/<NAME>
+
+Show source rpm named C<NAME> in this distribution/media.
+
+Return C<404> error if such rpm does not exists
+
+=cut
+
 sub media_srpm_byname :Chained('_media_list_rpms') PathPart('srpms') {
-    my ( $self, $c, $name ) = @_;
+    my ( $self, $c, $name, @subpart ) = @_;
+    $c->stash->{dist}{src} = 0;
+    ($c->stash->{pkgid}) = @{ $c->forward('/search/rpm/byname',
+        [ $c->stash->{dist}, $name ]) };
+    $c->go('/404/index') unless ($c->stash->{pkgid});
+    $c->go('/rpms/rpms', [ $c->stash->{pkgid}, @subpart ]);
 }
+
+=head2 Url: /distrib/<DISTRIB>/<RELEASE>/<ARCH>/media/<MEDIA>/by-pkgid/<PKGID>
+
+Show rpm having C<PKGID> in this distribution/media.
+
+Return C<404> error if such rpm does not exists
+
+=cut
 
 sub media_rpm_bypkgid :Chained('_media_list_rpms') PathPart('by-pkgid') {
     my ( $self, $c, $pkgid, @part ) = @_;
