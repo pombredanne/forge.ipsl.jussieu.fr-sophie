@@ -1,3 +1,21 @@
 <!-- $Id$ -->
 
+<div Id="sophie_body_main">
+<form action="[% c.uri_for('/', c.req.path) %]" method="POST">
+    <label for="fl">Filter to filename starting by:</label>
+    <input type="text" id="fl" name="fl" value="[% c.req.param('fl') | html %]">
+</form>
+[% c.prototype.observe_field(
+    'fl',
+    {
+    url => c.uri_for('/', c.req.path, { ajax => 1 }),
+    frequency => 2,
+    update => 'rpms_list',
+    with => '"ajax=1&fl=" + value',
+    }
+) %]
+
+<div id="rpms_list">
 [% INCLUDE 'distrib/list_rpms.tt' %]
+</div>
+</div>

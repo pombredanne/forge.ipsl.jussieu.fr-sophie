@@ -320,17 +320,19 @@ sub anyrpms :XMLRPC {
         }
     }
 
-    @{$c->stash->{rpm}} = map {
-            { 
-              pkgid => $_->pkgid,
-              filename => $_->filename,
-            }
+    $c->stash->{rpm} = [ map {
+        {
+        pkgid => $_->pkgid,
+        filename => $_->filename,
         }
-        $c->forward('distrib_rs', [ $distribution ])
-        ->search_related('MediasPaths')
-        ->search_related('Paths')
-        ->search_related('Rpmfiles', {}, { order_by => qw(filename) })
-        ->all;
+        } $c->forward('/search/rpms/rpms_rs', [ $distribution ])
+        ->search(
+            {
+                $c->req->param('fl')
+                    ? ( filename => { ILIKE => $c->req->param('fl') . '%' } )
+                    : (),
+            }, { order_by => [ qw(filename) ] })
+        ->all ];
 
     $c->stash->{xmlrpc} = $c->stash->{rpm};
 }
@@ -370,22 +372,21 @@ sub rpms :XMLRPC {
         }
     }
 
+    $distribution->{src} = 0;
+
     $c->stash->{rpm} = [ map {
-            { 
-              pkgid => $_->pkgid,
-              filename => $_->filename,
-            }
+        {
+        pkgid => $_->pkgid,
+        filename => $_->filename,
         }
-        $c->forward('distrib_rs', [ $distribution ])
-        ->search_related('MediasPaths')
-        ->search_related('Paths')
-        ->search_related('Rpmfiles', {
-            pkgid => {
-                IN => $c->model('Base')->resultset('Rpms')
-                ->search({ issrc => 'false' })->get_column('pkgid') ->as_query }
-        },
-        { order_by => [ qw(filename) ] }
-        )->all ];
+        } $c->forward('/search/rpms/rpms_rs', [ $distribution ])
+        ->search(
+            {
+                $c->req->param('fl')
+                    ? ( filename => { ILIKE => $c->req->param('fl') . '%' } )
+                    : (),
+            }, { order_by => [ qw(filename) ] })
+        ->all ];
 
     $c->stash->{xmlrpc} = $c->stash->{rpm};
 }
@@ -425,22 +426,21 @@ sub srpms :XMLRPC {
         }
     }
 
-    @{$c->stash->{rpm}} = map {
-            { 
-              pkgid => $_->pkgid,
-              filename => $_->filename,
-            }
+    $distribution->{src} = 1;
+
+    $c->stash->{rpm} = [ map {
+        {
+        pkgid => $_->pkgid,
+        filename => $_->filename,
         }
-        $c->forward('distrib_rs', [ $distribution ])
-        ->search_related('MediasPaths')
-        ->search_related('Paths')
-        ->search_related('Rpmfiles', {
-            pkgid => {
-                IN => $c->model('Base')->resultset('Rpms')
-                ->search({ issrc => 'true' })->get_column('pkgid') ->as_query }
-        },
-        { order_by => [ qw(filename) ] }
-        )->all;
+        } $c->forward('/search/rpms/rpms_rs', [ $distribution ])
+        ->search(
+            {
+                $c->req->param('fl')
+                    ? ( filename => { ILIKE => $c->req->param('fl') . '%' } )
+                    : (),
+            }, { order_by => [ qw(filename) ] })
+        ->all ];
 
     $c->stash->{xmlrpc} = $c->stash->{rpm};
 }

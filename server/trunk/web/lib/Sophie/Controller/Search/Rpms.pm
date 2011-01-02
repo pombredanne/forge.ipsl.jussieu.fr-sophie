@@ -54,7 +54,7 @@ sub rpms_rs : Private {
             {
                 select => [qw(filename pkgid name shortname version arch label) ],
                 as => [qw(filename pkgid distribution dist release arch media) ],
-                rows => $searchspec->{rows} || 10000,
+                rows => $searchspec->{rows} || 30000,
                 order_by => [ 'Rpmfiles.added desc' ],
             },
         );
@@ -172,7 +172,7 @@ sub byfilename_rpc : XMLRPCPath('byfilename') {
     $searchspec ||= {};
 
     $c->stash->{rs} =
-        $c->forward('rpms_rs')->search(
+        $c->forward('rpms_rs', [ $searchspec ])->search(
         {
             filename => { LIKE => $file },
         },
