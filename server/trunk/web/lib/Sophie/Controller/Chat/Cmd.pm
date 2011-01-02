@@ -462,6 +462,30 @@ sub cookie : XMLRPC {
     $c->forward('qf', [ $reqspec, @args, '%{cookie}' ]);
 }
 
+=head2 sourcerpm NAME
+
+Show the C<sourcerpm> tag of package C<NAME>.
+
+=cut
+
+sub sourcerpm : XMLRPC {
+    my ($self, $c, $reqspec, @args) = @_;
+
+    $c->forward('qf', [ $reqspec, @args, '%{sourcerpm}' ]);
+}
+
+=head2 src NAME
+
+Is an alias for C<sourcerpm> command.
+
+=cut
+
+sub src : XMLRPC {
+    my ($self, $c, $reqspec, @args) = @_;
+
+    $c->forward('sourcerpm', [ $reqspec, @args ]);
+}
+
 =head2 qf rpmname format
 
 Perform an rpm -q --qf on package named C<rpmname>
