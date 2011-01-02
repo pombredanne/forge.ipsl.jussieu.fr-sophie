@@ -276,9 +276,9 @@ C<RELEASE>, C<ARCH>.
 sub distrib :Chained('distrib_view') PathPart('') :Args(0) {
     my ( $self, $c ) = @_;
     $c->forward('list', [ $c->stash->{dist} ]);
-    # TODO store properly results
-    # No call from json here
 }
+
+# Url: /distrib/<DISTRIBUTION>/<RELEASE>/<ARCH>/media
 
 sub media :Chained('/distrib/distrib_view') PathPart('media') :Args(0) {
     my ( $self, $c ) = @_;
@@ -479,6 +479,20 @@ C<RELEASE>, C<ARCH>.
 
 sub list_rpms :Chained('distrib_view') PathPart('rpms') Args(0) {
     my ( $self, $c ) = @_;
+    if (!$c->forward('exists', [ $c->stash->{dist} ])) {
+        $c->go('/404/index');
+    }
+    $c->stash->{metarevisite} = 60;
+    $c->stash->{metatitle} = sprintf(
+        'Available Rpms for %s / %s / %s',
+        $c->stash->{dist}{distribution},
+        $c->stash->{dist}{release},
+        $c->stash->{dist}{arch}
+    );
+    push(@{$c->stash->{keywords}},
+        $c->stash->{dist}{distribution},
+        $c->stash->{dist}{release},
+        $c->stash->{dist}{arch});
     $c->forward('rpms', [ $c->stash->{dist} ]);
 }
 
@@ -491,6 +505,20 @@ C<RELEASE>, C<ARCH>.
 
 sub list_srpms :Chained('distrib_view') PathPart('srpms') Args(0) {
     my ( $self, $c ) = @_;
+    if (!$c->forward('exists', [ $c->stash->{dist} ])) {
+        $c->go('/404/index');
+    }
+    $c->stash->{metarevisite} = 60;
+    $c->stash->{metatitle} = sprintf(
+        'Available Srpms for %s / %s / %s',
+        $c->stash->{dist}{distribution},
+        $c->stash->{dist}{release},
+        $c->stash->{dist}{arch}
+    );
+    push(@{$c->stash->{keywords}},
+        $c->stash->{dist}{distribution},
+        $c->stash->{dist}{release},
+        $c->stash->{dist}{arch});
     $c->forward('srpms', [ $c->stash->{dist} ]);
 }
 
@@ -507,6 +535,10 @@ sub srpm_by_name :Chained('distrib_view') PathPart('srpms') {
     ($c->stash->{pkgid}) = @{ $c->forward('/search/rpm/byname',
         [ $c->stash->{dist}, $name ]) };
     $c->go('/404/index') unless ($c->stash->{pkgid});
+    push(@{$c->stash->{keywords}},
+        $c->stash->{dist}{distribution},
+        $c->stash->{dist}{release},
+        $c->stash->{dist}{arch});
     $c->go('/rpms/rpms', [ $c->stash->{pkgid}, @subpart ]);
 }
 
@@ -523,6 +555,10 @@ sub rpm_by_name :Chained('distrib_view') PathPart('rpms') {
     ($c->stash->{pkgid}) = @{ $c->forward('/search/rpm/byname',
         [ $c->stash->{dist}, $name ]) };
     $c->go('/404/index') unless ($c->stash->{pkgid});
+    push(@{$c->stash->{keywords}},
+        $c->stash->{dist}{distribution},
+        $c->stash->{dist}{release},
+        $c->stash->{dist}{arch});
     $c->go('/rpms/rpms', [ $c->stash->{pkgid}, @subpart ]);
 }
 
@@ -543,6 +579,10 @@ sub rpm_bypkgid :Chained('distrib_view') PathPart('by-pkgid') {
         if (@{ $c->forward('/search/rpm/bypkgid',
             [ $c->stash->{dist}, $pkgid ]) } ) {
             $c->go('/rpms/rpms', [ $pkgid, @subpart ]);
+            push(@{$c->stash->{keywords}},
+                $c->stash->{dist}{distribution},
+                $c->stash->{dist}{release},
+                $c->stash->{dist}{arch});
         } else {
             $c->go('/404/index');
         }
@@ -554,6 +594,12 @@ sub rpm_bypkgid :Chained('distrib_view') PathPart('by-pkgid') {
 sub _media_list_rpms :Chained('distrib_view') PathPart('media') CaptureArgs(1) {
     my ( $self, $c, $media ) = @_;
     $c->stash->{dist}{media} = $media;
+    push(@{$c->stash->{keywords}},
+        $c->stash->{dist}{distribution},
+        $c->stash->{dist}{release},
+        $c->stash->{dist}{arch},
+        $c->stash->{dist}{media},
+    );
 }
 
 =head2 Url: /distrib/<DISTRIB>/<RELEASE>/<ARCH>/media/<MEDIA>
