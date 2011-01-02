@@ -192,6 +192,7 @@ sub q : XMLRPC {
         }, @args ]) };
 
     my $res = $c->forward('/search/tags/name_regexp', $reqspec, $args[0]);
+    warn join(' ', @{ $res });
     if (!@{ $res }) {
         return $c->stash->{xmlrpc} = {
             message => [ 'Nothing match `' . $args[0] . '\'' ]
@@ -200,11 +201,11 @@ sub q : XMLRPC {
         my @message = 'rpm name matching `' . $args[0] . '\':';
         while (@{ $res }) {
             my $str = '';
-            do {
+            while (length($str) < 70) {
                 my $item = shift(@{ $res }) or last;
                 $str .= ', ' if ($str);
                 $str .= $item->{name};
-            } while (length($str) < 70);
+            }
             push(@message, $str);
         }
         return $c->stash->{xmlrpc} = {
