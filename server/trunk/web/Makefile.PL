@@ -29,6 +29,7 @@ requires 'Catalyst::Plugin::Server';
 requires 'Catalyst::Plugin::Server::XMLRPC';
 requires 'Catalyst::View::TT' => '0';
 requires 'Catalyst::View::JSON' => '0';
+requires 'Catalyst::View::GD' => '0';
 requires 'Catalyst::Model::DBIC::Schema';
 requires 'Catalyst::Authentication::Store::DBIx::Class';
 requires 'Pod::Find';

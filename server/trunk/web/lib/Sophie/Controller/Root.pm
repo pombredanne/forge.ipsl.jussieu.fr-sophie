@@ -109,9 +109,14 @@ sub _end : ActionClass('RenderView') {}
 
 sub  end : Private {
     my ( $self, $c ) = @_;
+    if (!$c->stash->{current_view}) {
+        if (ref($c->stash->{xmlrpc}) eq 'HASH' &&
+            $c->stash->{xmlrpc}{graph}) {
+            $c->stash->{current_view} = 'GD';
+        }
+    }
     if (!$c->req->xmlrpc->method) {
         $c->forward('_end');
-    } elsif (!$c->stash->{current_view}) {
     }
     $c->stash->{data} = $c->stash->{xmlrpc};
     $c->model('Base')->storage->dbh->rollback;

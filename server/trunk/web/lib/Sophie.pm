@@ -52,6 +52,11 @@ __PACKAGE__->config(
         xml_encoding => 'UTF-8',
         show_errors => 1,
     },
+    'View::GD' => {
+        gd_image_type         => 'png',        # defaults to 'gif'
+        gd_image_content_type => 'images/png', # defaults to 'image/$gd_image_type'
+        gd_image_render_args  => [ 5 ],        # defaults to []
+    },
 
     'authentication' => {
         default_realm => 'members',
