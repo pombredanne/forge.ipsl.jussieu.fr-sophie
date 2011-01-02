@@ -248,7 +248,7 @@ sub version : XMLRPC {
         if ($else) {
             return $c->stash->{xmlrpc} = {
                 message => [ 
-                    "The rpm named `$args[0]' has not been found but found in " . $else
+                    "There is no rpm named `$args[0]', but the word matches in " . $else
                 ],
             }
         } else {
@@ -522,7 +522,7 @@ sub qf : XMLRPC {
         if ($else) {
             return $c->stash->{xmlrpc} = {
                 message => [ 
-                    "The rpm named `$args[0]' has not been found but found in " . $else
+                    "There is no rpm named `$args[0]', but the word matches in " . $else
                 ],
             }
         } else {
@@ -572,7 +572,7 @@ sub more : XMLRPC {
         if ($else) {
             return $c->stash->{xmlrpc} = {
                 message => [ 
-                    "The rpm named `$args[0]' has not been found but found in " . $else
+                    "There is no rpm named `$args[0]', but the word matches in " . $else
                 ],
             }
         } else {
@@ -617,7 +617,7 @@ sub buildfrom : XMLRPC {
         if ($else) {
             return $c->stash->{xmlrpc} = {
                 message => [ 
-                    "The rpm named `$args[0]' has not been found but found in " . $else
+                    "There is no rpm named `$args[0]', but the word matches in " . $else
                 ],
             }
         } else {
@@ -756,7 +756,7 @@ sub maint : XMLRPC {
         if ($else) {
             return $c->stash->{xmlrpc} = {
                 message => [ 
-                    "The rpm named `$args[0]' has not been found but found in " . $else
+                    "There is no rpm named `$args[0]', but the word matches in " . $else
                 ],
             }
         } else {
