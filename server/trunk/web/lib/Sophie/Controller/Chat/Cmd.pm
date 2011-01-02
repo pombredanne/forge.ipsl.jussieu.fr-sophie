@@ -103,6 +103,7 @@ sub _find_rpm_elsewhere : Private {
         my $rpmlist = $c->forward('/search/rpm/byname', [ 
                 {
                     distribution => $searchspec->{distribution},
+                    src => $searchspec->{src},
                     rows => 1,
                 }, $name ]);
         if (@{$rpmlist}) {
@@ -111,7 +112,8 @@ sub _find_rpm_elsewhere : Private {
                     }, $rpmlist->[0] ]);
         }
     }
-    my $rpmlist = $c->forward('/search/rpm/byname', [ {}, $name ]);
+    my $rpmlist = $c->forward('/search/rpm/byname', [ { src =>
+                $searchspec->{src}}, $name ]);
     my %dist;
     foreach(@$rpmlist) {
         foreach (@{ $c->forward('/rpms/location', [ $_ ]) }) {
