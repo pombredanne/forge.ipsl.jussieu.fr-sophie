@@ -486,11 +486,108 @@ sub src : XMLRPC {
     $c->forward('sourcerpm', [ $reqspec, @args ]);
 }
 
-=head2 qf rpmname format
+=head2 rpmversion NAME
 
-Perform an rpm -q --qf on package named C<rpmname>
+Show the C<rpmversion> tag of package C<NAME>.
 
 =cut
+
+sub rpmversion : XMLRPC {
+    my ($self, $c, $reqspec, @args) = @_;
+
+    $c->forward('qf', [ $reqspec, @args, '%{rpmversion}' ]);
+}
+
+=head2 rpmbuildversion NAME
+
+Is an alias for C<rpmversion> command.
+
+=cut
+
+sub rpmbuildversion : XMLRPC {
+    my ($self, $c, $reqspec, @args) = @_;
+
+    $c->forward('rpmversion', [ $reqspec, @args ]);
+}
+
+
+=head2 buildhost NAME
+
+Show the C<buildhost> tag of package C<NAME>.
+
+=cut
+
+sub buildhost : XMLRPC {
+    my ($self, $c, $reqspec, @args) = @_;
+
+    $c->forward('qf', [ $reqspec, @args, '%{buildhost}' ]);
+}
+
+=head2 host NAME
+
+Is an alias for C<buildhost> command.
+
+=cut
+
+sub host : XMLRPC {
+    my ($self, $c, $reqspec, @args) = @_;
+
+    $c->forward('host', [ $reqspec, @args ]);
+}
+
+=head2 h NAME
+
+Is an alias for C<buildhost> command.
+
+=cut
+
+sub h : XMLRPC {
+    my ($self, $c, $reqspec, @args) = @_;
+
+    $c->forward('host', [ $reqspec, @args ]);
+}
+
+
+
+=head2 distribution NAME
+
+Show the C<distribution> tag of package C<NAME>.
+
+=cut
+
+sub distribution : XMLRPC {
+    my ($self, $c, $reqspec, @args) = @_;
+
+    $c->forward('qf', [ $reqspec, @args, '%{distribution}' ]);
+}
+
+=head2 distrib NAME
+
+Is an alias for C<distribution> command.
+
+=cut
+
+sub distrib : XMLRPC {
+    my ($self, $c, $reqspec, @args) = @_;
+
+    $c->forward('distribution', [ $reqspec, @args ]);
+}
+
+
+
+=head2 vendor NAME
+
+Show the C<vendor> tag of package C<NAME>.
+
+=cut
+
+sub vendor : XMLRPC {
+    my ($self, $c, $reqspec, @args) = @_;
+
+    $c->forward('qf', [ $reqspec, @args, '%{vendor}' ]);
+}
+
+
 
 sub qf : XMLRPC {
     my ($self, $c, $reqspec, @args) = @_;
