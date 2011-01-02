@@ -216,6 +216,12 @@ sub q : XMLRPC {
     }
 }
 
+=head2 whatis WORD [WORD2 [...]]
+
+Search rpm having description containing words given as arguments
+
+=cut
+
 sub whatis : XMLRPC {
     my ($self, $c, $reqspec, @args) = @_;
 
