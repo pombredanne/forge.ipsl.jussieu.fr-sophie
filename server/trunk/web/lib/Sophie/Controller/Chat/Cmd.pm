@@ -216,6 +216,52 @@ sub q : XMLRPC {
     }
 }
 
+sub whatis : XMLRPC {
+    my ($self, $c, $reqspec, @args) = @_;
+
+    $reqspec->{src} = 0;
+
+    @args = @{ $c->forward('_getopt', [
+        {
+            'd=s' => \$reqspec->{distribution},
+            'v=s' => \$reqspec->{release},
+            'a=s' => \$reqspec->{arch},
+            's'   => sub { $reqspec->{src} = 1 },
+        }, @args ]) };
+    my $res = $c->forward('/search/rpm/description', [ $reqspec, @args ]);
+
+    if (@{ $res }) {
+        if (@{ $res } > 100) {
+            return $c->stash->{xmlrpc} = {
+                message => [ 'I have ' . @{ $res } . ' results' ],
+            };
+        } else {
+            my @names = ();
+            foreach (@{ $res }) {
+                my $info = $c->forward('/rpms/basicinfo', [ $_ ]);
+                push(@names, $info->{name});
+            }
+            my @message = 'rpm name matching `' . $args[0] . '\':';
+            while (@names) {
+                my $str = '';
+                while (length($str) < 70) {
+                    my $item = shift(@names) or last;
+                    $str .= ', ' if ($str);
+                    $str .= $item;
+                }
+                push(@message, $str);
+            }
+            return $c->stash->{xmlrpc} = {
+                message => \@message,
+            };
+        }
+    } else {
+        return $c->stash->{xmlrpc} = {
+            message => [ 'No rpm description matches this keywords' ],
+        };
+    }
+}
+
 =head2 version [-s] NAME
 
 Show the version of package C<NAME>.

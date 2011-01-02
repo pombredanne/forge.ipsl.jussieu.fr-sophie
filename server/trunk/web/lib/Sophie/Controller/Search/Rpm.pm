@@ -211,7 +211,12 @@ sub quick : XMLRPCPath('quick') {
     );
 }
 
-sub description : XMLRPCPath('description') {
+sub description : Private {
+    my ($self, $c, $searchspec, @keywords) = @_;
+    return [ $c->forward('description_rpc')->get_column('pkgid')->all ];
+}
+
+sub description_rpc : XMLRPCPath('description') {
     my ($self, $c, $searchspec, @keywords) = @_;
     $searchspec ||= {};
     my $tsquery = join(' & ', map { $_ =~ s/ /\\ /g; $_ } @keywords);
