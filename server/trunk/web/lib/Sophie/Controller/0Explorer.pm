@@ -35,7 +35,7 @@ sub dir :Local {
 
     my $query = Sophie::Base::Async->new(
         $c->model('Base'),
-        timeout => 10,
+        timeout => 30,
         build => sub { $_[0]
             ->resultset('Files')
             ->search(

@@ -10,7 +10,10 @@
 <form action="#" method="POST">
     Filter to file starting by: 
     <input type="text" id="explorer_filter" name="filename">
-    <span id="explorer_filter_ind" style="display: none;">Re-Loading...</span>
+    <span id="explorer_filter_ind" style="display: none;">
+        <img src="[% c.uri_for('/static', 'loading', 'reloading.gif' ) %]"
+                 alt="Reloading...">
+    </span>
 </form>
 [% c.prototype.observe_field(
     'explorer_filter',
@@ -27,11 +30,13 @@
 <hr>
 
 <div id="exp_dir">
-    Loading...
+     <p><img src="[% c.uri_for('/static', 'loading', 'computing.gif' ) %]"
+         alt="Loading..."></p>
 </div>
 </div>
 <div id="exp_file">
-    Loading...
+     <p><img src="[% c.uri_for('/static', 'loading', 'computing.gif' ) %]"
+         alt="Loading..."></p>
 </div>
 
 <script type="text/javascript">

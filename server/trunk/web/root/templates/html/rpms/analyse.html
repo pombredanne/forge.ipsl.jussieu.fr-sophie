@@ -15,7 +15,8 @@
 
 [% IF c.req.param('start') %]
 <div id="sophie_analyse">
-    Loading...
+    <p><img src="[% c.uri_for('/static', 'loading', 'computing.gif' ) %]"
+    alt="Loading..."></p>
 </div>
 <script type="text/javascript">
     new Ajax.Updater(
