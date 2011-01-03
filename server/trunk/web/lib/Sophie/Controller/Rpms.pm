@@ -550,8 +550,13 @@ sub analyse :Chained('rpms_') :PathPart('analyse') :Args(0) :XMLRPC {
     $dist->{distribution} ||= $c->req->param('distribution');
     $dist->{release} ||= $c->req->param('release');
     $dist->{arch} ||= $c->req->param('arch');
+    if ($c->req->param('start')) {
+        $c->session->{analyse} = $dist;
+    } elsif (! $c->req->xmlrpc->is_xmlrpc_request) {
+        $dist = $c->session->{analyse};
+    }
 
-    if ($c->req->param('analyse')) {
+    if ($c->req->param('analyse') || $c->req->xmlrpc->is_xmlrpc_request) {
 
         my @deplist = map {
             [ $_->{name}, $_->{sense}, $_->{evr} ]

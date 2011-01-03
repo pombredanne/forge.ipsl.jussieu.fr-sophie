@@ -10,10 +10,21 @@
     <span id="distribselect">
     [% INCLUDE 'ajax/forms/distribselect.tt' form = 'analysis_form' %]
     </span>
-    <input type="submit" name="analyse">
+    <input type="submit" name="start">
 </form>
 
-    [% INCLUDE 'rpms/analyse.tt' %]
+[% IF c.req.param('start') %]
+<div id="sophie_analyse">
+    Loading...
+</div>
+<script type="text/javascript">
+    new Ajax.Updater(
+    'sophie_analyse',
+    '[% c.uri_for('/', c.req.path) %]',
+    { asynchronous: 1, parameters: 'ajax=1&analyse=1' }
+    );
+</script>
+[% END %]
 </div>
 
 
@@ -27,7 +38,7 @@
         distribution => loc.distribution,
         release => loc.release,
         arch => loc.arch,
-        analyse => 1,
+        start => 1,
         }) %]">
         [% loc.distribution | html %] / [% loc.release | html %] / [% loc.arch | html %]</a>
     </li>
