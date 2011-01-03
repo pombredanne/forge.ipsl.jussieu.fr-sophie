@@ -1,7 +1,7 @@
 <!-- $Id$ -->
 [% FOREACH rpm = xmlrpc %]
 [% IF loop.first %]
-<ul>
+<ul class="sophie_tag">
 [% END %]
 <li>
     <a href="[% c.uri_for('/', c.req.path, rpm.pkgid) %]"><span class="sophie_pkgid">[%

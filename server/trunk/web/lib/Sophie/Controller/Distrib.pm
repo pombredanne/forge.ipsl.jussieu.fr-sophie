@@ -261,7 +261,7 @@ sub distrib_view :PathPrefix :Chained :CaptureArgs(3) {
     }
     $c->stash->{metarevisite} = 60;
     $c->stash->{metatitle} =
-        'Available medias for ' . $distribution . ' / ' . $release . ' / ' . $arch;
+        $distribution . ' / ' . $release . ' / ' . $arch . ' content';
     push(@{$c->stash->{keywords}}, $distribution, $release, $arch);
     $c->stash->{distrib} = $c->stash->{dist};
 }

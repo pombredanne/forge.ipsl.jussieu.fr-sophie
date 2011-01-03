@@ -19,3 +19,9 @@
 [% INCLUDE 'distrib/list_srpms.tt' %]
 </div>
 </div>
+
+<div Id="sophie_body_additional">
+    <p>Medias in this distrib:</p>
+    [% INCLUDE 'distrib/distrib.tt'
+    xmlrpc = c.forward('/distrib/list', [ dist ]) %]
+</div>
