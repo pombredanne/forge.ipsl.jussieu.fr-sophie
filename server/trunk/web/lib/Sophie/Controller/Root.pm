@@ -57,7 +57,7 @@ sub begin : Private {
         }
     }
 
-    $c->delete_expired_sessions;
+    #$c->delete_expired_sessions;
 }
 
 =head2 index
