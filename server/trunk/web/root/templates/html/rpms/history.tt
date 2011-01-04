@@ -1,0 +1,28 @@
+<!-- $Id$ -->
+[% FOREACH pkgid = xmlrpc.highter %]
+[% IF loop.first %]
+<p>Highter version of this package:</p>
+<ul>
+[% END %]
+[% info = c.forward('/rpms/basicinfo', [ pkgid ]) %]
+<li><a href="[% c.uri_for('/rpms', pkgid ) %]">
+[% info.filename | html %]
+</a></li>
+[% IF loop.last %]
+</ul>
+[% END %]
+[% END %]
+
+[% FOREACH pkgid = xmlrpc.older %]
+[% IF loop.first %]
+<p>Older version of this package:</p>
+<ul>
+[% END %]
+[% info = c.forward('/rpms/basicinfo', [ pkgid ]) %]
+<li><a href="[% c.uri_for('/rpms', pkgid ) %]">
+[% info.filename | html %]
+</a></li>
+[% IF loop.last %]
+</ul>
+[% END %]
+[% END %]

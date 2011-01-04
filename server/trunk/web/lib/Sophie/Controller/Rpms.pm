@@ -381,6 +381,7 @@ sub rpms : Private {
         /^info$/       and $c->go('info',        [ $pkgid, @args ]);
         /^analyse$/    and $c->go('analyse',     [ $pkgid, @args ]);
         /^dependency$/ and $c->go('dependency',  [ $pkgid, @args ]);
+        /^history$/    and $c->go('history',  [ $pkgid, @args ]);
         /^query$/      and $c->go('query',       [ $pkgid, @args ]);
         /./            and $c->go('/404/index'); # other subpart dont exists
     }
@@ -389,7 +390,7 @@ sub rpms : Private {
     return $c->stash->{xmlrpc} = $c->stash->{rpms};
 }
 
-sub rpms__ : Chained('/rpms/rpms_') :PathPart('') :Args(0) :XMLRPCLocal {
+sub rpms__ : Chained('/rpms/rpms_') :PathPart('') :Args(0) {
     my ( $self, $c ) = @_;
 
     $c->go('rpms', [ $c->stash->{pkgid} ]);
@@ -572,8 +573,25 @@ sub analyse :Chained('rpms_') :PathPart('analyse') :Args(0) :XMLRPC {
     }
 }
 
+sub history :Chained('rpms_') :PathPart('history') :Args(0) :XMLRPC {
+    my ( $self, $c, $pkgid, $dist ) = @_;
+    $pkgid ||= $c->stash->{pkgid};
+    $c->stash->{rpmurl} = ($c->req->path =~ m:(.*)/[^/]+:)[0];
+
+    my $highter = $c->forward('/search/rpm/byname', [
+            { rows => 5, src => $c->stash->{rpms}{info}{issrc} },
+            $c->stash->{rpms}{info}{name}, '>', $c->stash->{rpms}{info}{version} ]);
+    my $lesser = $c->forward('/search/rpm/byname', [
+            { rows => 5, src => $c->stash->{rpms}{info}{issrc} },
+            $c->stash->{rpms}{info}{name}, '<', $c->stash->{rpms}{info}{version} ]);
+    $c->stash->{xmlrpc} = {
+        highter => $highter,
+        older => $lesser,
+    };
+}
+
 # compat URL:
-sub query :Chained('rpms_') :PathPart('analyse') :Args(0) :XMLRPC {
+sub query :Chained('rpms_') :PathPart('analyse') :Args(0) {
     my ( $self, $c, $pkgid, $dist ) = @_;
     $pkgid ||= $c->stash->{pkgid};
     $c->stash->{rpmurl} = ($c->req->path =~ m:(.*)/[^/]+:)[0];

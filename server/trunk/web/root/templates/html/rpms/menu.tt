@@ -9,6 +9,7 @@
 <li><a href="[% c.uri_for('/', rpmurl, 'files') %]">Files</a></li>
 <li><a href="[% c.uri_for('/', rpmurl, 'changelog') %]">ChangeLog</a></li>
 <li><a href="[% c.uri_for('/', rpmurl, 'location') %]">Location</a></li>
+<li><a href="[% c.uri_for('/', rpmurl, 'history') %]">Others versions</a></li>
 <li><a href="[% c.uri_for('/', rpmurl, 'analyse') %]">Analyse</a></li>
 </ul>
 </div>
