@@ -304,6 +304,12 @@ div#sophie_chat {
 .sophie_help h2 {
     font-size: 1.2em;
     background-color: #c0f57d;
+    display: inline-block;
+    margin-top: 1em;
+}
+
+.sophie_help p {
+    margin: 1em;
 }
 
 .sophie_help code {
