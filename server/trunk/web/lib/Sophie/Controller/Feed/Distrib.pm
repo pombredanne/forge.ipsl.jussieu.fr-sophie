@@ -48,7 +48,7 @@ sub end : Private {
                 %{ $c->stash->{dist} || {}},
                 src => 1,
                 rows => 50,
-            }, 1
+            }, time - (3600 * 24 * 30)
         ]
     ) }) {
         my $info = $c->forward('/rpms/basicinfo', [ $item->{pkgid} ]);
