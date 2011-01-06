@@ -14,62 +14,63 @@ body {
 }
 
 div#distribselect {
-    padding-bottom: 0.2em;
+  padding-bottom: 0.2em;
 }
 
 ul.sophie_tag {
-    padding-left: 0em;
+  padding-left: 0em;
 }
 
 .sophie_tag li {
-    list-style-type: none;
+  list-style-type: none;
 }
 
 div#sophie_body_main {
-    float:left;
-    padding-left: 1em;
-    padding-right: 1em;
-    width: 60%;
+  float:left;
+  padding-left: 1em;
+  padding-right: 1em;
+  width: 60%;
 }
 
 div#sophie_body_additional {
-    float:left;
-    border: solid #573B1D;
-    font-size: .85em;
-    padding-left: 1.2em;
-    padding-top: 0.25em;
-    padding-bottom: 0.25em;
-    margin-top: 0.75em;
-    width: 35%;
-    overflow: hidden;
+  float: left;
+  border: solid #573B1D;
+  font-size: .85em;
+  padding-left: 1.2em;
+  padding-top: 0.25em;
+  padding-bottom: 0.25em;
+  margin-top: 0.75em;
+  margin-bottom: 0.75em;
+  width: 35%;
+  overflow: hidden;
 }
 
 .filename {
-    font-family: monospace;
+  font-family: monospace;
 }
 
 .filename td {
-    padding-left: 1em;
-    padding-right: 1em;
-    font-size: 1.2em;
+  padding-left: 1em;
+  padding-right: 1em;
+  font-size: 1.2em;
 }
 
 pre.filedata {
-    padding: 2em;
-    margin: 2em;
-    background: #F5F5DC;
-    border: outset;
+  padding: 2em;
+  margin: 2em;
+  background: #F5F5DC;
+  border: outset;
 }
 
 .flat_menu li {
-    font-size: 1.2em;
-    font-weight: bold;
-    margin-left: 0em;
-    display: inline;
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-left: 0em;
+  display: inline;
 }
 
 .flat_menu {
-    padding-left: 0em;
+  padding-left: 0em;
 }
 
 /* header look */
@@ -91,8 +92,8 @@ span#sophie_login {
 } 
 
 p#sophie_sitename {
-    font-size: 1.4em;
-    padding-left: 1em;
+  font-size: 1.4em;
+  padding-left: 1em;
 }
 
 div#sophie_header_menu {
@@ -121,130 +122,130 @@ div.sophie_footer p {
 }
 
 #w3c {
-    float: right;
+  float: right;
 }
 
 /* home look */
 div#sophie_body_home {
-    float:left;
-    font-size: 1.2em;
-    padding: 0.5em;
-    width: 45%;
-    overflow: hidden;
+  float:left;
+  font-size: 1.2em;
+  padding: 0.5em;
+  width: 45%;
+  overflow: hidden;
 }
 
 div.sophie_package_list {
-    float:right;
-    border: none;
-    width: 50%;
-    padding-left: 0.5em;
-    padding-top: 0.2em;
-    background: #f3f47a;
-    margin-top: 1em;
-    margin-bottom: 1em;
+  float:right;
+  border: none;
+  width: 50%;
+  padding-left: 0.5em;
+  padding-top: 0.2em;
+  background: #f3f47a;
+  margin-top: 1em;
+  margin-bottom: 1em;
 }
 
 .sophie_package_list h2 {
-    margin-top: 0em;
-    margin-bottom: 0.5em;
+  margin-top: 0em;
+  margin-bottom: 0.5em;
 }
 
 .sophie_package_list p {
-    padding-left: 2em;
-    padding-right: 0em;
-    padding-top: 0em;
-    padding-bottom: 0em;
-    margin: 0em;
-    margin-bottom: 0.2em;
+  padding-left: 2em;
+  padding-right: 0em;
+  padding-top: 0em;
+  padding-bottom: 0em;
+  margin: 0em;
+  margin-bottom: 0.2em;
 }
 
 /* search look */
 div#sophie_search_form {
-    padding-top: 1em;
-    padding-left: 0.2em;
+  padding-top: 1em;
+  padding-left: 0.2em;
 }
 
 .sophie_search_result_pager {
-    text-align: center;
+  text-align: center;
 }
 
 .sophie_search_result_pager img {
-    color: #FFFFFF;
-    vertical-align: middle;
+  color: #FFFFFF;
+  vertical-align: middle;
 }
 
 div.sophie_search_list {
-    border: none;
-    padding-left: 0.5em;
-    padding-top: 0.2em;
-    background: #f3f47a;
-    margin-top: 1em;
-    margin-left: 5%;
-    margin-right: 5%;
+  border: none;
+  padding-left: 0.5em;
+  padding-top: 0.2em;
+  background: #f3f47a;
+  margin-top: 1em;
+  margin-left: 5%;
+  margin-right: 5%;
 }
 
 .sophie_search_list h2 {
-    margin-top: 0em;
-    margin-bottom: 0.5em;
+  margin-top: 0em;
+  margin-bottom: 0.5em;
 }
 
 .sophie_search_list p {
-    padding-left: 2em;
-    padding-right: 0em;
-    padding-top: 0em;
-    padding-bottom: 0em;
-    margin: 0em;
-    margin-bottom: 0.2em;
+  padding-left: 2em;
+  padding-right: 0em;
+  padding-top: 0em;
+  padding-bottom: 0em;
+  margin: 0em;
+  margin-bottom: 0.2em;
 }
 
 .sophie_search_list ul {
-    padding-left: 4em;
-    padding-right: 0em;
-    padding-top: 0.2em;
-    padding-bottom: 0em;
-    margin: 0em;
-    margin-bottom: 0.2em;
+  padding-left: 4em;
+  padding-right: 0em;
+  padding-top: 0.2em;
+  padding-bottom: 0em;
+  margin: 0em;
+  margin-bottom: 0.2em;
 }
 
 /* distrib look */
 .sophie_pkgid {
-    font-family: monospace;
+  font-family: monospace;
 }
 
 /* explorer look */
 #explorer_d {
-    margin-top: 0.5em;
-    margin-left: 0.2em;
+  margin-top: 0.5em;
+  margin-left: 0.2em;
 }
 
 div#explorer_form {
-    padding-left: 0.2em;
-    padding-right: 0.2em;
-    padding-top: 0.2em;
-    padding-bottom: 0.2em;
-    margin-top: 0.5em;
-    margin-bottom: 0.5em;
-    margin-left: 0.2em;
-    float: left;
-    border: solid #573B1D;
-    width: 30%;
+  padding-left: 0.2em;
+  padding-right: 0.2em;
+  padding-top: 0.2em;
+  padding-bottom: 0.2em;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  margin-left: 0.2em;
+  float: left;
+  border: solid #573B1D;
+  width: 30%;
 }
 
 div#exp_dir {
-    margin-top: 0.5em;
-    margin-left: 0.2em;
+  margin-top: 0.5em;
+  margin-left: 0.2em;
 }
 
 div#exp_file {
-    padding-left: 0.2em;
-    padding-right: 0.2em;
-    padding-top: 0.2em;
-    padding-bottom: 0.2em;
-    margin-top: 0.5em;
-    margin-left: 0.2em;
-    float: left;
-    border: solid #573B1D;
-    width: 65%;
+  padding-left: 0.2em;
+  padding-right: 0.2em;
+  padding-top: 0.2em;
+  padding-bottom: 0.2em;
+  margin-top: 0.5em;
+  margin-left: 0.2em;
+  float: left;
+  border: solid #573B1D;
+  width: 65%;
 }
 
 /* source & patches look */
@@ -254,10 +255,10 @@ div#sophie_sources {
 
 /* rpms look */
 #sophie_rpms_menu {
-    margin-left: 1em;
-    padding-left: 0em;
-    padding-top: 0.5em;
-    padding-bottom: 0.5em;
+  margin-left: 1em;
+  padding-left: 0em;
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
 }
 
 #sophie_rpms_menu ul {
@@ -265,8 +266,8 @@ div#sophie_sources {
 }
 
 #sophie_rpms_menu li {
-    margin-left: 0em;
-    display: inline;
+  margin-left: 0em;
+  display: inline;
 }
 
 #sophie_rpms_menu h2 {
@@ -274,70 +275,76 @@ div#sophie_sources {
 }
 
 #sophie_rpm_description p {
-    padding-left: 0em;
-    padding-right: 0em;
-    font-size: 0.9em;
+  padding-left: 0em;
+  padding-right: 0em;
+  font-size: 0.9em;
 }
 
 /* chat look */
 div#sophie_bot_reply {
-    padding: 1em;
-    margin: 0.2em;
-    border: solid #573B1D;
-    clear: both;
+  padding: 1em;
+  margin: 0.2em;
+  border: solid #573B1D;
+  clear: both;
 }
 
 div#sophie_bot_help {
-    padding: 1em;
-    float: left;
-    width: 50%;
+  padding: 1em;
+  float: left;
+  width: 50%;
 }
 
 div#sophie_chat {
-    float: left;
-    width: 35%;
-    padding-top: 1em;
-    padding-left: 0.2em;
+  float: left;
+  width: 35%;
+  padding-top: 1em;
+  padding-left: 0.2em;
 }
 
 /* help look */
+.sophie_help h1 {
+  font-size: 1.6em;
+}
+
 .sophie_help h2 {
-    font-size: 1.2em;
-    background-color: #c0f57d;
-    display: inline-block;
-    margin-top: 1em;
+  font-size: 1.2em;
+  background-color: #c0f57d;
+  display: inline-block;
+  margin-top: 1em;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
 }
 
 .sophie_help p {
-    margin: 1em;
+  margin: 1em;
 }
 
 .sophie_help code {
-    background-color: #f3f47a;/*#FFFFC0;*/
+  background-color: #f3f47a;
 }
 
 .sophie_help pre {
-    background-color: #f3f47a;/*##FFFFC0;*/
-    padding: 1em;
-    margin: 2em;
-    border: 2px inset;
+  background-color: #f3f47a;
+  padding: 1em;
+  margin: 2em;
+  border: solid #573B1D;
 }
 
 /* analysis look */
 .alert {
-    color: red;
+  color: red;
 }
 
 /* login look */
 div.sophie_auth {
-    width: 40%;
-    margin: auto;
+  width: 40%;
+  margin: auto;
 }
 
 .sophie_auth label {
-    width: 10em;
-    display: block;
-    float:left;
+  width: 10em;
+  display: block;
+  float:left;
 }
 
 .sophie_auth input {
