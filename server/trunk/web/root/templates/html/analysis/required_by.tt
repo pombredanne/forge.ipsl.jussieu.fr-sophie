@@ -15,7 +15,10 @@
 <ul>
 [% END %]
 [% info = c.forward('/rpms/basicinfo', [ pkg ]) %]
-<li>[% info.name | html %]-[% info.evr %]</li>
+<li>
+    <a href="[% c.uri_for('/rpms', pkg) %]">
+    [% info.filename | html %]</a>
+</li>
 [% IF loop.last %]
 </ul>
 [% END %]
