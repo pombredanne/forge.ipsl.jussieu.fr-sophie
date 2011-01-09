@@ -191,6 +191,18 @@ sub globalenv {
     my ($base) = @_;
     my $env = __PACKAGE__->new({}, $base);
 
+    $env->add_func('delete_expired_sessions',
+        {
+            code => sub {
+                my ($self, $match) = @_;
+                my $res =
+                $self->xmlreq('admin.maintenance.delete_expired_sessions', $match);
+                if ($res) {
+                    print $OUT (map { "$_\n" } @{ $res->value });
+                }
+            }
+        }
+    );
     $env->add_func('list_user',
         {
             code => sub {
