@@ -31,6 +31,7 @@ sub find_requirements : XMLRPC {
     my ($self, $c, $searchspec, $over, $deplist, $pool) = @_;
 
     $searchspec->{nopager} = 1;
+    $searchspec->{rows} = 10;
     my %need_pkgid;
     my %need_pool;
     my %bydep;

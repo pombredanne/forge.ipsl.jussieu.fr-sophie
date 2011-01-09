@@ -111,6 +111,7 @@ sub bydep_rpc : XMLRPCPath('bydep') {
         },
         {
             order_by => [ 'name', 'evr using >>', 'issrc', 'arch' ],
+            rows => $searchspec->{rows},
         }
     );
 }

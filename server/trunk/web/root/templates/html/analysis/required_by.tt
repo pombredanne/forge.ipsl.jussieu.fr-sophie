@@ -9,9 +9,9 @@
 
 [% FOREACH dep = xmlrpc.bydep.keys %]
 
-<p>[% dep | html %]</p>
 [% FOREACH pkg = xmlrpc.bydep.$dep.pkg %]
 [% IF loop.first %]
+<p>[% dep | html %]</p>
 <ul>
 [% END %]
 [% info = c.forward('/rpms/basicinfo', [ pkg ]) %]
