@@ -76,9 +76,7 @@ sub required_by :Local {
 }
 
 sub find_requirements : XMLRPC {
-    my ($self, $c, $string) = @_;
-
-    my $id = $c->forward('/user/folder/load_rpm', [ $string ]);
+    my ($self, $c, $distspec, $id, $over, $pool) = @_;
 
     my @deplist;
     foreach my $dep ($c->model('Base::UsersDeps')->search(
@@ -99,7 +97,8 @@ sub find_requirements : XMLRPC {
                 $dep->get_column('evr') ]);
     }
 
-    $c->forward('/analysis/solver/find_requirements', [ {}, 'P', \@deplist, $id ]);
+    $c->forward('/analysis/solver/find_requirements',
+        [ $distspec, 'P', \@deplist, $id, $pool ]);
 }
 
 =head1 AUTHOR

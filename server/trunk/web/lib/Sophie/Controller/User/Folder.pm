@@ -112,8 +112,8 @@ sub load_rpm : XMLRPCLocal {
                 $tags->{Version}{string}[0],
                 $tags->{Release}{string}[0],
             ),
-            user_fkey => $User,
-            sessions_fkey => 'session:' . $c->sessionid,
+            user_fkey => ($User ? $User->ukey : undef),
+            sessions_fkey => ($User ? undef : 'session:' . $c->sessionid),
             pkgid => $pkgid,
         }
     );
@@ -124,9 +124,9 @@ sub load_rpm : XMLRPCLocal {
                 {
                     pid => $newrpm->id,
                     basename => $tags->{Basenames}{string}[$fcount],
-                    dirname  => $tags->{Dirnames}{string}[
-                        $tags->{Dirindexes}{integer}[$fcount]
-                    ],
+                    dirname  => (ref $tags->{Sourcerpm}
+                        ? $tags->{Dirnames}{string}[$tags->{Dirindexes}{integer}[$fcount]]
+                        : ''),
                 }
             );
         }
