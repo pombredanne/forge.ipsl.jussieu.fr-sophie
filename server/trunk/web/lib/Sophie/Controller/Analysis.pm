@@ -76,8 +76,9 @@ sub required_by :Local {
 }
 
 sub find_requirements : XMLRPC {
-    my ($self, $c, $distspec, $id, $over, $pool) = @_;
+    my ($self, $c, $distspec, $id, $pool) = @_;
 
+    $pool ||= $id;
     my @deplist;
     foreach my $dep ($c->model('Base::UsersDeps')->search(
         {
@@ -98,7 +99,7 @@ sub find_requirements : XMLRPC {
     }
 
     $c->forward('/analysis/solver/find_requirements',
-        [ $distspec, 'P', \@deplist, $id, $pool ]);
+        [ $distspec, 'P', \@deplist, $pool ]);
 }
 
 =head1 AUTHOR
