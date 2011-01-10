@@ -30,6 +30,13 @@ sub index :Path :Args(0) {
     $c->response->body('Matched Sophie::Controller::User in User.');
 }
 
+sub session : XMLRPC {
+    my ( $self, $c ) = @_;
+
+    $c->session;
+    $c->stash->{xmlrpc} = 'sophie_session=' . $c->sessionid;
+}
+
 sub fetch_user_data : Private {
     my ( $self, $c, $user, $dataname ) = @_;
 
