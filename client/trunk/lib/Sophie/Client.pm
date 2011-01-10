@@ -15,7 +15,6 @@ sub new {
     my $self = $class->SUPER::new(
         $options{server} || 'http://sophie2.aero.jussieu.fr/rpc'
     );
-    $self->timeout(20) if ($self->can('timeout'));
     if ($options{proxy}) {
         $self->useragent->proxy([ 'http' ], $options{proxy});
     } else {
@@ -29,7 +28,7 @@ sub new {
         login($self) or die "Can't login";
     }
 
-    my $realclass = $class . '::' . ($options{type} || 'Term');
+    my $realclass = $class . ($options{type} ? ('::' . $options{type}) : '');
     no strict qw(refs);
     eval "require $realclass;";
     return if($@);

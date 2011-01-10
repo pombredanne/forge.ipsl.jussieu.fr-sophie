@@ -44,7 +44,7 @@ my $sc = Sophie::Client->new(
     server => $url,
     login => $login,
     password => $pass,
-    type => $type,
+    type => $type || 'Term',
     proxy => $proxy,
 );
 
