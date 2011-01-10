@@ -49,7 +49,13 @@ sub login {
             return;
         }
     } else {
-        return;
+        my $res = $self->send_request('user.session');
+        if (ref $res && !$res->is_fault) {
+            $self->request->header('cookie', $$res);
+            return 1;
+        } else {
+            return;
+        }
     }
 }
 

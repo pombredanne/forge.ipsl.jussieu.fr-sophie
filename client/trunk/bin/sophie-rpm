@@ -46,9 +46,7 @@ my $sc = Sophie::Client->new(
     proxy => $proxy,
 );
 
-if ($login) {
-    $sc->login;
-}
+$sc->login;
 
 my %rpmid;
 foreach my $rpm (@ARGV) {
