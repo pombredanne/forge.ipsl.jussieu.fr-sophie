@@ -203,7 +203,7 @@ sub list : XMLRPC {
     }
 }
 
-=head2 q REGEXP
+=head2 q [-d distrib] [-r release] [-a arch] [-s]  REGEXP
 
 Search rpm name matching C<REGEXP>.
 
@@ -221,6 +221,7 @@ sub q : XMLRPC {
         {
             'd=s' => \$reqspec->{distribution},
             'v=s' => \$reqspec->{release},
+            'r=s' => \$reqspec->{release},
             'a=s' => \$reqspec->{arch},
             's'   => sub { $reqspec->{src} = 1 },
         }, @args ]) };
@@ -248,7 +249,7 @@ sub q : XMLRPC {
     }
 }
 
-=head2 whatis WORD [WORD2 [...]]
+=head2 whatis [-d distrib] [-r release] [-a arch] [-s]  WORD [WORD2 [...]]
 
 Search rpm having description containing words given as arguments
 
@@ -263,6 +264,7 @@ sub whatis : XMLRPC {
         {
             'd=s' => \$reqspec->{distribution},
             'v=s' => \$reqspec->{release},
+            'r=s' => \$reqspec->{release},
             'a=s' => \$reqspec->{arch},
             's'   => sub { $reqspec->{src} = 1 },
         }, @args ]) };
@@ -300,7 +302,7 @@ sub whatis : XMLRPC {
     }
 }
 
-=head2 version [-s] NAME
+=head2 version [-d distrib] [-r release] [-a arch] [-s] NAME
 
 Show the version of package C<NAME>.
 
@@ -316,6 +318,7 @@ sub version : XMLRPC {
         {
             'd=s' => \$reqspec->{distribution},
             'v=s' => \$reqspec->{release},
+            'r=s' => \$reqspec->{release},
             'a=s' => \$reqspec->{arch},
             's'   => sub { $reqspec->{src} = 1 },
         }, @args ]) };
@@ -353,7 +356,7 @@ sub version : XMLRPC {
 
 =head2 v
 
-C<v> is an alias for L<version> command.
+C<v> is an alias for C<version> command.
 
 =cut
 
@@ -362,7 +365,7 @@ sub v : XMLRPC {
     $c->forward('version', [ @args ]);
 }
 
-=head2 summary [-s] NAME
+=head2 summary [-d distrib] [-r release] [-a arch] [-s]  NAME
 
 Show the summary of package C<NAME>.
 
@@ -385,7 +388,7 @@ sub s : XMLRPC {
     $c->forward('summary', [ @args ]);
 }
 
-=head2 packager [-s] NAME
+=head2 packager [-d distrib] [-r release] [-a arch] [-s]  NAME
 
 Show the packager of package C<NAME>.
 
@@ -408,7 +411,7 @@ sub p : XMLRPC {
     $c->forward('packager', [ @args ]);
 }
 
-=head2 arch [-s] NAME
+=head2 arch [-d distrib] [-r release] [-a arch] [-s]  NAME
 
 Show the architecture of package C<NAME>.
 
@@ -431,7 +434,7 @@ sub a : XMLRPC {
     $c->forward('arch', [ @args ]);
 }
 
-=head2 url [-s] NAME
+=head2 url [-d distrib] [-r release] [-a arch] [-s]  NAME
 
 Show the url of package C<NAME>.
 
@@ -454,7 +457,7 @@ sub u : XMLRPC {
     $c->forward('url', [ @args ]);
 }
 
-=head2 group [-s] NAME
+=head2 group [-d distrib] [-r release] [-a arch] [-s] NAME
 
 Show the group of package C<NAME>.
 
@@ -477,7 +480,7 @@ sub g : XMLRPC {
     $c->forward('group', [ @args ]);
 }
 
-=head2 license [-s] NAME
+=head2 license [-d distrib] [-r release] [-a arch] [-s] NAME
 
 Show the license of package C<NAME>.
 
@@ -500,7 +503,7 @@ sub l : XMLRPC {
     $c->forward('license', [ @args ]);
 }
 
-=head2 buildtime [-s] NAME
+=head2 buildtime [-d distrib] [-r release] [-a arch] [-s] NAME
 
 Show the build time of package C<NAME>.
 
@@ -534,7 +537,7 @@ sub b : XMLRPC {
     $c->forward('builddate', [ @args ]);
 }
 
-=head2 cookie [-s] NAME
+=head2 cookie [-d distrib] [-r release] [-a arch] [-s]  NAME
 
 Show the C<cookie> tag of package C<NAME>.
 
@@ -546,7 +549,7 @@ sub cookie : XMLRPC {
     $c->forward('qf', [ $reqspec, @args, '%{cookie}' ]);
 }
 
-=head2 sourcerpm NAME
+=head2 sourcerpm [-d distrib] [-r release] [-a arch] [-s] NAME
 
 Show the C<sourcerpm> tag of package C<NAME>.
 
@@ -570,7 +573,7 @@ sub src : XMLRPC {
     $c->forward('sourcerpm', [ $reqspec, @args ]);
 }
 
-=head2 rpmversion NAME
+=head2 rpmversion [-d distrib] [-r release] [-a arch] [-s] NAME
 
 Show the C<rpmversion> tag of package C<NAME>.
 
@@ -595,7 +598,7 @@ sub rpmbuildversion : XMLRPC {
 }
 
 
-=head2 buildhost NAME
+=head2 buildhost [-d distrib] [-r release] [-a arch] [-s] NAME
 
 Show the C<buildhost> tag of package C<NAME>.
 
@@ -633,7 +636,7 @@ sub h : XMLRPC {
 
 
 
-=head2 distribution NAME
+=head2 distribution [-d distrib] [-r release] [-a arch] [-s] NAME
 
 Show the C<distribution> tag of package C<NAME>.
 
@@ -659,7 +662,7 @@ sub distrib : XMLRPC {
 
 
 
-=head2 vendor NAME
+=head2 vendor [-d distrib] [-r release] [-a arch] [-s] NAME
 
 Show the C<vendor> tag of package C<NAME>.
 
@@ -671,7 +674,11 @@ sub vendor : XMLRPC {
     $c->forward('qf', [ $reqspec, @args, '%{vendor}' ]);
 }
 
+=head2 qf [-d distrib] [-r release] [-a arch] [-s] NAME FMT
 
+Perform an rpm -q --qf C<FMT> on package C<NAME>.
+
+=cut
 
 sub qf : XMLRPC {
     my ($self, $c, $reqspec, @args) = @_;
@@ -682,6 +689,7 @@ sub qf : XMLRPC {
         {
             'd=s' => \$reqspec->{distribution},
             'v=s' => \$reqspec->{release},
+            'r=s' => \$reqspec->{release},
             'a=s' => \$reqspec->{arch},
             's'   => sub { $reqspec->{src} = 1 },
         }, @args ]) };
@@ -722,7 +730,7 @@ sub qf : XMLRPC {
     }
 }
 
-=head2 more NAME
+=head2 more [-d distrib] [-r release] [-a arch] [-s]  NAME
 
 Show url where details about package named C<NAME> can be found
 
@@ -737,6 +745,7 @@ sub more : XMLRPC {
         {
             'd=s' => \$reqspec->{distribution},
             'v=s' => \$reqspec->{release},
+            'r=s' => \$reqspec->{release},
             'a=s' => \$reqspec->{arch},
             's'   => sub { $reqspec->{src} = 1 },
         }, @args ]) };
@@ -771,7 +780,7 @@ sub more : XMLRPC {
     }
 }
 
-=head2 buildfrom NAME
+=head2 buildfrom [-d distrib] [-r release] [-a arch] NAME
 
 Return the list of package build from source package named C<NAME>
 
@@ -785,6 +794,7 @@ sub buildfrom : XMLRPC {
         {
             'd=s' => \$reqspec->{distribution},
             'v=s' => \$reqspec->{release},
+            'r=s' => \$reqspec->{release},
             'a=s' => \$reqspec->{arch},
         }, @args ]) };
     if (!$c->forward('/distrib/exists', [ $reqspec ])) {
@@ -821,7 +831,7 @@ sub buildfrom : XMLRPC {
 
 }
 
-=head2 findfile FILE
+=head2 findfile [-d distrib] [-r release] [-a arch] [-s] FILE
 
 Return the rpm owning the file C<FILE>. 
 
@@ -837,7 +847,9 @@ sub findfile : XMLRPC {
         {
             'd=s' => \$reqspec->{distribution},
             'v=s' => \$reqspec->{release},
+            'r=s' => \$reqspec->{release},
             'a=s' => \$reqspec->{arch},
+            's'   => \$reqspec->{src},
         }, @args ]) };
 
     if (!$c->forward('/distrib/exists', [ $reqspec ])) {
@@ -872,6 +884,13 @@ sub findfile : XMLRPC {
     }
 }
 
+=head2 what [-d distrib] [-r release] [-a arch] [-s] p|r|c|o|e|s DEP [SENSE [EVR]]
+
+Search rpm matching having matching dependencies (provides, requires, conflicts,
+obsoletes, enhanced or suggests)
+
+=cut
+
 sub what : XMLRPC {
     my ($self, $c, $reqspec, @args) = @_;
         
@@ -879,6 +898,7 @@ sub what : XMLRPC {
         {
             'd=s' => \$reqspec->{distribution},
             'v=s' => \$reqspec->{release},
+            'r=s' => \$reqspec->{release},
             'a=s' => \$reqspec->{arch},
             's'   => \$reqspec->{src},
         }, @args ]) };
@@ -910,7 +930,7 @@ sub what : XMLRPC {
 
 }
 
-=head2 maint RPMNAME
+=head2 maint [-d distrib] [-r release] [-a arch] [-s] RPMNAME
 
 Show the maintainers for the rpm named C<RPMNAME>.
 
@@ -924,7 +944,9 @@ sub maint : XMLRPC {
         {
             'd=s' => \$reqspec->{distribution},
             'v=s' => \$reqspec->{release},
+            'r=s' => \$reqspec->{release},
             'a=s' => \$reqspec->{arch},
+            's'   => \$reqspec->{src},
         }, @args ]) };
     if (!$c->forward('/distrib/exists', [ $reqspec ])) {
         return $c->stash->{xmlrpc} = {
