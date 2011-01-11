@@ -78,7 +78,7 @@ foreach my $rpmid (keys %rpmid) {
     );
     if (ref $analyse && !$analyse->is_fault) {
         my $result = $analyse->value;
-
+        print "\nPackage requirements\n";
         foreach my $dep (keys %{ $result->{bydep} }) {
             print $dep . ":\n";
             foreach (@{ $result->{bydep}{$dep}{pkg} || []}) {
@@ -93,6 +93,34 @@ foreach my $rpmid (keys %rpmid) {
             push(@unresolved, @{ $result->{unresolved} });
             print "\nAre unresolved:\n";
             print  map { " $_\n" }  @{ $result->{unresolved} };
+        }
+    }
+    my $diranalyse = $sc->send_request('analysis.parentdir',
+        $distrib,
+        $rpmid,
+        [ keys %rpmid ],
+    );
+    if (ref $diranalyse && !$diranalyse->is_fault) {
+        my $result = $diranalyse->value;
+        print "\nParent directories:\n";
+        foreach my $dir (sort keys %{ $result->{bydir} }) {
+            print $dir . ":\n";
+            if (@{ $result->{bydir}{$dir}{pkg} || []} > 3) {
+                print "    " . scalar(@{ $result->{bydir}{$dir}{pkg} || []}) .
+                " results in the distribution...\n";
+            } else {
+                foreach (@{ $result->{bydir}{$dir}{pkg} || []}) {
+                    print "    " . $sc->send_request('rpms.basicinfo', $_)->value->{filename};
+                    print "\n";
+                }
+            }
+            foreach (@{ $result->{bydir}{$dir}{pool} || [] }) {
+                print "  * " . $pool{$_} . "\n";
+            }
+        }
+        if (@{ $result->{notfound} || []}) {
+            print "\nUnowned directories:\n";
+            print  map { " $_\n" }  @{ $result->{notfound} };
         }
     }
     print "\n";
