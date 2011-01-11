@@ -152,6 +152,11 @@ sub parentdir : XMLRPC {
         }
         push(@notfound, $dir) unless($found);
     }
+    foreach my $d (keys %bydir) {
+        foreach my $t (keys %{ $bydir{$d} || {} }) {
+            $bydir{$d}{$t} = [ keys %{ $bydir{$d}{$t} } ];
+        }
+    }
     return $c->stash->{xmlrpc} = {
         notfound => \@notfound,
         pkg => [ keys %need_pkgid ],
