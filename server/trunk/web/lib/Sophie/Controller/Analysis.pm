@@ -102,6 +102,24 @@ sub find_requirements : XMLRPC {
         [ $distspec, 'P', \@deplist, $pool ]);
 }
 
+sub parentdir : XMLRPC {
+    my ($self, $c, $distspec, $id, $pool) = @_;
+    $pool ||= $id;
+
+    my @dir = $c->model('Base::UsersFiles')->search(
+            {
+                pid => [ $id ],
+            },
+            {
+                select   => [ qw(dirname) ],
+                group_by => [ qw(dirname) ],
+                order_by => [ qw(dirname) ],
+            }
+    )->get_column('dirname')->all;
+
+    $c->forward('/analysis/solver/parentdir', [ $distspec, \@dir, $pool ]);
+}
+
 =head1 AUTHOR
 
 Olivier Thauvin

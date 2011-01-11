@@ -121,6 +121,44 @@ sub find_requirements : XMLRPC {
     };
 }
 
+sub parentdir : XMLRPC {
+    my ($self, $c, $searchspec, $folder, $pool) = @_;
+
+    my %need_pool;
+    my %need_pkgid;
+    my %bydir;
+    my @notfound;
+    foreach my $dir (@{ $folder }) {
+        $dir =~ s:/$::;
+        my $found = 0;
+        my $res = $c->forward('/search/rpm/byfile', [ $searchspec, $dir, ]);
+        if (@{$res}) {
+            $found = 1;
+            foreach (@{$res}) {
+                $need_pkgid{$_} = 1;
+                $bydir{$dir}{pkg}{$_} = 1;
+            }
+        } 
+        if ($pool) {
+            $res = $c->forward('/user/folder/byfile', [ $pool, $dir, ]);
+            if (@{$res}) {
+                $found = 1;
+                foreach (@{$res}) {
+                    $need_pool{$_} = 1;
+                    $bydir{$dir}{pool}{$_} = 1;
+
+                }
+            }
+        }
+        push(@notfound, $dir) unless($found);
+    }
+    return $c->stash->{xmlrpc} = {
+        notfound => \@notfound,
+        pkg => [ keys %need_pkgid ],
+        pool => [ keys %need_pool ],
+        bydir => \%bydir,
+    };
+}
 
 =head1 AUTHOR
 
@@ -137,18 +175,3 @@ __PACKAGE__->meta->make_immutable;
 
 1;
 
-
-=head1 AUTHOR
-
-Olivier Thauvin
-
-=head1 LICENSE
-
-This library is free software. You can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-=cut
-
-__PACKAGE__->meta->make_immutable;
-
-1;
