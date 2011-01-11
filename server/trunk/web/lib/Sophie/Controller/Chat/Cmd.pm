@@ -171,6 +171,38 @@ sub asv : XMLRPC {
     };
 }
 
+=head2 list [distribution [release [arch]]]
+
+List available distribution, release, architecture matching given arguments.
+
+=cut
+
+sub list : XMLRPC {
+    my ($self, $c, $reqspec, @args) = @_;
+
+    my $distrib = {
+        distribution => $args[0],
+        release      => $args[1],
+        arch         => $args[2],
+    };
+
+    if (!$c->forward('/distrib/exists', [ $distrib ])) {
+        return $c->stash->{xmlrpc} = {
+            message => [ "I don't have any distribution matching: "
+                         . join(' / ', grep { $_ } @args[0..2]) ],
+        };
+    }
+
+    my @list = @{ $c->forward('/distrib/list', [ $distrib ]) };
+    return $c->stash->{xmlrpc} = {
+        message => [ 
+            ($args[0] 
+                ? join(' / ', grep { $_ } @args[0..2]) . ': '
+                : '') .
+            join(', ', @list) ],
+    }
+}
+
 =head2 q REGEXP
 
 Search rpm name matching C<REGEXP>.
