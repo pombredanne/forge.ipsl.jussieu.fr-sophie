@@ -981,6 +981,56 @@ sub maint : XMLRPC {
     }
 }
 
+=head2 nb_rpm [-d distrib] NAME
+
+Show the count of rpm maintains by packager matching C<NAME>.
+
+=cut
+
+sub nb_rpm : XMLRPC {
+    my ($self, $c, $reqspec, @args) = @_;
+    my @message;
+    my $dist = { distribution => $reqspec->{distribution} };
+    @args = @{ $c->forward('_getopt', [
+        {
+            'd=s' => \$dist->{distribution},
+        }, @args ]) };
+    if (!$c->forward('/distrib/exists', [ $dist ])) {
+        return $c->stash->{xmlrpc} = {
+            message => [ "I don't have such distribution" ]
+        };
+    }
+
+    my $maints = $c->forward('/maintainers/search',
+        [ $args[0], $dist->{distribution} ]);
+    if (@$maints > 3) {
+        return $c->stash->{xmlrpc} = {
+            message => [ 
+                scalar(@$maints) . " maintainers found matching `$args[0]'"
+            ]
+        };
+    } elsif (! @$maints) {
+        return $c->stash->{xmlrpc} = {
+            message => [ "No maintainers found matching `$args[0]'" ]
+        };
+    } else {
+        my @messages;
+        foreach (@$maints) {
+            my $rpms = $c->forward('/maintainers/bymaintainer', [
+                $_->{owner}, $dist->{distribution} ]);
+            push(@messages, sprintf('%s (%s) maintains %d rpms',
+                    $_->{owner},
+                    $_->{vendor},
+                    scalar(@$rpms),
+                )
+            );
+        }
+        return $c->stash->{xmlrpc} = {
+            message => \@messages,
+        };
+    }
+}
+
 =head1 AUTHOR
 
 Olivier Thauvin

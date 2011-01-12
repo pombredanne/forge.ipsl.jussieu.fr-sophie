@@ -73,6 +73,56 @@ sub byrpm :Path :XMLRPC {
         )->all ];
 }
 
+sub bymaintainer : XMLRPC {
+    my ($self, $c, $maint, $distrib) = @_;
+    $c->stash->{xmlrpc} = [ map { { $_->get_columns } } 
+    $c->model('Base::MaintRpm')->
+        search(
+            { owner => $maint },
+            { select => [ qw(rpm) ] },
+        )->
+        search_related('MaintSources')->
+        search_related('MaintDistrib')->
+        search_related('Distribution',
+            $distrib ? {
+                '-or' => [
+                    { shortname => $distrib },
+                    { name => $distrib },
+                ],
+            } : (),
+        )->search({},
+            {
+                'select' => [ qw'rpm name label' ],
+                'as'     => [ qw'rpm distribution vendor' ],
+            }
+        )->all ];
+    
+}
+
+sub search :XMLRPC {
+    my ($self, $c, $maint, $distrib) = @_;
+
+    $c->stash->{xmlrpc} = [ map { { $_->get_columns } }
+        $c->model('Base::MaintRpm')->search(
+            { owner => { 'LIKE' => "%$maint%" } }
+        )->search_related('MaintSources'
+        )->search_related('MaintDistrib'
+        )->search_related('Distribution',
+            $distrib ? {
+                '-or' => [
+                    { shortname => $distrib },
+                    { name => $distrib },
+                ],
+            } : (),
+        )->search({},
+            {
+                'select' => [ qw'owner name label' ],
+                'as'     => [ qw'owner distribution vendor' ],
+                'group_by' => [ qw'owner name label' ],
+                'order_by' => [ qw'owner name label' ],
+            }
+        )->all ];
+}
 
 =head1 AUTHOR
 
