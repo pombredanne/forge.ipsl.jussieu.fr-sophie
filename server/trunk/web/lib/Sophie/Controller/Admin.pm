@@ -307,7 +307,7 @@ sub load_distrib : XMLRPC {
     foreach my $media (@{ $ref->{media} || []}) {
         $c->forward('add_media', [ $ref->{distrib}, $media ]);
     }
-    foreach my $media (keys %{ $ref->{path} || [] }) {
+    foreach my $media (keys %{ $ref->{path} || {} }) {
         foreach my $path (@{ $ref->{path}{$media} || [] }) {
             $c->forward('media_path', [ $ref->{distrib}, $media, $path ]);
         }
