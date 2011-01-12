@@ -1,7 +1,7 @@
 <!-- $Id$ -->
 
 <div Id="sophie_body_main">
-<form action="[% c.uri_for('/', c.req.path) %]" method="POST">
+<form id="list_rpms_form" action="[% c.uri_for('/', c.req.path) %]" method="POST">
     <label for="fl">Filter to filename starting by:</label>
     <input type="text" id="fl" name="fl" value="[% c.req.param('fl') | html %]">
 </form>

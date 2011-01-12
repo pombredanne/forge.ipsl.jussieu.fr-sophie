@@ -56,10 +56,10 @@ div#sophie_body_additional {
 }
 
 pre.filedata {
-  padding: 2em;
+  background-color: #f3f47a;
+  padding: 1em;
   margin: 2em;
-  background: #F5F5DC;
-  border: outset;
+  border: solid #573B1D;
 }
 
 .flat_menu li {
@@ -212,6 +212,10 @@ div.sophie_search_list {
   font-family: monospace;
 }
 
+#list_rpms_form {
+  margin-top: 1em;
+}
+
 /* explorer look */
 #explorer_d {
   margin-top: 0.5em;
@@ -278,6 +282,18 @@ div#sophie_sources {
   padding-left: 0em;
   padding-right: 0em;
   font-size: 0.9em;
+}
+
+#sophie_rpm_deps h2 {
+  margin-left: 0.8em;
+}
+
+#sophie_rpm_deps h3 {
+  margin-left: 1em;
+}
+
+#sophie_rpm_files h2 {
+  margin-left: 0.8em;
 }
 
 /* chat look */
