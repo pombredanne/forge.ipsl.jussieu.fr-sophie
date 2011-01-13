@@ -7,8 +7,7 @@ use Term::ReadKey;
 use Getopt::Long;
 
 GetOptions(
-        'f=s' => \my $file,
-        's=s' => \my $server,
+    's=s' => \my $server,
 );
 
 ReadMode('noecho');
@@ -28,14 +27,21 @@ if (ref $res && !$res->is_fault) {
     die "Can't login";
 }
 
-my $string;
-if ($file) {
-    open($handle, '<', $file) || die "can't open file $!";
-    $string = join('', <$handle>);
-    close($handle);
-} else {
-    $string = join('', <STDIN>);
-}
+if (@ARGV) {
+    my @string;
+    foreach my $file (@ARGV) {
+        warn "Reading $file\n";
+        open($handle, '<', $file) || die "can't open file $!";
+        push(@string, join('', <$handle>));
+        close($handle);
+    }
 
-my $res = $xmlcli->send_request('admin.load_distrib', $string);
-print $res->value . "\n";
+    foreach my $string (@string) {
+        my $res = $xmlcli->send_request('admin.load_distrib', $string);
+        print $res->value . "\n";
+    }
+} else {
+    my $string = join('', <STDIN>);
+    my $res = $xmlcli->send_request('admin.load_distrib', $string);
+    print $res->value . "\n";
+}
