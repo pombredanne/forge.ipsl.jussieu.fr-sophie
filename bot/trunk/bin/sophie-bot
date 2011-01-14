@@ -1,0 +1,99 @@
+#! /bin/env perl
+
+use strict;
+use warnings;
+use Sophie::Bot;
+use Getopt::Long;
+use Pod::Usage;
+use Config::General;
+use File::Temp;
+
+GetOptions(
+    'c=s' => \my $configfile,
+    'u=s' => \my $url,
+    'l=s' => \my $login,
+    'p=s' => \my $pass,
+    't=s' => \my $type,
+    'd=s' => \my @options,
+    'proxy' => \my $proxy,
+    'daemon' => \my $daemon,
+
+    # Command option:
+    'set-password=s' => \my $password,
+    'edit-var=s'       => \my $data,
+) or pod2usage;
+
+my %options;
+foreach (@options) {
+    m/([^=]+)\s*=\s*(.*)/ or next;
+    $options{$1} = $2;
+}
+
+$configfile ||= "/etc/sophie/sophie-bot.conf";
+
+if (my $conf = Config::General->new($configfile)) {
+    my %config = $conf->getall;
+    $url         ||= $config{url};
+    $login       ||= $config{login};
+    $pass        ||= $config{pass};
+    $daemon      ||= $config{daemon};
+    $proxy       ||= $config{proxy};
+}
+
+my $sc = Sophie::Bot->new(
+    server => $url,
+    login => $login,
+    password => $pass,
+    type => $type || 'Term',
+    proxy => $proxy,
+);
+
+if ($password) {
+    my $res = $sc->send_request('user.set_password', $password);
+    if (ref $res && !$res->is_fault) {
+        print $res->value . "\n";
+        exit(0);
+    } else {
+        print( (ref $res ? $res->string : $res) . "\n");
+        exit(1);
+    }
+} elsif ($data) {
+    my $res = $sc->send_request('user.dumpdata', $data);
+    if (ref $res && !$res->is_fault) {
+        my $tmp = File::Temp->new();
+        print $tmp $res->value . "\n";
+        close($tmp);
+        system($ENV{EDITOR} || 'vi', $tmp->filename);
+        if (open(my $fh, '<', $tmp->filename)) {
+            my $string = join('', <$fh>);
+            close($fh);
+            unlink($tmp->filename);
+            my $res2 = $sc->send_request('user.loaddata', $data, $string);
+            if (ref $res2 && !$res2->is_fault) {
+                print $res2->value . "\n";
+                exit(0);
+            } else {
+                print( (ref $res2 ? $res2->string : $res2) . "\n");
+                exit(1);
+            }
+        }
+    } else {
+        print( (ref $res ? $res->string : $res) . "\n");
+        exit(1);
+    }
+}
+
+if ($daemon) {
+    my $pid = fork();
+
+    if (defined($pid)) {
+        if ($pid) {
+            # father, exiting;
+            exit(0);
+        } else {
+            # child
+        }
+    }
+}
+
+$sc->run;

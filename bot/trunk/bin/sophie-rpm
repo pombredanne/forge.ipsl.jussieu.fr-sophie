@@ -1,0 +1,138 @@
+#! /bin/env perl
+
+use strict;
+use warnings;
+use Sophie::Client;
+use Getopt::Long;
+use Pod::Usage;
+use Config::General;
+use File::Temp;
+
+my $distrib = {};
+
+GetOptions(
+    'c=s' => \my $configfile,
+    'u=s' => \my $url,
+    'l=s' => \my $login,
+    'p=s' => \my $pass,
+    't=s' => \my $type,
+    'd=s' => \my @options,
+    'proxy' => \my $proxy,
+
+) or pod2usage;
+
+my %options;
+foreach (@options) {
+    m/([^=]+)\s*=\s*(.*)/ or next;
+    $options{$1} = $2;
+}
+
+$configfile ||= "$ENV{HOME}/.sophie.conf";
+
+if (-f $configfile && (my $conf = Config::General->new($configfile))) {
+    my %config = $conf->getall;
+    $url         ||= $config{url};
+    $login       ||= $config{login};
+    $pass        ||= $config{pass};
+    $proxy       ||= $config{proxy};
+    $distrib     = $config{distrib};
+}
+
+my $sc = Sophie::Client->new(
+    server => $url,
+    login => $login,
+    password => $pass,
+    type => $type,
+    proxy => $proxy,
+);
+
+$sc->login;
+
+my %rpmid;
+foreach my $rpm (@ARGV) {
+    my $string = `rpm -qp --qf '[%{*:xml}\n]' $rpm`;
+    warn "Loarding $rpm\n";
+
+    my $res = $sc->send_request('user.folder.load_rpm', $string);
+    if (ref $res && ! $res->is_fault) {
+        $rpmid{$res->value} = $rpm;
+    } else {
+        die((ref $res ? $res->string : $res) . "\n");
+    }
+}
+
+my %pool;
+{
+    foreach (@{ $sc->send_request('user.folder.list')->value }) {
+        $pool{$_->{id}} = $_->{name} . '-' . $_->{evr}; 
+    }
+}
+
+my @unresolved;
+foreach my $rpmid (keys %rpmid) {
+    warn "Analysing $rpmid{$rpmid}\n";
+    my $analyse = $sc->send_request('analysis.find_requirements',
+        $distrib,
+        $rpmid,
+        [ keys %rpmid ],
+    );
+    if (ref $analyse && !$analyse->is_fault) {
+        my $result = $analyse->value;
+        print "\nPackage requirements\n";
+        foreach my $dep (keys %{ $result->{bydep} }) {
+            print $dep . ":\n";
+            foreach (@{ $result->{bydep}{$dep}{pkg} || []}) {
+                print "    " . $sc->send_request('rpms.basicinfo', $_)->value->{filename};
+                print "\n";
+            }
+            foreach (@{ $result->{bydep}{$dep}{pool} || [] }) {
+                print "  * " . $pool{$_} . "\n";
+            }
+        }
+        if (@{ $result->{unresolved} || []}) {
+            push(@unresolved, @{ $result->{unresolved} });
+            print "\nAre unresolved:\n";
+            print  map { " $_\n" }  @{ $result->{unresolved} };
+        }
+    }
+    my $diranalyse = $sc->send_request('analysis.parentdir',
+        $distrib,
+        $rpmid,
+        [ keys %rpmid ],
+    );
+    if (ref $diranalyse && !$diranalyse->is_fault) {
+        my $result = $diranalyse->value;
+        print "\nParent directories:\n";
+        foreach my $dir (sort keys %{ $result->{bydir} }) {
+            print $dir . ":\n";
+            if (@{ $result->{bydir}{$dir}{pkg} || []} > 3) {
+                print "    " . scalar(@{ $result->{bydir}{$dir}{pkg} || []}) .
+                " results in the distribution...\n";
+            } else {
+                foreach (@{ $result->{bydir}{$dir}{pkg} || []}) {
+                    print "    " . $sc->send_request('rpms.basicinfo', $_)->value->{filename};
+                    print "\n";
+                }
+            }
+            foreach (@{ $result->{bydir}{$dir}{pool} || [] }) {
+                print "  * " . $pool{$_} . "\n";
+            }
+        }
+        if (@{ $result->{notfound} || []}) {
+            print "\nUnowned directories:\n";
+            print  map { " $_\n" }  @{ $result->{notfound} };
+        }
+    }
+    print "\n";
+}
+
+$sc->send_request('user.folder.clear');
+
+if (@unresolved) {
+    print "Error, unresolved:\n";
+    print  map { " $_\n" }  @unresolved;
+    exit(1);
+} else {
+    exit(0);
+}
+

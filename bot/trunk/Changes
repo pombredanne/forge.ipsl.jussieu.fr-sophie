@@ -1,0 +1,6 @@
+Revision history for Perl extension Sophie::IrcBot.
+
+0.01  Fri Dec  3 01:44:40 2010
+	- original version; created by h2xs 1.23 with options
+		Sophie::IrcBot --skip-exporter --skip-autoloader --skip-ppport -X
+
