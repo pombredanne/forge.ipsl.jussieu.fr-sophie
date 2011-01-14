@@ -35,6 +35,10 @@ Use this config instead default one (C<~/.sophie.conf>)
 Use this proxy to connect sophie's web site. The proxy must given as an url
 like C<http://proxy:8080/>
 
+=item -v
+
+Being verbose, show each required packages
+
 =back
 
 =cut
@@ -90,15 +94,9 @@ GetOptions(
     'u=s' => \my $url,
     'l=s' => \my $login,
     'p=s' => \my $pass,
+    'v'   => \my $verbose,
     'proxy' => \my $proxy,
-
 ) or pod2usage;
-
-my %options;
-foreach (@options) {
-    m/([^=]+)\s*=\s*(.*)/ or next;
-    $options{$1} = $2;
-}
 
 $configfile ||= "$ENV{HOME}/.sophie.conf";
 
@@ -115,7 +113,6 @@ my $sc = Sophie::Client->new(
     server => $url,
     login => $login,
     password => $pass,
-    type => $type,
     proxy => $proxy,
 );
 
@@ -142,6 +139,7 @@ my %pool;
 }
 
 my @unresolved;
+my @dirnotfound;
 foreach my $rpmid (keys %rpmid) {
     warn "Analysing $rpmid{$rpmid}\n";
     my $analyse = $sc->send_request('analysis.find_requirements',
@@ -151,15 +149,17 @@ foreach my $rpmid (keys %rpmid) {
     );
     if (ref $analyse && !$analyse->is_fault) {
         my $result = $analyse->value;
-        print "\nPackage requirements\n";
-        foreach my $dep (keys %{ $result->{bydep} }) {
-            print $dep . ":\n";
-            foreach (@{ $result->{bydep}{$dep}{pkg} || []}) {
-                print "    " . $sc->send_request('rpms.basicinfo', $_)->value->{filename};
-                print "\n";
-            }
-            foreach (@{ $result->{bydep}{$dep}{pool} || [] }) {
-                print "  * " . $pool{$_} . "\n";
+        if ($verbose) {
+            print "\nPackage requirements\n";
+            foreach my $dep (keys %{ $result->{bydep} }) {
+                print $dep . ":\n";
+                foreach (@{ $result->{bydep}{$dep}{pkg} || []}) {
+                    print "    " . $sc->send_request('rpms.basicinfo', $_)->value->{filename};
+                    print "\n";
+                }
+                foreach (@{ $result->{bydep}{$dep}{pool} || [] }) {
+                    print "  * " . $pool{$_} . "\n";
+                }
             }
         }
         if (@{ $result->{unresolved} || []}) {
@@ -175,23 +175,26 @@ foreach my $rpmid (keys %rpmid) {
     );
     if (ref $diranalyse && !$diranalyse->is_fault) {
         my $result = $diranalyse->value;
-        print "\nParent directories:\n";
-        foreach my $dir (sort keys %{ $result->{bydir} }) {
-            print $dir . ":\n";
-            if (@{ $result->{bydir}{$dir}{pkg} || []} > 3) {
-                print "    " . scalar(@{ $result->{bydir}{$dir}{pkg} || []}) .
-                " results in the distribution...\n";
-            } else {
-                foreach (@{ $result->{bydir}{$dir}{pkg} || []}) {
-                    print "    " . $sc->send_request('rpms.basicinfo', $_)->value->{filename};
-                    print "\n";
+        if ($verbose) {
+            print "\nParent directories:\n";
+            foreach my $dir (sort keys %{ $result->{bydir} }) {
+                print $dir . ":\n";
+                if (@{ $result->{bydir}{$dir}{pkg} || []} > 3) {
+                    print "    " . scalar(@{ $result->{bydir}{$dir}{pkg} || []}) .
+                    " results in the distribution...\n";
+                } else {
+                    foreach (@{ $result->{bydir}{$dir}{pkg} || []}) {
+                        print "    " . $sc->send_request('rpms.basicinfo', $_)->value->{filename};
+                        print "\n";
+                    }
                 }
-            }
-            foreach (@{ $result->{bydir}{$dir}{pool} || [] }) {
-                print "  * " . $pool{$_} . "\n";
+                foreach (@{ $result->{bydir}{$dir}{pool} || [] }) {
+                    print "  * " . $pool{$_} . "\n";
+                }
             }
         }
         if (@{ $result->{notfound} || []}) {
+            push(@dirnotfound, @{ $result->{notfound} });
             print "\nUnowned directories:\n";
             print  map { " $_\n" }  @{ $result->{notfound} };
         }
@@ -201,11 +204,18 @@ foreach my $rpmid (keys %rpmid) {
 
 $sc->send_request('user.folder.clear');
 
+if (@dirnotfound) {
+    print "Warning, this directory are not owned by any package:\n";
+    print map { " $_\n" } @dirnotfound;
+    print "\n";
+}
 if (@unresolved) {
     print "Error, unresolved:\n";
     print  map { " $_\n" }  @unresolved;
+    print "\n";
     exit(1);
 } else {
+    print "No Error found\n";
     exit(0);
 }
 
