@@ -137,7 +137,7 @@ $sc->login;
 
 my %rpmid;
 foreach my $rpm (@ARGV) {
-    my $string = `rpm -qp --qf '[%{*:xml}\n]' $rpm`;
+    my $string = `rpm -qp --qf '[%{*:xml}\n]' $rpm | iconv --from iso-8859-15 --to utf8`;
     warn "Loading $rpm\n";
 
     my $res = $sc->send_request('user.folder.load_rpm', $string);
