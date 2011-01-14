@@ -28,11 +28,7 @@ sub new {
         login($self) or die "Can't login";
     }
 
-    my $realclass = $class . ($options{type} ? ('::' . $options{type}) : '');
-    no strict qw(refs);
-    eval "require $realclass;";
-    return if($@);
-    bless($self, $realclass);
+    bless($self, $class);
 }
 
 sub login {
@@ -59,54 +55,6 @@ sub login {
     }
 }
 
-sub get_var {
-    my ($self, $varname) = @_;
-    my $resp = $self->send_request('user.fetchdata', $varname);
-    if (ref $resp) {
-        if ($resp->value) {
-            return $resp->value;
-        }
-    } else {
-        return {};
-    }
-}
-
-sub set_var {
-    my ($self, $varname, $data) = @_;
-
-    my $resp = $self->send_request('user.update_data', $varname, $data);
-    if (ref $resp) {
-        return 1;
-    } else {
-        return;
-    }
-}
-
-sub handle_message {
-    my ($self, $heap, $context, $message) = @_;
-
-    $self->login;
-    if ($message =~ /^\s*set\s+(\w+)\s+(\S+)/) {
-        warn "$1, $2";
-        $self->user_config($heap, $1, $2);
-    } else {
-        eval {
-            $self->submit_query($heap, $context, $message);
-        }
-    }
-}
-
-sub submit_query {
-    my ($self, $heap, $context, $message) = @_;
-
-    my $resp = $self->send_request('chat.message', $context, $message);
-    if (ref($resp)) {
-        $self->show_reply($heap, $resp->value);
-    } else {
-        return;
-    }
-
-}
 
 1;
 
