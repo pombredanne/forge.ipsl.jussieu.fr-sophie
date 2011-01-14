@@ -20,7 +20,8 @@ use File::Temp;
 
 =cut 
 
-my $distrib = {};
+my $distrib  = {};
+my $searchsp = {};
 
 =head1 OPTIONS
 
@@ -39,6 +40,10 @@ like C<http://proxy:8080/>
 
 Being verbose, show each required packages
 
+=item -s
+
+Search in database package matching unresolved dependencies
+
 =back
 
 =cut
@@ -49,6 +54,11 @@ The configuration must look like something like this
 
     # url http://sophie.zarb.org/rpc
     # proxy http://nanardon.zarb.org:3128/
+    <distrib>
+    distribution Mandriva
+    release 2010.0
+    arch x86_64
+    </distrib>
     <distrib>
     distribution Mandriva
     release cooker
@@ -85,16 +95,22 @@ The architecture for this distribution/release
 
 =back
 
+=item search
+
+Works like distrib but is used to find not found dependencies when C<-s> is
+used.
+
 =back
 
 =cut 
 
 GetOptions(
-    'c=s' => \my $configfile,
-    'u=s' => \my $url,
-    'l=s' => \my $login,
-    'p=s' => \my $pass,
-    'v'   => \my $verbose,
+    'c=s'   => \my $configfile,
+    'u=s'   => \my $url,
+    'l=s'   => \my $login,
+    'p=s'   => \my $pass,
+    'v'     => \my $verbose,
+    's'     => \my $search,
     'proxy' => \my $proxy,
 ) or pod2usage;
 
@@ -106,7 +122,8 @@ if (-f $configfile && (my $conf = Config::General->new($configfile))) {
     $login       ||= $config{login};
     $pass        ||= $config{pass};
     $proxy       ||= $config{proxy};
-    $distrib     = $config{distrib};
+    $distrib     =   $config{distrib};
+    $searchsp    =   $config{search};
 }
 
 my $sc = Sophie::Client->new(
@@ -213,6 +230,21 @@ if (@unresolved) {
     print "Error, unresolved:\n";
     print  map { " $_\n" }  @unresolved;
     print "\n";
+    if ($search) {
+        print "\nSearching depedencies in sophie\n";
+        foreach my $dep (@unresolved) {
+            my $res = $sc->send_request(
+                'search.rpm.bydep', $searchsp, 'P', split(' ', $dep)
+            );
+            if (ref $res && !$res->is_fault) {
+                print "$dep: " . $res->value->{total_entries} . " results\n";
+                foreach (@{ $res->value->{results} }) {
+                    print "    " . $sc->send_request('rpms.basicinfo', $_)->value->{filename};
+                    print "\n";
+                }
+            }
+        }
+    }
     exit(1);
 } else {
     print "No Error found\n";
