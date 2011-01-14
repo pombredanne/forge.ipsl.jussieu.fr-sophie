@@ -137,10 +137,14 @@ $sc->login;
 
 my %rpmid;
 foreach my $rpm (@ARGV) {
-    my $string = `rpm -qp --qf '[%{*:xml}\n]' $rpm | iconv --from iso-8859-15 --to utf8`;
+    my $string = `rpm -qp --qf '[%{*:xml}\n]' $rpm`;
+    $string =~ s:<rpmTag name="Changelogname">(.*?)</rpmTag>::sm;
+    $string =~ s:<rpmTag name="Changelogtext">(.*?)</rpmTag>::sm;
+    $string =~ s:<rpmTag name="Changelogtime">(.*?)</rpmTag>::sm;
     warn "Loading $rpm\n";
 
-    my $res = $sc->send_request('user.folder.load_rpm', $string);
+    my $res = $sc->send_request('user.folder.load_rpm',
+        RPC::XML::base64->new($string));
     if (ref $res && ! $res->is_fault) {
         $rpmid{$res->value} = $rpm;
     } else {
