@@ -128,7 +128,7 @@ sub parentdir : XMLRPC {
     my %need_pkgid;
     my %bydir;
     my @notfound;
-    foreach my $dir (@{ $folder }) {
+    foreach my $dir (grep { $_ } @{ $folder }) {
         $dir =~ s:/$::;
         my $found = 0;
         my $res = $c->forward('/search/rpm/byfile', [ $searchspec, $dir, ]);

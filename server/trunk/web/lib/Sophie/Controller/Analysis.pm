@@ -106,7 +106,7 @@ sub parentdir : XMLRPC {
     my ($self, $c, $distspec, $id, $pool) = @_;
     $pool ||= $id;
 
-    my @dir = $c->model('Base::UsersFiles')->search(
+    my @dir = grep { $_ } $c->model('Base::UsersFiles')->search(
             {
                 pid => [ $id ],
             },
