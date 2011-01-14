@@ -8,15 +8,88 @@ use Pod::Usage;
 use Config::General;
 use File::Temp;
 
+=head1 NAME
+
+    sophie-rpm - Tools to check rpms over Sophie Website
+
+=cut
+
+=head1 SYNOPSYS
+
+    sophie-rpm [-c configfile] [--proxy proxy] RPM1 [RPM2 [...]]
+
+=cut 
+
 my $distrib = {};
+
+=head1 OPTIONS
+
+=over4
+
+=item -c configfile
+
+Use this config instead default one (C<~/.sophie.conf>)
+
+=item --proxy proxy
+
+Use this proxy to connect sophie's web site. The proxy must given as an url
+like C<http://proxy:8080/>
+
+=back
+
+=cut
+
+=item HEAD1 config file
+
+The configuration must look like something like this
+
+    # url http://sophie.zarb.org/rpc
+    # proxy http://nanardon.zarb.org:3128/
+    <distrib>
+    distribution Mandriva
+    release cooker
+    arch x86_64
+    </distrib>
+
+=over 4
+
+=item proxy URL
+
+Optionnal proxy to use to connect to sophie website
+
+=item url URL
+
+The url of C<RPC> top method, default is C<http://sophie.zarb.org/rpc>.
+
+=item distrib
+
+The distribution for which rpms must be checked
+
+=over 4
+
+=item distribution
+
+The distribution name
+
+=item release
+
+The release provided by this distribution
+
+=item arch
+
+The architecture for this distribution/release
+
+=back
+
+=back
+
+=cut 
 
 GetOptions(
     'c=s' => \my $configfile,
     'u=s' => \my $url,
     'l=s' => \my $login,
     'p=s' => \my $pass,
-    't=s' => \my $type,
-    'd=s' => \my @options,
     'proxy' => \my $proxy,
 
 ) or pod2usage;
@@ -136,3 +209,21 @@ if (@unresolved) {
     exit(0);
 }
 
+
+=head1 AUTHOR
+
+Olivier Thauvin C<nanardon@nanardon.zarb.org>
+
+=head1 SEE ALSO
+
+L<http://sophie.zarb.org>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2010 by Olivier Thauvin
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.12.2 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
