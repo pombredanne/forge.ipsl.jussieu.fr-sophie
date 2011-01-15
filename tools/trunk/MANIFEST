@@ -4,3 +4,4 @@ MANIFEST
 README
 bin/sophie-rpm
 lib/Sophie/Client.pm
+lib/Sophie/Client/Transaction.pm

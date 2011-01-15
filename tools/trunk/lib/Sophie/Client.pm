@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use RPC::XML;
 use base qw(RPC::XML::Client);
+use Sophie::Client::Transaction;
 $RPC::XML::FORCE_STRING_ENCODING = 1;
 
 our $VERSION = '0.01';
@@ -55,6 +56,10 @@ sub login {
     }
 }
 
+sub ts {
+    my ($self, $distrib) = @_;
+    return Sophie::Client::Transaction->new($self, $distrib);
+}
 
 1;
 

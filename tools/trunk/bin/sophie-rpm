@@ -135,126 +135,31 @@ my $sc = Sophie::Client->new(
 
 $sc->login;
 
-my %rpmid;
+my $ts = $sc->ts($distrib);
+
 foreach my $rpm (@ARGV) {
-    my $string = `rpm -qp --qf '[%{*:xml}\n]' $rpm`;
-    $string =~ s:<rpmTag name="Changelogname">(.*?)</rpmTag>::sm;
-    $string =~ s:<rpmTag name="Changelogtext">(.*?)</rpmTag>::sm;
-    $string =~ s:<rpmTag name="Changelogtime">(.*?)</rpmTag>::sm;
-    warn "Loading $rpm\n";
-
-    my $res = $sc->send_request('user.folder.load_rpm',
-        RPC::XML::base64->new($string));
-    if (ref $res && ! $res->is_fault) {
-        $rpmid{$res->value} = $rpm;
-    } else {
-        die((ref $res ? $res->string : $res) . "\n");
-    }
+    $ts->add_rpm($rpm) or die "Cannot add $rpm";
 }
 
-my %pool;
-{
-    foreach (@{ $sc->send_request('user.folder.list')->value }) {
-        $pool{$_->{id}} = $_->{name} . '-' . $_->{evr}; 
-    }
-}
-
-my @unresolved;
-my @dirnotfound;
-foreach my $rpmid (keys %rpmid) {
-    warn "Analysing $rpmid{$rpmid}\n";
-    my $analyse = $sc->send_request('analysis.find_requirements',
-        $distrib,
-        $rpmid,
-        [ keys %rpmid ],
-    );
-    if (ref $analyse && !$analyse->is_fault) {
-        my $result = $analyse->value;
-        if ($verbose) {
-            print "\nPackage requirements\n";
-            foreach my $dep (keys %{ $result->{bydep} }) {
-                print $dep . ":\n";
-                foreach (@{ $result->{bydep}{$dep}{pkg} || []}) {
-                    print "    " . $sc->send_request('rpms.basicinfo', $_)->value->{filename};
-                    print "\n";
-                }
-                foreach (@{ $result->{bydep}{$dep}{pool} || [] }) {
-                    print "  * " . $pool{$_} . "\n";
-                }
-            }
-        }
-        if (@{ $result->{unresolved} || []}) {
-            push(@unresolved, @{ $result->{unresolved} });
-            print "\nAre unresolved:\n";
-            print  map { " $_\n" }  @{ $result->{unresolved} };
-        }
-    }
-    my $diranalyse = $sc->send_request('analysis.parentdir',
-        $distrib,
-        $rpmid,
-        [ keys %rpmid ],
-    );
-    if (ref $diranalyse && !$diranalyse->is_fault) {
-        my $result = $diranalyse->value;
-        if ($verbose) {
-            print "\nParent directories:\n";
-            foreach my $dir (sort keys %{ $result->{bydir} }) {
-                print $dir . ":\n";
-                if (@{ $result->{bydir}{$dir}{pkg} || []} > 3) {
-                    print "    " . scalar(@{ $result->{bydir}{$dir}{pkg} || []}) .
-                    " results in the distribution...\n";
-                } else {
-                    foreach (@{ $result->{bydir}{$dir}{pkg} || []}) {
-                        print "    " . $sc->send_request('rpms.basicinfo', $_)->value->{filename};
-                        print "\n";
-                    }
-                }
-                foreach (@{ $result->{bydir}{$dir}{pool} || [] }) {
-                    print "  * " . $pool{$_} . "\n";
-                }
-            }
-        }
-        if (@{ $result->{notfound} || []}) {
-            push(@dirnotfound, @{ $result->{notfound} });
-            print "\nUnowned directories:\n";
-            print  map { " $_\n" }  @{ $result->{notfound} };
-        }
-    }
-    print "\n";
-}
-
-$sc->send_request('user.folder.clear');
-
-if (@dirnotfound) {
-    print "Warning, this directory are not owned by any package:\n";
-    print map { " $_\n" } @dirnotfound;
-    print "\n";
-}
-if (@unresolved) {
-    print "Error, unresolved:\n";
-    print  map { " $_\n" }  @unresolved;
-    print "\n";
-    if ($search) {
-        print "\nSearching depedencies in sophie\n";
-        foreach my $dep (@unresolved) {
-            my $res = $sc->send_request(
-                'search.rpm.bydep', $searchsp, 'P', split(' ', $dep)
-            );
-            if (ref $res && !$res->is_fault) {
-                print "$dep: " . $res->value->{total_entries} . " results\n";
-                foreach (@{ $res->value->{results} }) {
-                    print "    " . $sc->send_request('rpms.basicinfo', $_)->value->{filename};
-                    print "\n";
-                }
+my $res = $ts->run;
+$ts->summary if (@ARGV > 1);
+print "\nThis transaction would failed\n" if(!$res);
+if ($search) {
+    print "\nSearching depedencies in sophie\n";
+    foreach my $dep (@{ $ts->{unresolved}} ) {
+        my $res = $sc->send_request(
+            'search.rpm.bydep', $searchsp, 'P', split(' ', $dep)
+        );
+        if (ref $res && !$res->is_fault) {
+            print "$dep: " . $res->value->{total_entries} . " results\n";
+            foreach (@{ $res->value->{results} }) {
+                print "    " . $sc->send_request('rpms.basicinfo', $_)->value->{filename};
+                print "\n";
             }
         }
     }
-    exit(1);
-} else {
-    print "No Error found\n";
-    exit(0);
 }
-
+exit($res ? 0 : 1);
 
 =head1 AUTHOR
 
