@@ -162,6 +162,7 @@ sub is_updated : XMLRPC {
     my $pkg = $c->model('Base::UsersRpms')->find(
         { id => $id }
     );
+    $distspec->{src} = $pkg->issrc ? 1 : 0;
 
     $c->forward('/analysis/solver/is_updated',
         [ $distspec, [ $pkg->name, '>=', $pkg->evr ], $pool ]

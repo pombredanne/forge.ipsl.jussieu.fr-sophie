@@ -115,6 +115,7 @@ sub load_rpm : XMLRPCLocal {
             user_fkey => ($User ? $User->ukey : undef),
             sessions_fkey => ($User ? undef : 'session:' . $c->sessionid),
             pkgid => $pkgid,
+            issrc => (ref $tags->{Sourcerpm} ? 0 : 1),
         }
     );
     {
@@ -128,9 +129,9 @@ sub load_rpm : XMLRPCLocal {
                         ? $tags->{Dirnames}{string}[$tags->{Dirindexes}{integer}[$fcount]]
                         : ''),
                     mode => $tags->{Filemodes}{integer}[$fcount],
-                    md5 => ref $tags->{Filedigests}{string}[$fcount] 
+                    md5 => (ref $tags->{Filedigests}{string}[$fcount] 
                         ? undef
-                        : $tags->{Filedigests}{string}[$fcount],
+                        : $tags->{Filedigests}{string}[$fcount]),
                 }
             );
         }
