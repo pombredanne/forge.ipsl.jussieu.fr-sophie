@@ -127,6 +127,10 @@ sub load_rpm : XMLRPCLocal {
                     dirname  => (ref $tags->{Sourcerpm}
                         ? $tags->{Dirnames}{string}[$tags->{Dirindexes}{integer}[$fcount]]
                         : ''),
+                    mode => $tags->{Filemodes}{integer}[$fcount],
+                    md5 => ref $tags->{Filedigests}{string}[$fcount] 
+                        ? undef
+                        : $tags->{Filedigests}{string}[$fcount],
                 }
             );
         }

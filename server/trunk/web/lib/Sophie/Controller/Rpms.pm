@@ -564,7 +564,7 @@ sub analyse :Chained('rpms_') :PathPart('analyse') :Args(0) :XMLRPC {
         } @{ $c->forward('dependency', [ $pkgid, 'R' ]) };
 
         $c->stash->{xmlrpc} = $c->forward(
-            '/analysis/solver/find_requirements',
+            '/analysis/solver/solve_dependencies',
             [ $dist,
                 'P', \@deplist, [] ]
         );

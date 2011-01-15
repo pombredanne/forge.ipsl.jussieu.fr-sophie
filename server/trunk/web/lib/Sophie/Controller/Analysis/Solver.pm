@@ -27,7 +27,7 @@ sub index :Path :Args(0) {
     $c->response->body('Matched Sophie::Controller::Analysis::Solver in Analysis::Solver.');
 }
 
-sub find_requirements : XMLRPC {
+sub solve_dependencies : Private {
     my ($self, $c, $searchspec, $over, $deplist, $pool) = @_;
 
     $searchspec->{nopager} = 1;
@@ -121,7 +121,58 @@ sub find_requirements : XMLRPC {
     };
 }
 
-sub parentdir : XMLRPC {
+sub find_requirements : Private {
+    my ($self, $c, $searchspec, $deplist, $pool) = @_;
+    $c->forward('solve_dependencies', [ $searchspec, 'P', $deplist, $pool ]);
+}
+
+sub find_conflicts : Private {
+    my ($self, $c, $searchspec, $conflicts, $provides, $pool) = @_;
+    my $resp = $c->forward('solve_dependencies', [ $searchspec, 'P', $conflicts, $pool ]);
+    my $resc = $c->forward('solve_dependencies', [ $searchspec, 'C', $provides,  $pool ]);
+    $c->stash->{xmlrpc} = {
+        pkg => [ @{ $resp->{pkg} }, @{ $resc->{pkg} } ],
+        pool => [ @{ $resp->{pool} }, @{ $resc->{pool} } ],
+    }
+}
+
+sub is_obsoleted : Private {
+    my ($self, $c, $searchspec, $deplist, $pool) = @_;
+    $c->forward('solve_dependencies', [ $searchspec, 'O', $deplist, $pool ]);
+}
+
+sub is_updated : Private {
+    my ($self, $c, $searchspec, $deplist, $pool) = @_;
+    my $pkgid = $c->forward('/search/rpm/byname', [ $searchspec, @{ $deplist } ]);
+    $c->stash->{xmlrpc} = {
+        pkg => $pkgid,
+        pool => [],
+    }
+}
+
+sub files_conflicts : Private {
+    my ($self, $c, $searchspec, $files, $pool) = @_;
+
+    my %fc;
+    my %pkgid;
+    foreach my $file (@{ $files || []}) {
+        my $res = $c->forward('/search/file/byname',
+            [ $searchspec,  $file->{dirname} . $file->{basename} ]);
+        foreach (@{ $res }) {
+            if (($_->{md5} || '') eq ($file->{md5} || '')) {
+                next;
+            }
+            push(@{ $fc{$file->{dirname} . $file->{basename}}}, $_->{pkgid});
+            $pkgid{$_->{pkgid}} = 1;
+        }
+    }
+    $c->stash->{xmlrpc} = {
+        pkg => [ keys %pkgid ],
+        byfile => \%fc,
+    }
+}
+
+sub parentdir : Private {
     my ($self, $c, $searchspec, $folder, $pool) = @_;
 
     my %need_pool;

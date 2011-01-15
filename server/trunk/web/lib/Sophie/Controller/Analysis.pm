@@ -70,8 +70,7 @@ sub required_by :Local {
     
     $c->stash->{xmlrpc} = $c->forward(
         '/analysis/solver/find_requirements',
-        [ $c->session->{analyse_dist},
-            'P', \@deplist, \@folderid ]
+        [ $c->session->{analyse_dist}, \@deplist, \@folderid ]
     );
 }
 
@@ -99,7 +98,88 @@ sub find_requirements : XMLRPC {
     }
 
     $c->forward('/analysis/solver/find_requirements',
-        [ $distspec, 'P', \@deplist, $pool ]);
+        [ $distspec, \@deplist, $pool ]);
+}
+
+sub find_conflicts : XMLRPC {
+    my ($self, $c, $distspec, $id, $pool) = @_;
+    $pool ||= $id;
+    my @provides;
+    foreach my $dep ($c->model('Base::UsersDeps')->search(
+        {
+            pid => [ $id ],
+            deptype => 'C',
+        },
+        {
+            select => [ 'rpmsenseflag("flags")',
+                qw(depname flags evr deptype) ],
+            as => [ qw'sense depname flags evr deptype' ],
+        }
+        )->all) {
+        $dep->get_column('depname') =~ /^rpmlib\(/ and next;
+        push(@provides, [
+                $dep->get_column('depname'),
+                $dep->get_column('sense'),
+                $dep->get_column('evr') ]);
+    }
+    my @conflicts;
+    foreach my $dep ($c->model('Base::UsersDeps')->search(
+        {
+            pid => [ $id ],
+            deptype => 'C',
+        },
+        {
+            select => [ 'rpmsenseflag("flags")',
+                qw(depname flags evr deptype) ],
+            as => [ qw'sense depname flags evr deptype' ],
+        }
+        )->all) {
+        $dep->get_column('depname') =~ /^rpmlib\(/ and next;
+        push(@conflicts, [
+                $dep->get_column('depname'),
+                $dep->get_column('sense'),
+                $dep->get_column('evr') ]);
+    }
+
+    $c->forward('/analysis/solver/find_conflicts',
+        [ $distspec, \@conflicts, \@provides, $pool ]);
+}
+
+sub is_obsoleted : XMLRPC {
+    my ($self, $c, $distspec, $id, $pool) = @_;
+    
+    my $pkg = $c->model('Base::UsersRpms')->find(
+        { id => $id }
+    );
+
+    $c->forward('/analysis/solver/is_obsoleted',
+        [ $distspec, [ [ $pkg->name, '=', $pkg->evr ] ], $pool ]
+    );
+}
+
+sub is_updated : XMLRPC {
+    my ($self, $c, $distspec, $id, $pool) = @_;
+    my $pkg = $c->model('Base::UsersRpms')->find(
+        { id => $id }
+    );
+
+    $c->forward('/analysis/solver/is_updated',
+        [ $distspec, [ $pkg->name, '>=', $pkg->evr ], $pool ]
+    );
+}
+
+sub files_conflicts : XMLRPC {
+    my ($self, $c, $distspec, $id, $pool) = @_;
+    my @files = 
+        map { { $_->get_columns } } 
+        grep { $_->dirname }
+        $c->model('Base::UsersFiles')->search(
+            { pid => $id }
+    );
+
+    $c->forward('/analysis/solver/files_conflicts',
+        [ $distspec, \@files, $pool ]
+    );
 }
 
 sub parentdir : XMLRPC {
