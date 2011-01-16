@@ -2,6 +2,10 @@
 <div id="sophie_header_search">
     <form action="[% c.uri_for('/search/results') %]">
         <input type="text" name="search" value="[% c.req.param('search') %]">
-        <input type="submit">
+        <input type="image"
+            src="[% c.uri_for('/static/images', 'search.png') %]"
+            alt="Search"
+            title="Search"
+            style="height: 2em;">
     </form>
 </div>
