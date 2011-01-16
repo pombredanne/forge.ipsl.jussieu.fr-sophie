@@ -121,6 +121,46 @@ sub solve_dependencies : Private {
     };
 }
 
+sub solve_name : Private {
+    my ($self, $c, $searchspec, $deplist, $pool) = @_;
+    my %need_pkgid;
+    my %need_pool;
+    my %bydep;
+    my @unresolved;
+    foreach my $dep (@{$deplist || []}) {
+        my ($depname, $sense, $evr) = ref $dep
+            ? @$dep
+            : split(/\s+/, $dep);
+        $sense ||= '';
+        $evr ||= '';
+        my $depdisplay = $depname . ($sense ? " $sense $evr" : '');
+        my $found = 0;
+
+        my $res = $c->forward('/search/rpm/byname', [ $searchspec, $depname,
+                $sense, $evr ]);
+        foreach (@{ $res }) {
+            $found = 1;
+            $need_pkgid{$_} = 1;
+            $bydep{$depdisplay}{pkg}{$_} = 1;
+        }
+
+        if (!$found) {
+            push(@unresolved, $depdisplay);
+        }
+    }
+    foreach my $d (keys %bydep) {
+        foreach my $t (keys %{ $bydep{$d} || {} }) {
+            $bydep{$d}{$t} = [ keys %{ $bydep{$d}{$t} } ];
+        }
+    }
+    $c->stash->{xmlrpc} = {
+        unresolved => \@unresolved,
+        pkg => [ keys %need_pkgid ],
+        pool => [ keys %need_pool ],
+        bydep => \%bydep,
+    }
+}
+
 sub find_requirements : Private {
     my ($self, $c, $searchspec, $deplist, $pool) = @_;
     $c->forward('solve_dependencies', [ $searchspec, 'P', $deplist, $pool ]);
@@ -143,11 +183,12 @@ sub is_obsoleted : Private {
 
 sub is_updated : Private {
     my ($self, $c, $searchspec, $deplist, $pool) = @_;
-    my $pkgid = $c->forward('/search/rpm/byname', [ $searchspec, @{ $deplist } ]);
-    $c->stash->{xmlrpc} = {
-        pkg => $pkgid,
-        pool => [],
-    }
+    $c->forward('solve_name', [ $searchspec, [ $deplist ] ], $pool);
+}
+
+sub find_obsoletes : Private {
+    my ($self, $c, $searchspec, $deplist, $pool) = @_;
+    $c->forward('solve_name', [ $searchspec,  $deplist ], $pool);
 }
 
 sub files_conflicts : Private {
