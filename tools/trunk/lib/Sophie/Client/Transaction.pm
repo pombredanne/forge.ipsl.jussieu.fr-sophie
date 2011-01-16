@@ -17,7 +17,7 @@ sub new {
 
 sub DESTROY {
     my ($self) = @_;
-    #$self->client->send_request('user.folder.clear');
+    $self->client->send_request('user.folder.clear');
 }
 
 sub client { $_[0]->{client} }
