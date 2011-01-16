@@ -104,7 +104,7 @@ sub find_requirements : XMLRPC {
 sub find_obsoletes : XMLRPC {
     my ($self, $c, $distspec, $id, $pool) = @_;
     $pool ||= $id;
-    my @provides;
+    my @deplist;
     foreach my $dep ($c->model('Base::UsersDeps')->search(
         {
             pid => [ $id ],
@@ -117,7 +117,7 @@ sub find_obsoletes : XMLRPC {
         }
         )->all) {
         $dep->get_column('depname') =~ /^rpmlib\(/ and next;
-        push(@provides, [
+        push(@deplist, [
                 $dep->get_column('depname'),
                 $dep->get_column('sense'),
                 $dep->get_column('evr') ]);
