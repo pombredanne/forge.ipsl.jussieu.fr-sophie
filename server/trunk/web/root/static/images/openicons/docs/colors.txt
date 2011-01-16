@@ -1,0 +1,12 @@
+Green dark:	37832dff
+Green ligt:	99CB13ff
+
+red dark:	781E19ff
+red light:	D3241Cff
+
+blue dark:	005ba0ff
+blue light:	008FD9ff
+
+shadow color:	000026ff
+blur:		4,0
+opacity:	80%
