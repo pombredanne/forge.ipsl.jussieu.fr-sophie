@@ -117,12 +117,6 @@ sub paste : XMLRPCLocal {
     if ($c->user_exists) {
         my @char = ('a' .. 'z', 'A' .. 'Z', 0 .. 9);
         my $id = join('', map { $char[rand(@char)] } (0..7));
-        $c->model('Base::ChatPaste')->search({
-            -nest => \[
-                "whenpaste < now() - ?::interval",
-                [ plain_text => "30 days" ],
-            ]
-        })->delete;
         $c->model('Base::ChatPaste')->create(
             {
                 id => $id,

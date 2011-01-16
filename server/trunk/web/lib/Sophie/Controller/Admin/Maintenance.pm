@@ -32,6 +32,7 @@ sub tasks : XMLRPC {
 
     $c->stash->{xmlrpc} = [ qw(
         admin.maintenance.delete_expired_sessions
+        admin.maintenance.delete_expired_paste
     ) ];
 }
 
@@ -42,6 +43,19 @@ sub delete_expired_sessions :XMLRPC {
 
     $c->stash->{xmlrpc} = 'Done';
 }
+
+sub delete_expired_paste :XMLRPC {
+    my ($self, $c) = @_;
+    $c->model('Base::ChatPaste')->search({
+            -nest => \[
+            "whenpaste < now() - ?::interval",
+            [ plain_text => "30 days" ],
+        ]
+    })->delete;
+    $c->model('Base')->storage->sth->commit;
+    $c->stash->{xmlrpc} = 'Done';
+}
+
 
 =head1 AUTHOR
 
