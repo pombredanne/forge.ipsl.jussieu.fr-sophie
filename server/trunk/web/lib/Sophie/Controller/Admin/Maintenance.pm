@@ -16,6 +16,25 @@ Catalyst Controller.
 
 =cut
 
+sub begin : Private {
+    my ($self, $c) = @_;
+
+    if ($c->req->address eq '127.0.0.1' || $c->req->address eq '::1') {
+    } else {
+        $c->forward('/admin/begin')
+    }
+
+    $c->forward('/begin');
+}
+
+sub tasks : XMLRPC {
+    my ($self, $c) = @_;
+
+    $c->stash->{xmlrpc} = [ qw(
+        admin.maintenance.delete_expired_sessions
+    ) ];
+}
+
 sub delete_expired_sessions :XMLRPC {
     my ($self, $c) = @_;
 

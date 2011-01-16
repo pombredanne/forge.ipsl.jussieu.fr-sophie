@@ -51,12 +51,6 @@ sub begin : Private {
         $c->stash->{current_view} = 'Ajax';
     }
 
-    if ($c->action =~ m/^admin\//) {
-        if (!($c->user_exists && $c->check_user_roles($c->user, 'Admin'))) {
-            $c->go('/login/index');
-        }
-    }
-
     #$c->delete_expired_sessions;
 }
 

@@ -1,0 +1,13 @@
+#!/bin/env perl
+
+require RPC::XML;
+require RPC::XML::Client;
+
+my $xmlcli = RPC::XML::Client->new('http://localhost.localdomain/rpc');
+
+my $tasks = $xmlcli->send_request('admin.maintenance.tasks');
+if (ref $tasks && !$tasks->is_fault) {
+    foreach (@{ $tasks->value || []}) {
+        $xmlcli->send_request($_);
+    }
+}

@@ -17,6 +17,16 @@ Catalyst Controller.
 
 =cut
 
+sub begin : Private {
+    my ($self, $c) = @_;
+
+    if (!($c->user_exists && $c->check_user_roles($c->user, 'Admin'))) {
+        $c->go('/login/index');
+    }
+
+    $c->forward('/begin');
+}
+
 =head2 index
 
 =cut
