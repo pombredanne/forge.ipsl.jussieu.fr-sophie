@@ -76,6 +76,10 @@ Sophie Web Site
 rm -rf %buildroot
 %makeinstall_std
 
+mkdir -p %buildroot/%_sysconfdir/cron.daily
+
+install -m 755 bin/sophie_cron %buildroot/%_sysconfdir/cron.daily/sophie_cron
+
 %clean
 rm -rf %buildroot
 
@@ -83,6 +87,7 @@ rm -rf %buildroot
 %defattr(-,root,root)
 %doc Changes README
 %dir %_sysconfdir/sophie
+%_sysconfdir/cron.daily/sophie_cron
 %config(noreplace) %_sysconfdir/sophie/*
 %_bindir/*
 %{_mandir}/man3/*
