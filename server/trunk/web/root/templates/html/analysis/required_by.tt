@@ -2,7 +2,22 @@
 <p class="alert">Unresolved dependencies:</p>
 <ul class="alert">
 [% FOREACH dep = xmlrpc.unresolved %]
-<li>[% dep | html %]</li>
+<li>[% dep | html %]
+<form method="POST" action="[% c.uri_for('/search') %]" style="display: inline">
+    [% IF dep.search('^/') %]
+    <input type="hidden" name="type" value="byfile">
+    [% ELSE %]
+    <input type="hidden" name="deptype" value="P">
+    <input type="hidden" name="type" value="bydep">
+    [% END %]
+    <input type="hidden" name="search" value="[% dep | html %]">
+    <input type="image"
+            src="[% c.uri_for('/static/images', 'search.png') %]"
+            alt="Search [% dep | html %]"
+            title="Search [% dep | html %]"
+            style="height: 1em;">
+</form>
+</li>
 [% END %]
 </ul>
 [% END %]
