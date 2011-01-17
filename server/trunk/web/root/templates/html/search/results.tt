@@ -3,6 +3,7 @@
 [% USE 'GuessEncode' %]
 [% USE 'ObfuscateMail' %]
 
+[% BLOCK result_pager %]
 [% IF pager %]
 <p class="sophie_search_result_pager">
 [% IF pager.current_page != pager.first_page %]
@@ -37,6 +38,9 @@ Page [% pager.current_page %] / [% pager.last_page %]
 [% END %]
 </p>
 [% END %]
+[% END %]
+
+[% PROCESS result_pager %]
 
 [% FOREACH pkgid = xmlrpc.results %]
 [% info = c.forward('/rpms/info', [ pkgid ]) %]
@@ -48,7 +52,7 @@ Page [% pager.current_page %] / [% pager.last_page %]
 </p>
 
 [%# Depending the search, we have to perform a quick search per package to show
-result detail %]
+    result detail %]
 [% IF c.req.param('type') == 'bydep' %]
 [% sargs.0.pkgid = pkgid %]
 <ul>
@@ -69,3 +73,5 @@ result detail %]
 
 </div>
 [% END %]
+
+[% PROCESS result_pager %]
