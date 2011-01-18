@@ -548,16 +548,21 @@ sub analyse :Chained('rpms_') :PathPart('analyse') :Args(0) :XMLRPC {
     my ( $self, $c, $pkgid, $dist ) = @_;
     $pkgid ||= $c->stash->{pkgid};
     $c->stash->{rpmurl} = ($c->req->path =~ m:(.*)/[^/]+:)[0];
-    $dist->{distribution} ||= $c->req->param('distribution');
-    $dist->{release} ||= $c->req->param('release');
-    $dist->{arch} ||= $c->req->param('arch');
     if ($c->req->param('start')) {
+        $dist->{distribution} = $c->req->param('distribution');
+        $dist->{release} = $c->req->param('release');
+        $dist->{arch} = $c->req->param('arch');
         $c->session->{analyse} = $dist;
     } elsif (! $c->req->xmlrpc->is_xmlrpc_request) {
-        $dist = $c->session->{analyse};
+        $dist ||= $c->forward('/user/prefs/get_default_distrib');
+        foreach (qw(distribution release arch)) {
+            $c->req->params->{$_} = $dist->{$_};
+        }
     }
+    warn Data::Dumper::Dumper($dist);
 
     if ($c->req->param('analyse') || $c->req->xmlrpc->is_xmlrpc_request) {
+        $dist = $c->session->{analyse};
 
         my @deplist = map {
             [ $_->{name}, $_->{sense}, $_->{evr} ]

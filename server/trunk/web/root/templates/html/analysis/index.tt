@@ -20,6 +20,7 @@
     <span id="distribselect">
     [% INCLUDE 'ajax/forms/distribselect.tt' form = 'analysis_form' %]
     </span>
+
 <input type="submit" name="analyse">
 </form>
 

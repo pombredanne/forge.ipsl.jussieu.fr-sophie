@@ -10,7 +10,14 @@
     <span id="distribselect">
     [% INCLUDE 'ajax/forms/distribselect.tt' form = 'analysis_form' %]
     </span>
+
     <input type="submit" name="start">
+    [% c.prototype.link_to_remote( '<img src="' _ 
+        c.uri_for('/static/images/openicons/32x32', 'page_text_check.png') _
+        '" title="Set this choice as default" alt="Set" style="height: 1em">', {
+            url      => c.uri_for('/user/prefs/set_default_distrib'),
+            with     => "Form.serialize('analysis_form')",
+            }, { entities => '' }, ) %]
 </form>
 
 [% IF c.req.param('start') %]
