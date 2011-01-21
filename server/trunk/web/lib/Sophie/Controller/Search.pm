@@ -44,6 +44,12 @@ sub index :Path :Args(0) {
     my $searchspec = { %{ $c->session->{search_dist} } };
 
     for ($c->req->param('type')) {
+        /^fuzzyname$/ and do {
+            $c->stash->{sargs} = [ {}, $c->req->param('search') ];
+            $c->visit('/search/rpm/fuzzy_rpc', [ $searchspec, $c->req->param('search') ||
+                    undef ]);
+            last;
+        };
         /^byname$/ and do {
             $c->stash->{sargs} = [ {}, $c->req->param('search') ];
             $c->visit('/search/rpm/byname_rpc', [ $searchspec, $c->req->param('search') ||
@@ -248,7 +254,7 @@ sub file_rs : Private {
                     ? (pkgid => { IN => $distrs->get_column('pkgid')->as_query, },)
                     : ()),
                 ($searchspec->{pkgid}
-                    ? { pkgid => $searchspec->{pkgid} }
+                    ? { pkgid => { IN => $searchspec->{pkgid} } }
                     : ()),
             ],
         },

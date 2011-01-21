@@ -25,6 +25,7 @@
         document.getElementById('deptype').style.visibility = 'hidden';
     }
 ">
+<option value="fuzzyname"[% " selected=selected" IF c.req.param('type') == 'fuzzyname' %]>Name match</option>
 <option value="byname"[% " selected=selected" IF c.req.param('type') == 'byname' %]>rpm named</option>
 <option value="bydep"[% " selected=selected" IF c.req.param('type') == 'bydep' %]>dependency match</option>
 <option value="byfile"[% " selected=selected" IF c.req.param('type') == 'byfile' %]>File</option>
