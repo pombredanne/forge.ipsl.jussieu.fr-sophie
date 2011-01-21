@@ -129,6 +129,7 @@ sub byfile : Private {
 sub byfile_rpc : XMLRPCPath('byfile') {
     my ( $self, $c, $searchspec, $file) = @_;
     $searchspec ||= {};
+    my $distrs = $c->forward('/search/distrib_search', [ $searchspec, 1 ]);
 
     my $filers = $c->forward('/search/file_rs', [ $searchspec, $file ])
         ->get_column('pkgid');
@@ -176,7 +177,7 @@ sub fuzzy_rpc : XMLRPCPath('fuzzy') {
                      ]
                 },
                 $distrs
-                    ? { pkgid => { IN => [ $distrs->get_column('pkgid')->all ], }, }
+                    ? { pkgid => { IN => $distrs->get_column('pkgid')->as_query, }, }
                     : (),
             ]     
         },
