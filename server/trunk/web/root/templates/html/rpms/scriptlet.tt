@@ -1,0 +1,30 @@
+<!-- $Id$ -->
+
+[% FOREACH script =
+    [ 'PRETRANS', 'PREIN', 'PREUN', 'POSTIN', 'POSTUN', 'POSTTRANS' ] %]
+
+[% IF xmlrpc.$script.prog %]
+<h2>[% script | html %]</h2>
+<pre class="filedata">
+[% xmlrpc.$script.prog | html %]
+</pre>
+<pre class="filedata">
+[% xmlrpc.$script.script | html %]
+</pre>
+[% END %]
+
+[% END %]
+
+[% FOREACH trigger = xmlrpc.triggers %]
+[% IF loop.first %]
+<h2>Triggers</h2>
+[% END %]
+
+<h3>[% trigger.name | html %] [% trigger.sense | html %]
+    [% trigger.version | html %]</h3>
+
+<pre class="filedata">[% trigger.prog %]</pre>
+<pre class="filedata">[% trigger.script %]</pre>
+
+
+[% END %]

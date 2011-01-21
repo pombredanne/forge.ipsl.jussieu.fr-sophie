@@ -7,6 +7,7 @@
 <li><a href="[% c.uri_for('/', rpmurl) %]">Info</a></li>
 <li><a href="[% c.uri_for('/', rpmurl, 'deps') %]">Deps</a></li>
 <li><a href="[% c.uri_for('/', rpmurl, 'files') %]">Files</a></li>
+<li><a href="[% c.uri_for('/', rpmurl, 'scriptlet') %]">Scripts</a></li>
 <li><a href="[% c.uri_for('/', rpmurl, 'changelog') %]">ChangeLog</a></li>
 <li><a href="[% c.uri_for('/', rpmurl, 'location') %]">Location</a></li>
 <li><a href="[% c.uri_for('/', rpmurl, 'history') %]">Others versions</a></li>

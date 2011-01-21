@@ -381,8 +381,9 @@ sub rpms : Private {
         /^info$/       and $c->go('info',        [ $pkgid, @args ]);
         /^analyse$/    and $c->go('analyse',     [ $pkgid, @args ]);
         /^dependency$/ and $c->go('dependency',  [ $pkgid, @args ]);
-        /^history$/    and $c->go('history',  [ $pkgid, @args ]);
+        /^history$/    and $c->go('history',     [ $pkgid, @args ]);
         /^query$/      and $c->go('query',       [ $pkgid, @args ]);
+        /^scriptlet$/  and $c->go('scriptlet',   [ $pkgid, @args ]);
         /./            and $c->go('/404/index'); # other subpart dont exists
     }
     $c->stash->{rpmurl} = $c->req->path;
@@ -508,6 +509,61 @@ sub changelog :Chained('rpms_') :PathPart('changelog') :Args(0) :XMLRPCLocal {
     }
 
     $c->stash->{xmlrpc} = \@ch;
+}
+
+sub scriptlet :Chained('rpms_') :PathPart('scriptlet') :Args(0) :XMLRPCLocal {
+    my ( $self, $c, $pkgid ) = @_;
+    $pkgid ||= $c->stash->{pkgid};
+    $c->stash->{rpmurl} = ($c->req->path =~ m:(.*)/[^/]+:)[0];
+
+    $c->stash->{xmlrpc} = {};
+    foreach (
+            [ 'PREIN', 'PREINPROG' ],
+            [ 'POSTIN', 'POSTINPROG' ],
+            [ 'PREUN', 'PREUNPROG' ],
+            [ 'POSTUN', 'POSTUNPROG' ],
+            [ 'PRETRANS', 'PRETRANSPROG' ],
+            [ 'POSTTRANS', 'POSTTRANSPROG' ],
+        ) {
+            
+        my ($res) = $c->model('Base::Rpms')->search(
+            { pkgid => $pkgid },
+            { 
+                select => [ 
+                    qq{rpmquery("header", ?)},
+                    qq{rpmquery("header", ?)},
+                ],
+                as => [ qw(script prog) ],
+                bind => $_,
+            }
+        )->all;
+        
+        $c->stash->{xmlrpc}{$_->[0]} = { $res->get_columns } if ($res);
+    }
+    $c->stash->{xmlrpc}{triggers} = [
+        map { { $_->get_columns } }
+        $c->model('Base::Rpms')->search(
+            { pkgid => $pkgid },
+            { 
+                select => [ 
+                    qq{rpmquery("header", ?)},
+                    qq{rpmquery("header", ?)},
+                    qq{rpmquery("header", ?)},
+                    qq{rpmsenseflag(rpmquery("header", ?)::int)},
+                    qq{rpmquery("header", ?)},
+                ],
+                as => [ qw(script prog name sense version) ],
+                bind => [qw(
+                    TRIGGERSCRIPTS
+                    TRIGGERSCRIPTPROG
+                    TRIGGERNAME
+                    TRIGGERFLAGS
+                    TRIGGERVERSION
+                    )]
+            }
+        )->all ];
+
+    return $c->stash->{xmlrpc};
 }
 
 =head2 rpms.location( PKGID )
