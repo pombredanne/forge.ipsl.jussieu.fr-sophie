@@ -556,7 +556,7 @@ sub analyse :Chained('rpms_') :PathPart('analyse') :Args(0) :XMLRPC {
     } elsif (! $c->req->xmlrpc->is_xmlrpc_request) {
         $dist ||= $c->forward('/user/prefs/get_default_distrib');
         foreach (qw(distribution release arch)) {
-            $c->req->params->{$_} = $dist->{$_};
+            $c->req->params->{$_} = $dist ? $dist->{$_} : undef;
         }
     }
     warn Data::Dumper::Dumper($dist);
