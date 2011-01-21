@@ -251,7 +251,7 @@ sub file_rs : Private {
                 basename => $basename,
                 ($searchspec->{content} ? { has_content => 1 } : ()),
                 ($distrs 
-                    ? (pkgid => { IN => $distrs->get_column('pkgid')->as_query, },)
+                    ? (pkgid => { IN => [ $distrs->get_column('pkgid')->all ], },)
                     : ()),
                 ($searchspec->{pkgid}
                     ? { pkgid => { IN => $searchspec->{pkgid} } }
