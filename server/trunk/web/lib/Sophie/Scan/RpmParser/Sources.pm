@@ -9,6 +9,7 @@ use File::Copy;
 use Archive::Cpio;
 use Encode::Guess;
 use Encode;
+use MIME::Types;
 
 sub run {
     my ($self, $rpm, $pkgid, $added) = @_;
@@ -36,7 +37,11 @@ sub run {
             if ($filelist{$fname}->size > 2 * 1024 * 1024) {
                 return 1;
             }
-            $fname =~ /\.(gz|zip|bz2|xz|lzma)$/ and return 1;
+
+            if (my $plaintext = MIME::Types->new->mimeTypeOf($fname)) {
+                $plaintext->isBinary and return 1;
+            }
+            
             my $rawcontent = $file->get_content;
             my $content;
             foreach my $line (split("\n", $rawcontent)) {
