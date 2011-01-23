@@ -5,10 +5,10 @@ use warnings;
 use Linux::Inotify2;
 use POSIX ":sys_wait_h";
 use Getopt::Long;
+use Sophie::Scan;
 
 $ENV{LC_ALL} = 'C';
-require Sophie::Base;
-require Sophie::Base::RpmsPath;
+require Sophie::Scan::RpmsPath;
 
 GetOptions(
     'bdelay=i' =>  \my $updated_inotify,
@@ -27,25 +27,38 @@ if ($daemon) {
     }
 }
 
+my $update = 1;
 alarm($updated_inotify);
 while (1) {
     local $SIG{ALRM} = sub {
         alarm($updated_inotify);
+        $update = 1;
     };
-    if (update_base(keys %modified_paths)) {
-        %modified_paths = ();
+    if ($update) {
+        if (update_base(keys %modified_paths)) {
+            %modified_paths = ();
+            $update = 0;
+        }
     }
     warn "$$ Inotify";
     $inotify = inotify_path();
-    $inotify->poll;
+    if ($inotify) {
+        $inotify->poll and $update = 1;
+    } else {
+        sleep(300);
+    }
 }
 
 sub inotify_path {
 
     my $i = Linux::Inotify2->new;
-    my $sophie = Sophie::Base->connect;
     
-    foreach ($sophie->resultset('Paths')->get_column('path')->all) {
+    my @paths = Sophie::Scan->new->list_paths;
+    if (!@paths) {
+        return;
+    }
+    foreach (@paths) {
+        -d $_ or next;
         $i->watch(
             $_,
             IN_DELETE | IN_MODIFY | IN_CREATE,
@@ -71,61 +84,33 @@ sub update_base {
     warn "$$ updating base";
     if (my $pid = fork()) {
     } else {
-
         alarm 0;
+        my $scan = Sophie::Scan->new;
+        $scan->update_meta_paths;
         my @pkey;
         {
-            my $sophie = Sophie::Base->connect or do {
-                die "cannot read config file\n";
-            };
-            @pkey = $sophie->resultset('Paths')->search(
-                path => [ @path ],
-            )->get_column('d_path_key')->all;
-            push(@pkey, $sophie->resultset('Paths')->search({
-                updated => [ undef, 
-                    \[ " < now() - '24 hours'::interval"],
-                ],
-            })->get_column('d_path_key')->all);
-            my %uniq = map { $_ => 1 } @pkey;
-            @pkey = keys %uniq;
+            @pkey = $scan->paths_to_keys(@path);
+            
+            push(@pkey, $scan->list_unscanned_paths);
         }
 
         exit(0) if (!@pkey);
 
-
-
-        my $NB_PAR = 1;
-        my @split;
-        my $div = @pkey / $NB_PAR;
-
-        for (my $i = 0; $i < $NB_PAR - 1; $i++) {
-            $split[$i] = [ splice(@pkey, 0, $div) ];
-        }
-        $split[$NB_PAR -1] = [ @pkey ];
-        foreach my $job (@split) {
-            @{$job || []} or next;
-
-            if (fork()) {
-            } else {
-
-                foreach my $pathkey (@{ $job }) {
-                    my $time = time;
-                    my @delta = Sophie::Base::RpmsPath->new($pathkey, Sophie::Base->connect)
-                        ->find_delta;
-                    while (my @d = splice(@delta, 0, 25)) {
-                        my $path = Sophie::Base::RpmsPath->new($pathkey, Sophie::Base->connect);
-                        $path->update_content(@d);
-                        #$path->db->disconnect;
-                        # If it take too long time, next path
-                        last if (time > $time + 15 * 60);
-                    }
-                    Sophie::Base::RpmsPath->new($pathkey, Sophie::Base->connect)->set_updated
-                        if (!@delta); # update only if we finished
-                }
-                exit(0);
+        foreach my $pathkey (@pkey) {
+            my $time = time;
+            my @delta = Sophie::Scan::RpmsPath
+                ->new($pathkey, Sophie::Scan->new)
+                ->find_delta;
+            while (my @d = splice(@delta, 0, 25)) {
+                my $scan = Sophie::Scan->new;
+                my $path = Sophie::Scan::RpmsPath->new($pathkey, $scan);
+                $path->update_content(@d);
+                last if (time > $time + 15 * 60);
             }
+
+            Sophie::Scan::RpmsPath->new($pathkey, Sophie::Scan->new)->set_updated
+                if (!@delta); # update only if we finished
         }
-        1 while(waitpid(-1, 0) <= 0);
         exit(0);
     }
     return 1;

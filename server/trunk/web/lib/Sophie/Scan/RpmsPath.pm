@@ -1,8 +1,7 @@
-package Sophie::Base::RpmsPath;
+package Sophie::Scan::RpmsPath;
 
 use strict;
 use warnings;
-use base qw(Sophie::Base);
 use Sophie::Base::Header;
 use RPM4;
 use File::Temp;
@@ -11,6 +10,7 @@ use Archive::Cpio;
 use Encode::Guess;
 use Encode;
 use Time::HiRes;
+use DBD::Pg qw(:pg_types);
 
 sub new {
     my ($class, $pathkey, $db) = @_;
@@ -20,29 +20,27 @@ sub new {
 
 sub key { $_[0]->{key} } 
 sub db { 
-    $_[0]->{db}->storage->dbh
+    $_[0]->{db}
 } 
 
 sub path {
     my ($self) = @_;
     
-    my $sth = $self->db->prepare_cached(
-        q{select path from d_path where d_path_key = ?}
-    );
-    $sth->execute($self->key);
-    my $res = $sth->fetchrow_hashref;
-    $sth->finish;
-    return $res->{path}
+    $self->db->base->resultset('Paths')->find(
+        { d_path_key => $self->key }
+    )->path;
 }
 
 sub ls_rpms {
     my ($self) = @_;
 
-    my $sth = $self->db->prepare_cached(
-        q{select * from rpmfiles where d_path = ?}
-    );
-    $sth->execute($self->key);
-    $sth->fetchall_hashref([ 'filename' ]);
+    my %list;
+    foreach ($self->db->base->resultset('RpmFile')->search(
+        { d_path => $self->key }
+    )->get_column('filename')->all) {
+        $list{$_} = 1;
+    }
+    return \%list;
 }
 
 sub local_ls_rpms {
@@ -94,6 +92,7 @@ sub find_delta {
     }
     @delta;
 }
+
 sub update_content {
     my ($self, @delta) = @_;
     foreach (@delta) {
@@ -116,59 +115,64 @@ sub update_content {
 
 sub set_exists {
     my ($self, $exists) = @_;
-    $self->db->prepare_cached(q{
-        update d_path set exists = ? where d_path_key = ?
-        })->execute(($exists ? 1 : 0), $self->key);
+    $self->db->base->resultset('Paths')->find(
+        { d_path_key => $self->key }
+    )->update({ 'exists' => ($exists ? 1 : 0) });
     $self->db->commit;
 }
 
 sub set_updated {
     my ($self) = @_;
     warn "$$ UPD";
-    $self->db->prepare_cached(q{
-        update d_path set updated = now() where d_path_key = ?
-        })->execute($self->key);
+    $self->db->base->resultset('Paths')->find(
+        { d_path_key => $self->key }
+    )->update({ 'updated' => \'now()' });
     $self->db->commit;
 }
-
 
 sub remove_rpm {
     my ($self, $rpm) = @_;
     warn "$$ deleting $rpm";
-    my $remove = $self->db->prepare_cached(
-        q{
-        DELETE FROM rpmfiles where d_path = ? and filename = ?
+    $self->db->base->storage->txn_do(
+        sub {
+
+            $self->db->base->resultset('RpmFile')->search(
+                { d_path => $self->key, filename => $rpm }
+            )->delete;
         }
     );
-    for (1 .. 3) {
-        if ($remove->execute($self->key, $rpm)) { 
-            $self->db->commit;
-            return 1;
-        }
-        $self->db->rollback;
-    }
 }
 
 sub add_rpm {
     my ($self, $rpm) = @_;
 
     warn "$$ adding $rpm";
-    for (1 .. 3) {
-        if (defined(my $pkgid = $self->_add_header($rpm))) {
-            $pkgid or return;
-            my $register = $self->db->prepare_cached(
-                q{
-                INSERT INTO rpmfiles (d_path, filename, pkgid)
-                values (?,?,?)
-                }
-            );
-            $register->execute($self->key, $rpm, $pkgid) and do {
-                $self->db->commit;
-                return 1;
+    eval {
+    my ($pkgid, $new) = $self->db->base->storage->txn_do(
+        sub {
+            my ($pkgid, $new) = $self->_add_header($rpm);
+            if (defined($pkgid)) {
+                $pkgid or return;
+                $self->db->base->resultset('RpmFile')->create(
+                    {
+                        d_path => $self->key,
+                        filename => $rpm,
+                        pkgid => $pkgid,
+                    }
+                ); 
+                return $pkgid, $new;
             }
-
+        },
+    );
+    foreach my $plugins (qw'sources') {
+        my $mod = ucfirst(lc($plugins));
+        eval "require Sophie::Scan::RpmParser::$mod;";
+        warn $@ if($@);
+        eval {
+            my $parser = "Sophie::Scan::RpmParser::$mod"->new($self->db);
+            $parser->run($self->path . '/' . $rpm, $pkgid, $new);
         }
-        $self->db->rollback;
+    }
     }
 }
 
@@ -185,15 +189,12 @@ sub _add_header {
     };
 
     {
-        my $find = $self->db->prepare_cached(q{
-            select pkgid from rpms where pkgid = ?
-        });
-        $find->execute($header->queryformat('%{PKGID}'));
-        my $rows = $find->rows;
-        $find->finish;
-        if ($rows) {
+        my $find = $self->db->base->resultset('Rpms')->search(
+            { pkgid => $header->queryformat('%{PKGID}') }
+        )->get_column('pkgid')->all;
+        if ($find) {
             warn "$$ Find";
-            return $header->queryformat('%{PKGID}');
+            return($header->queryformat('%{PKGID}'), 0);
         }
     }
     my $tmp = File::Temp->new( UNLINK => 1, SUFFIX => '.hdr' );
@@ -203,12 +204,6 @@ sub _add_header {
     my $string = '';
     while (read($tmp, my $str, 1024)) { $string .= $str }
     $tmp = undef;
-    my $add_header = $self->db->prepare_cached(
-        q{
-        INSERT into rpms (pkgid, name, header, evr, arch, issrc, description, summary)
-        values (?,?,rpmheader_in(decode(?, 'hex')::bytea),?,?,?,?,?)
-        }
-    );
     my $description = $header->queryformat('%{DESCRIPTION}');
     {
         my $enc = guess_encoding($description, qw/latin1/);
@@ -220,29 +215,25 @@ sub _add_header {
         $summary = $enc->decode($summary) if ($enc && ref $enc);
     }
 
-    $add_header->execute(
-        $header->queryformat('%{PKGID}'),
-        $header->queryformat('%{name}'),
-        unpack('H*', $string),
-        $header->queryformat('%|EPOCH?{%{EPOCH}:}:{}|%{VERSION}-%{RELEASE}'),
-        $header->queryformat('%{ARCH}'),
-        $header->hastag('SOURCERPM') ? 'f' : 't',
-        $description,
-        $summary,
-    ) or return;
-    my $index_tag = $self->db->prepare_cached(
+    $self->db->base->resultset('Rpms')->create({
+        pkgid  => $header->queryformat('%{PKGID}'),
+        name   => $header->queryformat('%{name}'),
+        header => \sprintf(qq{rpmheader_in(decode('%s', 'hex')::bytea)}, unpack('H*', $string)),
+        evr    => $header->queryformat('%|EPOCH?{%{EPOCH}:}:{}|%{VERSION}-%{RELEASE}'),
+        arch   => $header->queryformat('%{ARCH}'),
+        issrc  => $header->hastag('SOURCERPM') ? 'f' : 't',
+        description => $description,
+        summary => $summary,
+    });
+    my $index_tag = $self->db->base->storage->dbh->prepare_cached(
         q{
         select index_rpms(?);
         }
     );
     $index_tag->execute($header->queryformat('%{PKGID}')) or return;
     $index_tag->finish;
-    if (!$header->hastag('SOURCERPM')) {
-        Sophie::Base::Header->new($header->queryformat('%{PKGID}'), $self->{db})
-            ->addfiles_content({ path => $self->path, filename => $rpm}) or return;
-    }
 
-    $header->queryformat('%{PKGID}');
+    return($header->queryformat('%{PKGID}'), 1);
 }
 
 1;
