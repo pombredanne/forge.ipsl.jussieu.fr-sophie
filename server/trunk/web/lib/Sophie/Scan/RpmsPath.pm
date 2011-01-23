@@ -2,7 +2,6 @@ package Sophie::Scan::RpmsPath;
 
 use strict;
 use warnings;
-use Sophie::Base::Header;
 use RPM4;
 use File::Temp;
 use File::Copy;
