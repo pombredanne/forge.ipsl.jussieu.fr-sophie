@@ -10,12 +10,15 @@ use Encode::Guess;
 use Encode;
 
 sub new {
-    my ($class, $pkgid) = @_;
+    my ($class, $pkgid, $db) = @_;
 
-    bless({ key => $pkgid }, $class);
+    bless({ key => $pkgid, db => $db }, $class);
 }
 
 sub key { $_[0]->{key} }
+sub db  {
+    $_[0]->{db}->storage->dbh
+}
 
 sub rpm_path {
     my ($self) = @_;
@@ -58,7 +61,7 @@ sub addfiles_content {
 
     my $add_content = $self->db->prepare_cached(
         q{
-        UPDATE allfiles set contents = ? where pkgid = ? and count = ?
+        UPDATE allfiles set contents = ?, has_content = ? where pkgid = ? and count = ?
         }
     );
     seek($tmp, 0, 0);
@@ -68,13 +71,22 @@ sub addfiles_content {
             $tmp,
             sub {
                 my ($file) = @_;
-                my ($dirname, $basename) = $file->name =~ /^(?:\.(.*\/))?([^\/]+)$/;
-                $dirname ||= '';
-                my $entry = $files->{$dirname}{$basename};
+                my $fname = $file->name;
+                $fname =~ s/^\.\///;
+                my ($dirname, $basename) = $fname =~ /^(.*\/)?([^\/]+)$/;
+                $dirname = $rpm =~ /src.rpm$/
+                    ? ''
+                    : $dirname ? "/$dirname" : '' ;
+                my $entry = $files->{$dirname}{$basename} or do {
+                    warn "unknown $dirname, $basename";
+                    return 1;
+                };
                 for (1) {
-                    $entry->{size} > 1024 * 1024 and return 1;
-                    # Spec files and patch
                     $entry->{flags} == 32 and last;
+                    my $maxsize = $dirname eq '' ? 2 * 1024 : 50;
+                    $entry->{size} > $maxsize * 1024 and return 1;
+                    $basename =~ /\.gz$/ and return;
+                    # Spec files and patch
                     $dirname eq '' and last;
                     # Doc files
                     $entry->{flags} & (1 << 1) || $entry->{flags} & (1 << 8)
@@ -85,20 +97,20 @@ sub addfiles_content {
 
                     return 1;
                 }
-                my $content = $file->get_content;
-                my $enc = guess_encoding($content, qw/latin1/);
+                my $rawcontent = $file->get_content;
+                my $enc = guess_encoding($rawcontent, qw/latin1/);
                 if ($enc && ref $enc) {
-                    $content = $enc->decode($content);
+                    my $content = $enc->decode($rawcontent);
 
                     $self->db->pg_savepoint('FILECONTENT');
                     $add_content->execute(
-                        $enc && ref $enc ? encode('utf8', $enc->decode($content)) : $content,
+                        $enc && ref $enc ? encode('utf8', $content) : $rawcontent,
+                        1,
                         $self->key,
                         $entry->{count}) or do {
-                        $self->db->pg_rollback_to('FILECONTENT');
-                    };
-                } else {
-                }
+                            $self->db->pg_rollback_to('FILECONTENT');
+                        };
+                    }
                 1;
             }
         );

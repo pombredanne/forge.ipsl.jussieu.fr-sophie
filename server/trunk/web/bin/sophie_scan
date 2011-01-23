@@ -2,11 +2,13 @@
 
 use strict;
 use warnings;
-use Sophie::Base;
-use Sophie::Base::RpmsPath;
 use Linux::Inotify2;
 use POSIX ":sys_wait_h";
 use Getopt::Long;
+
+$ENV{LC_ALL} = 'C';
+require Sophie::Base;
+require Sophie::Base::RpmsPath;
 
 GetOptions(
     'bdelay=i' =>  \my $updated_inotify,
@@ -17,7 +19,7 @@ $SIG{CHLD} = sub { wait };
 
 my %modified_paths;
 my $inotify = undef;
-$updated_inotify ||= 300;
+$updated_inotify ||= 500;
 
 if ($daemon) {
     if (fork()) {
@@ -28,14 +30,13 @@ if ($daemon) {
 alarm($updated_inotify);
 while (1) {
     local $SIG{ALRM} = sub {
-        $inotify = undef;
-        warn "reparse paths";
         alarm($updated_inotify);
     };
     if (update_base(keys %modified_paths)) {
         %modified_paths = ();
     }
-    $inotify ||= inotify_path();
+    warn "$$ Inotify";
+    $inotify = inotify_path();
     $inotify->poll;
 }
 
@@ -67,32 +68,33 @@ sub update_base {
         warn "child still running";
         return;
     }
-    warn "updating base";
-
-    my @pkey;
-    {
-        my $sophie = Sophie::Base->connect or do {
-            die "cannot read config file\n";
-        };
-        @pkey = $sophie->resultset('Paths')->search(
-            path => [ @path ],
-        )->get_column('d_path_key')->all;
-        push(@pkey, $sophie->resultset('Paths')->search({
-            updated => [ undef, 
-                \[ " < now() - '6 hours'::interval"],
-            ],
-        })->get_column('d_path_key')->all);
-        my %uniq = map { $_ => 1 } @pkey;
-        @pkey = keys %uniq;
-    }
-
-    return 1 if (!@pkey);
-
+    warn "$$ updating base";
     if (my $pid = fork()) {
     } else {
 
+        alarm 0;
+        my @pkey;
+        {
+            my $sophie = Sophie::Base->connect or do {
+                die "cannot read config file\n";
+            };
+            @pkey = $sophie->resultset('Paths')->search(
+                path => [ @path ],
+            )->get_column('d_path_key')->all;
+            push(@pkey, $sophie->resultset('Paths')->search({
+                updated => [ undef, 
+                    \[ " < now() - '24 hours'::interval"],
+                ],
+            })->get_column('d_path_key')->all);
+            my %uniq = map { $_ => 1 } @pkey;
+            @pkey = keys %uniq;
+        }
 
-        my $NB_PAR = 2;
+        exit(0) if (!@pkey);
+
+
+
+        my $NB_PAR = 1;
         my @split;
         my $div = @pkey / $NB_PAR;
 
@@ -107,14 +109,18 @@ sub update_base {
             } else {
 
                 foreach my $pathkey (@{ $job }) {
-                    my @delta = Sophie::Base::RpmsPath->new($pathkey)
+                    my $time = time;
+                    my @delta = Sophie::Base::RpmsPath->new($pathkey, Sophie::Base->connect)
                         ->find_delta;
                     while (my @d = splice(@delta, 0, 25)) {
-                        my $path = Sophie::Base::RpmsPath->new($pathkey);
+                        my $path = Sophie::Base::RpmsPath->new($pathkey, Sophie::Base->connect);
                         $path->update_content(@d);
-                        $path->db->disconnect;
+                        #$path->db->disconnect;
+                        # If it take too long time, next path
+                        last if (time > $time + 15 * 60);
                     }
-                    Sophie::Base::RpmsPath->new($pathkey)->set_updated;
+                    Sophie::Base::RpmsPath->new($pathkey, Sophie::Base->connect)->set_updated
+                        if (!@delta); # update only if we finished
                 }
                 exit(0);
             }

@@ -10,14 +10,18 @@ use File::Copy;
 use Archive::Cpio;
 use Encode::Guess;
 use Encode;
+use Time::HiRes;
 
 sub new {
-    my ($class, $pathkey) = @_;
+    my ($class, $pathkey, $db) = @_;
 
-    bless({ key => $pathkey }, $class);
+    bless({ key => $pathkey, db => $db }, $class);
 }
 
-sub key { $_[0]->{key} }
+sub key { $_[0]->{key} } 
+sub db { 
+    $_[0]->{db}->storage->dbh
+} 
 
 sub path {
     my ($self) = @_;
@@ -61,16 +65,23 @@ sub local_ls_rpms {
 sub find_delta {
     my ($self) = @_;
 
-    warn $self->path;
+    warn "$$ " . $self->path;
 
-    my $localrpms = $self->local_ls_rpms || {};
+    my @delta;
+    my $localrpms = $self->local_ls_rpms;
     my $baserpms  = $self->ls_rpms;
 
+    if ($localrpms) {
+        push(@delta, { delta => 'DE' });
+    } else {
+        push(@delta, { delta => 'DM' });
+    }
+
+
     my %list;
-    foreach (keys %{ $localrpms }, keys %{ $baserpms }) {
+    foreach (keys %{ $localrpms || {} }, keys %{ $baserpms }) {
         $list{$_} = 1;
     }
-    my @delta;
 
     foreach my $rpm (sort { $b cmp $a } keys %list) {
         if ($localrpms->{$rpm} && $baserpms->{$rpm}) {
@@ -90,16 +101,30 @@ sub update_content {
         }
         elsif ($_->{delta} eq 'A') {
             $self->add_rpm($_->{rpm});
+            #sleep(1);
+            #Time::HiRes::usleep(750);
         }
         elsif ($_->{delta} eq 'R') {
             $self->remove_rpm($_->{rpm});
+        } elsif ($_->{delta} eq 'DM') {
+            $self->set_exists(0);
+        } elsif ($_->{delta} eq 'DE') {
+            $self->set_exists(1);
         }
     }
 }
 
+sub set_exists {
+    my ($self, $exists) = @_;
+    $self->db->prepare_cached(q{
+        update d_path set exists = ? where d_path_key = ?
+        })->execute(($exists ? 1 : 0), $self->key);
+    $self->db->commit;
+}
+
 sub set_updated {
     my ($self) = @_;
-    warn "UPD";
+    warn "$$ UPD";
     $self->db->prepare_cached(q{
         update d_path set updated = now() where d_path_key = ?
         })->execute($self->key);
@@ -109,6 +134,7 @@ sub set_updated {
 
 sub remove_rpm {
     my ($self, $rpm) = @_;
+    warn "$$ deleting $rpm";
     my $remove = $self->db->prepare_cached(
         q{
         DELETE FROM rpmfiles where d_path = ? and filename = ?
@@ -116,7 +142,6 @@ sub remove_rpm {
     );
     for (1 .. 3) {
         if ($remove->execute($self->key, $rpm)) { 
-            warn "deleting $rpm";
             $self->db->commit;
             return 1;
         }
@@ -127,6 +152,7 @@ sub remove_rpm {
 sub add_rpm {
     my ($self, $rpm) = @_;
 
+    warn "$$ adding $rpm";
     for (1 .. 3) {
         if (defined(my $pkgid = $self->_add_header($rpm))) {
             $pkgid or return;
@@ -136,10 +162,9 @@ sub add_rpm {
                 values (?,?,?)
                 }
             );
-            if ($register->execute($self->key, $rpm, $pkgid)) {
-                warn "adding $rpm";
+            $register->execute($self->key, $rpm, $pkgid) and do {
                 $self->db->commit;
-                return;
+                return 1;
             }
 
         }
@@ -152,10 +177,10 @@ sub _add_header {
 
     my $header;
     eval {
-        $header = RPM4::Header->new($self->path . '/' . $rpm) 
+        $header = RPM4::Header->new($self->path . '/' . $rpm, $self->{db}) 
     };
     $header or do {
-        warn "Cannot read " . $self->path . '/' . $rpm;
+        warn "$$ Cannot read " . $self->path . '/' . $rpm;
         return "";
     };
 
@@ -167,7 +192,7 @@ sub _add_header {
         my $rows = $find->rows;
         $find->finish;
         if ($rows) {
-            warn "Find";
+            warn "$$ Find";
             return $header->queryformat('%{PKGID}');
         }
     }
@@ -180,8 +205,8 @@ sub _add_header {
     $tmp = undef;
     my $add_header = $self->db->prepare_cached(
         q{
-        INSERT into rpms (pkgid, name, header, evr, issrc, description, summary)
-        values (?,?,rpmheader_in(decode(?, 'hex')::bytea),?,?,?,?)
+        INSERT into rpms (pkgid, name, header, evr, arch, issrc, description, summary)
+        values (?,?,rpmheader_in(decode(?, 'hex')::bytea),?,?,?,?,?)
         }
     );
     my $description = $header->queryformat('%{DESCRIPTION}');
@@ -200,10 +225,11 @@ sub _add_header {
         $header->queryformat('%{name}'),
         unpack('H*', $string),
         $header->queryformat('%|EPOCH?{%{EPOCH}:}:{}|%{VERSION}-%{RELEASE}'),
+        $header->queryformat('%{ARCH}'),
         $header->hastag('SOURCERPM') ? 'f' : 't',
         $description,
         $summary,
-    );
+    ) or return;
     my $index_tag = $self->db->prepare_cached(
         q{
         select index_rpms(?);
@@ -211,8 +237,10 @@ sub _add_header {
     );
     $index_tag->execute($header->queryformat('%{PKGID}')) or return;
     $index_tag->finish;
-    Sophie::Base::Header->new($header->queryformat('%{PKGID}'))
-        ->addfiles_content({ path => $self->path, filename => $rpm}) or return;
+    if (!$header->hastag('SOURCERPM')) {
+        Sophie::Base::Header->new($header->queryformat('%{PKGID}'), $self->{db})
+            ->addfiles_content({ path => $self->path, filename => $rpm}) or return;
+    }
 
     $header->queryformat('%{PKGID}');
 }

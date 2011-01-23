@@ -28,7 +28,10 @@ sub connection {
         $connect_info->{dsn} = 'dbi:Pg:' . $config->{dbconnect};
         $connect_info->{user} = $config->{dbuser};
         $connect_info->{password} = $config->{dbpassword};
+        $connect_info->{unsafe} = 1;
     }
+    $connect_info->{PrintError} = 0;
+    $connect_info->{RaiseError} = 0;
     exists($connect_info->{AutoCommit}) or $connect_info->{AutoCommit} = 0;
     $class->SUPER::connection(
         $connect_info,
