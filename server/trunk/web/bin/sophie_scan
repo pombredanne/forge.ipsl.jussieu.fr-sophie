@@ -87,6 +87,7 @@ sub update_base {
         alarm 0;
         my $scan = Sophie::Scan->new;
         $scan->update_meta_paths;
+
         my @pkey;
         {
             @pkey = $scan->paths_to_keys(@path);

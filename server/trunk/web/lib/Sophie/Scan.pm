@@ -58,10 +58,12 @@ sub update_meta_paths {
         my $type = ucfirst(lc($_->type));
         eval "require Sophie::Scan::MetaPath::$type";
         if ($@) {
-            warn "Cannot load MetaPath $type";
+            warn "Cannot load MetaPath $type: $@";
             next;
         }
-        "Sophie::Scan::MetaPath::$type"->run($self, $_);
+        warn "$$ Updating Meta $_";
+        my $meta = "Sophie::Scan::MetaPath::$type"->new($self, $_);
+        $meta->run();
     }
 }
 
