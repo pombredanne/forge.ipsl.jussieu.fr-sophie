@@ -128,8 +128,30 @@ sub list_path :XMLRPC {
         ->search_related('Arch', $arch ? (arch => $arch) : ())
         ->search_related('Medias', $media ? (label => $media) : ())
         ->search_related('MediasPaths')
-        ->search_related('Paths')->get_column('path')
+        ->search_related('Paths', { meta_path => undef })->get_column('path')
         ->all ];
+}
+
+sub list_meta_path :XMLRPC {
+    my ($self, $c, $distribution, $version, $arch, $media) = @_;
+    
+    if (ref $distribution) {
+        ($distribution, $version, $arch, $media) = 
+        (
+            $distribution->{distribution},
+            $distribution->{release},
+            $distribution->{arch},
+            $version,
+        );
+    }
+
+    $c->stash->{xmlrpc}  = [
+    $c->model('Base')->resultset('Distribution')
+        ->search($distribution ? (name => $distribution) : ())
+        ->search_related('Release', $version ? (version => $version) : ())
+        ->search_related('Arch', $arch ? (arch => $arch) : ())
+        ->search_related('MetaPaths')
+        ->get_column('path')->all ];
 }
 
 sub media_path :XMLRPC {
@@ -271,7 +293,47 @@ sub dump_distrib : XMLRPC {
                 $_->{label} ]);
     }
 
+    $ref->{metapath} = [ map { { $_->get_columns } }
+        $c->model('Base')->resultset('Distribution')
+        ->search({ name => $distribution->{distribution} })
+        ->search_related('Release', { version => $distribution->{release} })
+        ->search_related('Arch', { arch => $distribution->{arch} })
+        ->search_related('MetaPaths')
+        ->search({}, 
+            { 
+                'select' => [ qw(path type) ], 
+                'as'     => [ qw(path type) ] ,
+            }
+        )->all ];
+
     $c->stash->{xmlrpc} = freeze($ref);
+}
+
+sub add_meta_path : XMLRPC {
+    my ($self, $c, $distrib, $meta, $type) = @_;
+
+    my ($dist) = 
+        $c->model('Base')->resultset('Distribution')
+        ->search(name => $distrib->{distribution})
+        ->search_related('Release', version => $distrib->{release})
+        ->search_related('Arch', arch => $distrib->{arch})
+        ->get_column('d_arch_key')->all or do {
+            return $c->stash->{xmlrpc} = "No such distrib";
+        };
+
+    if ($c->model('Base::MetaPaths')->find_or_create(
+        {
+            d_arch => $dist,
+            type => $type,
+            path => $meta,
+        },
+        { key => 'upath' },
+    )) {
+        return $c->stash->{xmlrpc} = 'OK';
+    } else {
+        return;
+    }
+
 }
 
 sub clean_distrib : XMLRPC {
@@ -321,6 +383,10 @@ sub load_distrib : XMLRPC {
         foreach my $path (@{ $ref->{path}{$media} || [] }) {
             $c->forward('media_path', [ $ref->{distrib}, $media, $path ]);
         }
+    }
+    foreach my $meta (@{ $ref->{metapath} || []}) {
+        $c->forward('add_meta_path', 
+            [ $ref->{distrib}, $meta->{path}, $meta->{type} ]);
     }
 
     #$c->model('Base')->storage->dbh->rollback;
