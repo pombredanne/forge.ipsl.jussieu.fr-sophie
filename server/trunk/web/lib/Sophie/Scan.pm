@@ -67,4 +67,22 @@ sub update_meta_paths {
     }
 }
 
+sub call_plugins_parser {
+    my ($self, $rpm, $pkgid, $new) = @_;
+    foreach my $plugins (qw'sources') {
+        $self->call_plugin_parser($plugins, $rpm, $pkgid, $new);
+    }
+}
+
+sub call_plugin_parser {
+    my ($self, $plugins, $rpm, $pkgid, $new) = @_;
+    my $mod = ucfirst(lc($plugins));
+    eval "require Sophie::Scan::RpmParser::$mod;";
+    warn $@ if($@);
+    eval {
+        my $parser = "Sophie::Scan::RpmParser::$mod"->new($self);
+        $parser->run($rpm, $pkgid, $new);
+    }
+}
+
 1;

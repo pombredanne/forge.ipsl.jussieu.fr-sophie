@@ -1,0 +1,40 @@
+#!/bin/env perl
+
+use strict;
+use warnings;
+use Getopt::Long;
+use Sophie::Scan;
+
+$ENV{LC_ALL} = 'C';
+require Sophie::Scan::RpmsPath;
+
+GetOptions(
+    'p|parser=s' => \my @parsers,
+    'n|asnew'  => \my $asnew,
+) or die "Wrong options";
+
+my $scan = Sophie::Scan->new;
+
+foreach my $pkgid (@ARGV) {
+    # finding at least one file location
+    my ($item) = $scan->base->resultset('RpmFile')->search(
+        {
+            pkgid => $pkgid,
+        }
+    )->search_related(
+        'Path',
+        {},
+        { 'select' => [ 'path', 'filename' ] },
+    )->all;
+
+    my $rpm = $item->get_column('path') . '/' . $item->get_column('filename');
+    if (@parsers) {
+        foreach (@parsers) {
+            $scan->call_plugin_parser($_, $rpm, $pkgid, $asnew);
+        }
+    } else {
+        $scan->call_plugins_parser($rpm, $pkgid, $asnew);
+    }
+}
+
+

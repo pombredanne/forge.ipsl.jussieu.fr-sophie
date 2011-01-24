@@ -24,6 +24,7 @@ sub traverse_cpio {
         File::Copy::copy($cpioh, $tmp);
         close($cpioh);
     } else {
+        warn $!;
         return 0;
     }
     

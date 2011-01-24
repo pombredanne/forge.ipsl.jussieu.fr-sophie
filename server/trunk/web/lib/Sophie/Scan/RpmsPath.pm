@@ -147,32 +147,24 @@ sub add_rpm {
 
     warn "$$ adding $rpm";
     eval {
-    my ($pkgid, $new) = $self->db->base->storage->txn_do(
-        sub {
-            my ($pkgid, $new) = $self->_add_header($rpm);
-            if (defined($pkgid)) {
-                $pkgid or return;
-                $self->db->base->resultset('RpmFile')->create(
-                    {
-                        d_path => $self->key,
-                        filename => $rpm,
-                        pkgid => $pkgid,
-                    }
-                ); 
-                return $pkgid, $new;
-            }
-        },
-    );
-    foreach my $plugins (qw'sources') {
-        my $mod = ucfirst(lc($plugins));
-        eval "require Sophie::Scan::RpmParser::$mod;";
-        warn $@ if($@);
-        eval {
-            my $parser = "Sophie::Scan::RpmParser::$mod"->new($self->db);
-            $parser->run($self->path . '/' . $rpm, $pkgid, $new);
-        }
-    }
-    }
+        my ($pkgid, $new) = $self->db->base->storage->txn_do(
+            sub {
+                my ($pkgid, $new) = $self->_add_header($rpm);
+                if (defined($pkgid)) {
+                    $pkgid or return;
+                    $self->db->base->resultset('RpmFile')->create(
+                        {
+                            d_path => $self->key,
+                            filename => $rpm,
+                            pkgid => $pkgid,
+                        }
+                    ); 
+                    return $pkgid, $new;
+                }
+            },
+        );
+        $self->db->call_plugins_parser($self->path . '/' . $rpm, $pkgid, $new);
+    };
 }
 
 sub _add_header {
