@@ -37,7 +37,7 @@ sub add_path {
 
     my $rowmedia = $self->base->resultset('Medias')->find_or_create(
         { label => $media, d_arch => $self->meta->d_arch, group_label => $media },
-        [ key => 'label' },
+        { key => 'label' },
     );
 
     $self->base->resultset('MediasPaths')->find_or_create(
