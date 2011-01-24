@@ -75,12 +75,13 @@ sub run {
                         );
                         foreach my $param ($ini->Parameters('Desktop Entry')) {
                             my ($key, $locale) = $param =~ /^([^\[]+)(?:\[(.*)\])?$/;
+                            my $val =  $ini->val('Desktop Entry', $param, undef);
                             $scan->base->resultset('DesktopEntries')->find_or_create(
                                 {
                                     desktop_file => $dfile->desktop_file_pkey,
                                     key => $key,
                                     locale => $locale || '',
-                                    value => $ini->val('Desktop Entry', $param, undef),
+                                    value => $val,
                                 }
                             );
                         }
