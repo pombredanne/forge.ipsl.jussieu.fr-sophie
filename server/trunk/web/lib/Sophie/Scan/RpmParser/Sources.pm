@@ -44,13 +44,17 @@ sub run {
             $mm->checktype_contents($rawcontent) =~ /^application\// and return 1;
 
             my $content;
-            foreach my $line (split("\n", $rawcontent)) {
-                my $enc = guess_encoding($line, qw/latin1/);
-                if ($enc && ref $enc) {
-                    $content .= $enc->decode($line) . "\n";
-                } else {
-                    $content .= $line . "\n";
+            if ($fname =~ /\.spec$/) {
+                foreach my $line (split("\n", $rawcontent)) {
+                    my $enc = guess_encoding($line, qw/latin1/);
+                    if ($enc && ref $enc) {
+                        $content .= $enc->decode($line) . "\n";
+                    } else {
+                        $content .= $line . "\n";
+                    }
                 }
+            } else {
+                $content = $rawcontent;
             }
             eval {
                 $scan->base->storage->txn_do(
