@@ -9,7 +9,7 @@ use File::Copy;
 use Archive::Cpio;
 use Encode::Guess;
 use Encode;
-use MIME::Types;
+use File::MMagic;
 
 sub run {
     my ($self, $rpm, $pkgid, $added) = @_;
@@ -38,11 +38,11 @@ sub run {
                 return 1;
             }
 
-            if (my $plaintext = MIME::Types->new->mimeTypeOf($fname)) {
-                $plaintext->isBinary and return 1;
-            }
-            
             my $rawcontent = $file->get_content;
+
+            my $mm = new File::MMagic;
+            $mm->checktype_contents($rawcontent) =~ /^application\// and return 1;
+
             my $content;
             foreach my $line (split("\n", $rawcontent)) {
                 my $enc = guess_encoding($line, qw/latin1/);
