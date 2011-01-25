@@ -96,7 +96,7 @@ sub bydep_rpc : XMLRPCPath('bydep') {
     my ( $self, $c, $searchspec, $deptype, $depname, $depsense, $depevr ) = @_;
     $searchspec ||= {};
 
-    my $distrs = $c->forward('/search/distrib_search', [ $searchspec, 1 ]);
+    #my $distrs = $c->forward('/search/distrib_search', [ $searchspec, 1 ]);
 
     my $deprs = $c->forward(
         '/search/deps_rs', [ 
@@ -112,6 +112,8 @@ sub bydep_rpc : XMLRPCPath('bydep') {
         {
             order_by => [ 'name', 'evr using >>', 'issrc', 'arch' ],
             rows => $searchspec->{rows},
+            select => [ 'pkgid' ],
+            as => [ 'pkgid' ],
         }
     );
 }

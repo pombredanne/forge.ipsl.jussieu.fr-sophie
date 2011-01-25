@@ -190,36 +190,26 @@ sub bypkgid_rs : Private {
 sub deps_rs : Private {
     my ($self, $c, $searchspec, $deptype, $depname, $depsense, $depevr ) = @_;
 
-    my $distrs = $c->forward('distrib_search', [ $searchspec, 1 ]);
-
-    return $c->model('Base::Deps')->search(
+        $c->model('BaseSearch')->best_rpm_filter($searchspec)
+        ->search({}, { join => [ 'Deps' ]})->search(
         {
             -and => [
             { deptype => $deptype },
             { depname => $depname },
             ($depsense
                 ? ({-nest => \[
-                    'rpmdepmatch(flags, evr, rpmsenseflag(?), ?)',
+                    'rpmdepmatch(Deps.flags, Deps.evr, rpmsenseflag(?), ?)',
                     [ plain_text => $depsense],
                     [ plain_text => $depevr ]
                 ]})
             : ()),
-            ($distrs 
-                ? ({ pkgid => { IN => $distrs->get_column('pkgid')->as_query,
-                        },})
-                : ()),
-            (exists($searchspec->{src})
-                ? { pkgid => { IN => $c->model('Base::Rpms')->search(
-                            { issrc => $searchspec->{src} ? 1 : 0 }
-                        )->get_column('pkgid')->as_query, }, }
-                : ()),
             ($searchspec->{pkgid}
-                ? { pkgid => $searchspec->{pkgid} }
+                ? { 'Deps.pkgid' => $searchspec->{pkgid} }
                 : ()),
             ]
         },
         {
-            '+select' => [ { rpmsenseflag => 'flags' }, 'depname', ],
+            '+select' => [ { rpmsenseflag => 'Deps.flags' }, 'Deps.depname', ],
             '+as'     => [ qw(sense name) ],
 
         }

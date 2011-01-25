@@ -103,7 +103,7 @@ sub distrib_rs : Private {
             {
                 $distrib->{distribution}
                     ? (-or => [
-                            { name =>      $distrib->{distribution} },
+                            { 'me.name' =>      $distrib->{distribution} },
                             { shortname => $distrib->{distribution} },
                         ],
                     )
@@ -124,7 +124,7 @@ sub distrib_rs : Private {
         )->search_related('Arch',
             {
                 $distrib->{arch}
-                    ? (arch => $distrib->{arch})
+                    ? ('Arch.arch' => $distrib->{arch})
                     : ()
             },
             {
