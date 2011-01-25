@@ -615,16 +615,18 @@ sub analyse :Chained('rpms_') :PathPart('analyse') :Args(0) :XMLRPC {
             $c->req->params->{$_} = $dist ? $dist->{$_} : undef;
         }
     }
-    warn Data::Dumper::Dumper($dist);
+
+    if ($c->req->param('analyse')) {
+        $dist = $c->session->{analyse};
+    }
 
     if ($c->req->param('analyse') || $c->req->xmlrpc->is_xmlrpc_request) {
-        $dist = $c->session->{analyse};
 
         my @deplist = map {
             [ $_->{name}, $_->{sense}, $_->{evr} ]
         } @{ $c->forward('dependency', [ $pkgid, 'R' ]) };
 
-        $c->stash->{xmlrpc} = $c->forward(
+        return $c->stash->{xmlrpc} = $c->forward(
             '/analysis/solver/solve_dependencies',
             [ $dist,
                 'P', \@deplist, [] ]

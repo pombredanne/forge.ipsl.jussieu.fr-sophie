@@ -113,7 +113,7 @@ sub solve_dependencies : Private {
     }
 
 
-    $c->stash->{xmlrpc} = {
+    return $c->stash->{xmlrpc} = {
         unresolved => \@unresolved,
         pkg => [ keys %need_pkgid ],
         pool => [ keys %need_pool ],
