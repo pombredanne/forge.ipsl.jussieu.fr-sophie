@@ -526,7 +526,7 @@ sub builddate : XMLRPC {
     $c->forward('buildtime', [ @args ]);
 }
 
-=head2 builddate
+=head2 b
 
 Is an alias for C<buildtime> command.
 
