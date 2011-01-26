@@ -69,7 +69,7 @@ sub update_meta_paths {
 
 sub call_plugins_parser {
     my ($self, $rpm, $pkgid, $new) = @_;
-    foreach my $plugins (qw'sources desktopfile') {
+    foreach my $plugins (qw'sources desktopfile config docs') {
         $self->call_plugin_parser($plugins, $rpm, $pkgid, $new);
     }
 }

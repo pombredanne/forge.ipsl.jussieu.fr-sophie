@@ -36,6 +36,7 @@ sub run {
             my ($file) = @_;
             my $fname = $file->name;
             $fname =~ s/^\.//;
+            $fname =~ /^\// or $fname = '/' . $fname;
             $filelist{$fname} or return 1;
 
             # security
