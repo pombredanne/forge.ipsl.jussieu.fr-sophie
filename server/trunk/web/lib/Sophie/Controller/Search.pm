@@ -191,7 +191,7 @@ sub deps_rs : Private {
     my ($self, $c, $searchspec, $deptype, $depname, $depsense, $depevr ) = @_;
 
         $c->model('BaseSearch')->best_rpm_filter($searchspec)
-        ->search({}, { join => [ 'Deps' ]})->search(
+        ->search({}, { select => [], join => [ 'Deps' ]})->search(
         {
             -and => [
             { deptype => $deptype },
@@ -209,8 +209,9 @@ sub deps_rs : Private {
             ]
         },
         {
-            '+select' => [ { rpmsenseflag => 'Deps.flags' }, 'Deps.depname', ],
-            '+as'     => [ qw(sense name) ],
+            '+select' => [ { rpmsenseflag => 'Deps.flags' }, 'Deps.depname',
+                'Deps.evr' ],
+            '+as'     => [ qw(sense name evr) ],
 
         }
     );
@@ -229,9 +230,8 @@ sub file_rs : Private {
     }
     $searchspec ||= {};
 
-    my $distrs = $c->forward('distrib_search', [ $searchspec, 1 ]);
-
-    return $c->model('Base::Files')->search(
+    $c->model('BaseSearch')->best_rpm_filter($searchspec)
+        ->search({}, { select => [], join => [ 'Files' ]})->search(
         {
             -and => [
                 ($dirname
@@ -240,20 +240,19 @@ sub file_rs : Private {
                 { 'dirname || basename' => { LIKE => $file } },
                 basename => $basename,
                 ($searchspec->{content} ? { has_content => 1 } : ()),
-                ($distrs 
-                    ? (pkgid => { IN => $distrs->get_column('pkgid')->as_query, },)
-                    : ()),
                 ($searchspec->{pkgid}
-                    ? { pkgid => { IN => $searchspec->{pkgid} } }
+                    ? { 'Files.pkgid' => { IN => $searchspec->{pkgid} } }
                     : ()),
             ],
         },
         {
             '+select' => [
-                'contents is NOT NULL as has_content',
+                'Files.contents is NOT NULL as has_content',
                 { rpmfilesmode => 'mode' },
+                map { 'Files.' . $_ } $c->model('Base::Files')->result_source->columns,
             ],
-            '+as' => [ qw(has_content perm), ],
+            '+as' => [ qw(has_content perm),
+                $c->model('Base::Files')->result_source->columns ],
         }
     );
 }

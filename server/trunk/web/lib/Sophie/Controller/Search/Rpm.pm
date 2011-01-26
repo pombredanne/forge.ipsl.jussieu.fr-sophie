@@ -103,7 +103,7 @@ sub bydep_rpc : XMLRPCPath('bydep') {
             $searchspec, $deptype, $depname,
             $depsense, $depevr 
         ],
-    )->get_column('pkgid');
+    )->get_column('Deps.pkgid');
     $c->stash->{rs} = $c->model('Base::Rpms')->search(
         {
             pkgid => 
@@ -134,10 +134,10 @@ sub byfile_rpc : XMLRPCPath('byfile') {
     my $distrs = $c->forward('/search/distrib_search', [ $searchspec, 1 ]);
 
     my $filers = $c->forward('/search/file_rs', [ $searchspec, $file ])
-        ->get_column('pkgid');
+        ->get_column('Files.pkgid');
     $c->stash->{rs} = $c->model('Base::Rpms')->search(
         {
-            pkgid => { IN => $filers->as_query, },
+            'pkgid' => { IN => $filers->as_query, },
         },
         {
             order_by => [ 'name', 'evr using >>', 'issrc', 'arch' ],
