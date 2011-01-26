@@ -10,5 +10,5 @@ __PACKAGE__->set_primary_key(qw/pkgid deptype count/);
 __PACKAGE__->belongs_to(Rpms => 'Sophie::Base::Result::Rpms', 'pkgid');
 
 __PACKAGE__->add_relationship( RpmFile => 'Sophie::Base::Result::RpmFile',
-                             { pkgid => 'pkgid' });
+                             { 'foreign.pkgid' => 'self.pkgid' });
 1;

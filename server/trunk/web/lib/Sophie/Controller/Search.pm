@@ -190,31 +190,36 @@ sub bypkgid_rs : Private {
 sub deps_rs : Private {
     my ($self, $c, $searchspec, $deptype, $depname, $depsense, $depevr ) = @_;
 
-        $c->model('BaseSearch')->best_rpm_filter($searchspec)
-        ->search({}, { select => [], join => [ 'Deps' ]})->search(
+        my $rs = $c->model('Base::Deps')->search(
         {
             -and => [
             { deptype => $deptype },
             { depname => $depname },
             ($depsense
                 ? ({-nest => \[
-                    'rpmdepmatch(Deps.flags, Deps.evr, rpmsenseflag(?), ?)',
+                    'rpmdepmatch(flags, me.evr, rpmsenseflag(?), ?)',
                     [ plain_text => $depsense],
                     [ plain_text => $depevr ]
                 ]})
             : ()),
             ($searchspec->{pkgid}
-                ? { 'Deps.pkgid' => $searchspec->{pkgid} }
+                ? { 'pkgid' => $searchspec->{pkgid} }
                 : ()),
             ]
         },
         {
-            '+select' => [ { rpmsenseflag => 'Deps.flags' }, 'Deps.depname',
-                'Deps.evr' ],
+            '+select' => [ { rpmsenseflag => 'flags' }, 'depname',
+                'me.evr' ],
             '+as'     => [ qw(sense name evr) ],
 
         }
     );
+    if (exists($searchspec->{src})) {
+        $rs = $rs->search_related('Rpms',
+            { issrc => $searchspec->{src} ? 1 : 0 }
+        )
+    }
+    return $c->model('BaseSearch')->apply_rpm_filter($rs, $searchspec);
 }
 
 sub file_rs : Private {
@@ -230,8 +235,7 @@ sub file_rs : Private {
     }
     $searchspec ||= {};
 
-    $c->model('BaseSearch')->best_rpm_filter($searchspec)
-        ->search({}, { select => [], join => [ 'Files' ]})->search(
+    my $rs = $c->model('Base::Files')->search(
         {
             -and => [
                 ($dirname
@@ -241,20 +245,24 @@ sub file_rs : Private {
                 basename => $basename,
                 ($searchspec->{content} ? { has_content => 1 } : ()),
                 ($searchspec->{pkgid}
-                    ? { 'Files.pkgid' => { IN => $searchspec->{pkgid} } }
+                    ? { 'pkgid' => { IN => $searchspec->{pkgid} } }
                     : ()),
             ],
         },
         {
             '+select' => [
-                'Files.contents is NOT NULL as has_content',
+                'contents is NOT NULL as has_content',
                 { rpmfilesmode => 'mode' },
-                map { 'Files.' . $_ } $c->model('Base::Files')->result_source->columns,
             ],
-            '+as' => [ qw(has_content perm),
-                $c->model('Base::Files')->result_source->columns ],
+            '+as' => [ qw(has_content perm), ]
         }
     );
+    if (exists($searchspec->{src})) {
+        $rs = $rs->search_related('Rpms',
+            { issrc => $searchspec->{src} ? 1 : 0 }
+        )
+    }
+    return $c->model('BaseSearch')->apply_rpm_filter($rs, $searchspec);
 }
 
 sub end : Private {

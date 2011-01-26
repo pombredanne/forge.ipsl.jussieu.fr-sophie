@@ -25,49 +25,20 @@ it under the same terms as Perl itself.
 
 sub c { $_[0]->{c} }
 
-sub distrib {
-    my ($self, $search) = @_;
+sub apply_rpm_filter {
+    my ($self, $rs, $search) = @_;
 
     # Nothing to filter
-    return if (!(
+    return $rs if (!(
         $search->{distribution} ||
         $search->{release} ||
         $search->{arch} ||
         $search->{media} ||
         $search->{media_group}));
 
-    $self->c->model('Base::Distribution')->search(
-        {
-            $search->{distribution}
-                ? (-or => [
-                    { 'me.name' => $search->{distribution} },
-                    { shortname => $search->{distribution} },
-                ],)
-                : ()
-        },
-        {
-            select => [ qw(name shortname) ],
-        }
-
-    )->search_related('Release',
-        {
-            $search->{release}
-                ? (version => $search->{release})
-                : ()
-        },
-        {
-            select => [ qw(version) ],
-        }
-    )->search_related('Arch',
-        {
-            $search->{arch}
-                ? ('Arch.arch' => $search->{arch})
-                : ()
-        },
-        {
-            select => [ qw(arch) ],
-        }
-    )->search_related('Medias',
+    $rs->search_related('RpmFile')
+    ->search_related('MediasPaths')
+    ->search_related('Medias',
         {
             ($search->{media} ? (label => $search->{media}) : ()),
             ($search->{media_group}
@@ -77,34 +48,38 @@ sub distrib {
         {
             select => [ qw(label group_label) ],
         }
+    )->search_related('Arch',
+        {
+            $search->{arch}
+            ? ('Arch.arch' => $search->{arch})
+            : ()
+        },
+        {
+            select => [ qw(arch) ],
+        }
+
+    )->search_related('Release',
+        {
+            $search->{release}
+            ? (version => $search->{release})
+            : ()
+        },
+        {
+            select => [ qw(version) ],
+        }
+    )->search_related('Distribution')->search(
+        {
+            $search->{distribution}
+            ? (-or => [
+                    { 'Distribution.name' => $search->{distribution} },
+                    { shortname => $search->{distribution} },
+                ],)
+            : ()
+        },
+        {
+            select => [ qw(name shortname) ],
+        }
     );
-}
-
-sub rpmfiles {
-    my ($self, $search) = @_;
-
-    my $rs_dist = $self->distrib($search);
-
-    $rs_dist
-        ? $rs_dist->search_related('MediasPaths')
-          ->search_related('RpmFiles')
-        : $self->c->model('Base::RpmFiles')
-}
-
-sub best_rpm_filter {
-    my ($self, $search) = @_;
-
-    my $rs_dist = $self->distrib($search);
-    return exists($search->{src})
-        ? ($rs_dist
-            ? $rs_dist->search_related('MediasPaths')
-              ->search_related('RpmFiles')
-              ->search_related('Rpms', { issrc => $search->{src} ? 1 : 0 })
-            : $self->c->model('Base::Rpms',  { issrc => $search->{src} ? 1 : 0 }))
-        : ($rs_dist
-            ? $rs_dist->search_related('MediasPaths')
-              ->search_related('RpmFiles')
-            : $self->c->model('Base::RpmFile'))
 }
 
 sub ACCEPT_CONTEXT {

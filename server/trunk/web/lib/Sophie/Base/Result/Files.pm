@@ -10,5 +10,8 @@ __PACKAGE__->add_columns(qw/pkgid count dirname basename md5 user group linkto
 __PACKAGE__->set_primary_key(qw/pkgid count/);
 __PACKAGE__->belongs_to(Rpms => 'Sophie::Base::Result::Rpms', 'pkgid');
 
+__PACKAGE__->add_relationship( RpmFile => 'Sophie::Base::Result::RpmFile',
+                             { 'foreign.pkgid' => 'self.pkgid' });
+
 
 1;

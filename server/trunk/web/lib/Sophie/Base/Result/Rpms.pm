@@ -7,7 +7,7 @@ use base qw(DBIx::Class::Core);
 __PACKAGE__->table('rpms');
 __PACKAGE__->add_columns(qw/pkgid summary description issrc name evr arch header/);
 __PACKAGE__->set_primary_key(qw/pkgid/);
-__PACKAGE__->has_many(Rpmfile => 'Sophie::Base::Result::RpmFile', 'pkgid');
+__PACKAGE__->has_many(RpmFile => 'Sophie::Base::Result::RpmFile', 'pkgid');
 __PACKAGE__->has_many(Deps => 'Sophie::Base::Result::Deps', 'pkgid');
 __PACKAGE__->has_many(Files => 'Sophie::Base::Result::Files', 'pkgid');
 __PACKAGE__->has_many(BinFiles => 'Sophie::Base::Result::BinFiles', 'pkgid');
