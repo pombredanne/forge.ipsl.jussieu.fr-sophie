@@ -20,6 +20,7 @@ sub run {
         )->all) {
         $filelist{$_->dirname . $_->basename} = $_;
     }
+    keys(%filelist) or return 1; # Nothing to do
 
     $self->traverse_cpio(
         $rpm,
