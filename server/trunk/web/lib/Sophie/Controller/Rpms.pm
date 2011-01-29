@@ -116,6 +116,8 @@ sub basicinfo :XMLRPCLocal :Chained('rpms_') :PathPart('basicinfo') :Args(0) {
 
     my $rpm = $c->model('base::Rpms')->find(
         { pkgid => $pkgid },
+        { 'select' => [ qw(pkgid summary description issrc name evr arch) ],
+          'as'     => [ qw(pkgid summary description issrc name evr arch) ], }
     );
     $rpm or return;
     my %info = $rpm->get_columns;

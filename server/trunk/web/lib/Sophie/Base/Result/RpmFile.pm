@@ -24,4 +24,7 @@ __PACKAGE__->add_relationship(  SrcFiles => 'Sophie::Base::Result::SrcFiles',
 __PACKAGE__->add_relationship(  Tags => 'Sophie::Base::Result::Tags',
                               { 'foreign.pkgid' => 'self.pkgid' });
 
+__PACKAGE__->add_relationship(  DesktopFiles => 'Sophie::Base::Result::DesktopFiles',
+                              { 'foreign.pkgid' => 'self.pkgid' });
+
 1;

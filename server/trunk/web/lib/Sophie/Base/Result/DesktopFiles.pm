@@ -11,4 +11,10 @@ __PACKAGE__->belongs_to(BinFiles => 'Sophie::Base::Result::BinFiles', [ 'pkgid',
 __PACKAGE__->belongs_to(Rpms => 'Sophie::Base::Result::Rpms', 'pkgid');
 __PACKAGE__->has_many(DesktopEntries => 'Sophie::Base::Result::DesktopEntries', 'desktop_file');
 
+__PACKAGE__->add_relationship( Rpms => 'Sophie::Base::Result::Rpms',
+                             { 'foreign.pkgid' => 'self.pkgid' });
+
+__PACKAGE__->add_relationship( RpmFiles => 'Sophie::Base::Result::RpmFile',
+                             { 'foreign.pkgid' => 'self.pkgid' });
+
 1;

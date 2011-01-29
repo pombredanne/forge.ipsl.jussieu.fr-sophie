@@ -14,4 +14,7 @@ __PACKAGE__->has_many(BinFiles => 'Sophie::Base::Result::BinFiles', 'pkgid');
 __PACKAGE__->has_many(SrcFiles => 'Sophie::Base::Result::SrcFiles', 'pkgid');
 __PACKAGE__->has_many(Tags => 'Sophie::Base::Result::Tags', 'pkgid');
 
+__PACKAGE__->add_relationship(  DesktopFiles => 'Sophie::Base::Result::DesktopFiles',
+                              { 'foreign.pkgid' => 'self.pkgid' });
+
 1;
