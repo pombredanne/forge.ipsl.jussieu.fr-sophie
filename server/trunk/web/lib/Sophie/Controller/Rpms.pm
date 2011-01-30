@@ -161,16 +161,17 @@ sub info : XMLRPCLocal :Chained('rpms_') :PathPart('info') :Args(0) {
     my $info = $c->forward('basicinfo', [ $pkgid ]);
     foreach (qw(name epoch url group size packager
                 url sourcerpm license buildhost
-                distribution)) {
-        if (my $r = $c->model('base')->resultset('Rpms')->search(
+                distribution vendor buildtime buildarch excludearch
+                exclusivearch optflags)) {
+        if (my @r = $c->model('base')->resultset('Rpms')->search(
             { pkgid => $pkgid },
             { 
                 select => [ qq{rpmquery("header", ?)} ],
                 as => [ 'qf' ],
                 bind => [ $_ ],
             }
-            )->next) { 
-            $info->{$_} = $r->get_column('qf');
+            )->get_column('qf')->all) { 
+            $info->{$_} = @r > 1 ? \@r : $r[0];
         }
     }
 

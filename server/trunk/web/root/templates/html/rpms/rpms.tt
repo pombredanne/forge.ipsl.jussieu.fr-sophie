@@ -9,6 +9,8 @@
 <li>Epoch: [% xmlrpc.info.epoch | html %]</li>
 <li>Architecture: [% xmlrpc.info.arch | html %]</li>
 <li>Distribution: [% xmlrpc.info.distribution | html %]</li>
+<li>Vendor: [% xmlrpc.info.vendor | html %]</li>
+<li>Packager: [% xmlrpc.info.packager | html %]</li>
 <li>Group: [% xmlrpc.info.group | html %]</li>
 <li>License: [% xmlrpc.info.license | html %]</li>
 <li>Url: <a href="[% xmlrpc.info.url | html %]">[% xmlrpc.info.url | html %]</a></li>
@@ -20,3 +22,12 @@
 <p>[% xmlrpc.info.description | guessencode | html | html_line_break %]</p>
 </div>
 
+<ul class="sophie_tag">
+[% IF xmlrpc.info.issrc %]
+<li>BuildArch: [% xmlrpc.info.buildarch | html %]</li>
+<li>BuildArch: [% xmlrpc.info.excludearch.join(', ') | html %]</li>
+<li>BuildArch: [% xmlrpc.info.exclusivearch.join(', ') | html %]</li>
+[% ELSE %]
+<li>OptFlags: [% xmlrpc.info.optflags | html %]</li>
+[% END %]
+</ul>
