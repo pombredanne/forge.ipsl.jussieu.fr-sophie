@@ -162,7 +162,7 @@ sub info : XMLRPCLocal :Chained('rpms_') :PathPart('info') :Args(0) {
     foreach (qw(name epoch url group size packager
                 url sourcerpm license buildhost
                 distribution vendor buildtime buildarch excludearch
-                exclusivearch optflags)) {
+                exclusivearch optflags cookie buildhost)) {
         if (my @r = $c->model('base')->resultset('Rpms')->search(
             { pkgid => $pkgid },
             { 
