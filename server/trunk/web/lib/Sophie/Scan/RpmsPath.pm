@@ -146,6 +146,7 @@ sub add_rpm {
     my ($self, $rpm) = @_;
 
     warn "$$ adding $rpm";
+    my @stat = stat($self->path . '/' . $rpm);
     eval {
         my ($pkgid, $new) = $self->db->base->storage->txn_do(
             sub {
@@ -157,6 +158,8 @@ sub add_rpm {
                             d_path => $self->key,
                             filename => $rpm,
                             pkgid => $pkgid,
+                            mtime => $stat[9],
+                            size  => $stat[7],
                         }
                     ); 
                     return $pkgid, $new;
