@@ -35,22 +35,24 @@ sub ls_rpms {
 
     my %list;
     foreach ($self->db->base->resultset('RpmFile')->search(
-        { d_path => $self->key }
-    )->get_column('filename')->all) {
-        $list{$_} = 1;
+        { d_path => $self->key },
+        { 'select' => [ qw(filename mtime) ], as => [ qw(filename mtime) ] },
+    )->all) {
+        $list{$_->get_column('filename')} = $_->get_column('mtime') || 1;
     }
     return \%list;
 }
 
 sub local_ls_rpms {
     my ($self) = @_;
+    my $path = $self->path;
 
-    if (opendir(my $dh, $self->path)) {
+    if (opendir(my $dh, $path)) {
         my %list;
         while (my $entry = readdir($dh)) {
             $entry eq '.' and next;
             $entry eq '..' and next;
-            $list{$entry} = 1;
+            $list{$entry} = (stat("$path/$_"))[9];
         }
         closedir($dh);
         return \%list;
@@ -84,12 +86,15 @@ sub find_delta {
         if ($localrpms->{$rpm} && $baserpms->{$rpm}) {
             # nothing to do
         } elsif ($localrpms->{$rpm}) {
-            push(@delta, { rpm => $rpm, delta => 'A' });
+            push(@delta, { rpm => $rpm, delta => 'A', mtime => $localrpms->{$rpm} });
         } elsif ($baserpms->{$rpm}) {
-            push(@delta, { rpm => $rpm, delta => 'R' });
+            push(@delta, { rpm => $rpm, delta => 'R', mtime => $baserpms->{$rpm} });
         }
     }
-    @delta;
+    sort { $a->{delta} eq $b->{delta} 
+        ? $a->{mtime} <=> $b->{mtime}
+        : ($a->{delta} eq 'A' ? 1 : -1)
+    } @delta;
 }
 
 sub update_content {
