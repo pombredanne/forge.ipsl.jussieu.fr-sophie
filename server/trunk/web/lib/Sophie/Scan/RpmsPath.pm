@@ -52,7 +52,7 @@ sub local_ls_rpms {
         while (my $entry = readdir($dh)) {
             $entry eq '.' and next;
             $entry eq '..' and next;
-            $list{$entry} = (stat("$path/$_"))[9];
+            $list{$entry} = (stat("$path/$entry"))[9];
         }
         closedir($dh);
         return \%list;
