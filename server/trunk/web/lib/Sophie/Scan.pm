@@ -61,7 +61,6 @@ sub update_meta_paths {
             warn "Cannot load MetaPath $type: $@";
             next;
         }
-        warn "$$ Updating Meta $_";
         my $meta = "Sophie::Scan::MetaPath::$type"->new($self, $_);
         $meta->run();
     }

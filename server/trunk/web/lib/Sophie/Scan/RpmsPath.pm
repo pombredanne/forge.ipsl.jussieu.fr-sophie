@@ -92,8 +92,8 @@ sub find_delta {
         }
     }
     sort { $a->{delta} eq $b->{delta} 
-        ? $a->{mtime} <=> $b->{mtime}
-        : ($a->{delta} eq 'A' ? 1 : -1)
+        ? ($a->{mtime} <=> $b->{mtime})
+        : ($a->{delta} cmp $b->{delta})
     } @delta;
 }
 
