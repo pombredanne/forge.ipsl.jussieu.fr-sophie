@@ -17,7 +17,7 @@ sub run {
 
     if (!$added) { return 1}
 
-    $rpm =~ /\.src\.rpm$/ or return 1;
+    $rpm =~ /src\.rpm$/ or return 1;
 
     my %filelist;
     foreach ($scan->base->resultset('SrcFiles')->search(
