@@ -145,7 +145,7 @@ sub distrib_rs : Private {
 
 =head2 distrib.exists( DISTRIB )
 
-Return true or false if disteibution C<DISTRIB> exists.
+Return true or false if distribution C<DISTRIB> exists.
 
 C<DISTRIB> is a structure with following key/value:
 
@@ -165,8 +165,8 @@ The arch name
 
 =back
 
-This function is usefull to check if a search have chance to suceed, eg if the
-user is not searching a rpm on a not existing ditribution.
+This function is useful to check if a search have chance to succeed, eg if the
+user is not searching a rpm on a non existing distribution.
 
 =cut
 
@@ -188,7 +188,7 @@ sub exists : XMLRPC {
 
 =head2 Url: /distrib
 
-Return the list of currently stored distributions.
+Return the list of currently indexed distributions.
 
 =cut
 
@@ -207,7 +207,7 @@ sub index :Path :Chained :Args(0)  {
 
 =head2 Url: /distrib/<DISTRIBUTION>
 
-Return the list of available release for given C<DISTRIBUTION>.
+Return the list of available releases for given C<DISTRIBUTION>.
 
 =cut
 
@@ -225,7 +225,7 @@ sub list_release :Path :Args(1) {
 
 =head2 Url: /distrib/<DISTRIBUTION>/<RELEASE>
 
-Return the list of available architecture for given C<DISTRIBUTION>,
+Return the list of available architectures for given C<DISTRIBUTION>,
 C<RELEASE>.
 
 =cut
@@ -303,7 +303,7 @@ The release name
 
 =item arch
 
-The arch name
+The archictecture name
 
 =back
 
@@ -355,7 +355,7 @@ The release name
 
 =item arch
 
-The arch name
+The architecture name
 
 =back
 
@@ -393,7 +393,7 @@ sub rpms :XMLRPC {
 
 =head2 distrib.srpms( DISTRIB )
 
-Return a list of sources packages available for C<DISTRIB>.
+Return a list of source packages available for C<DISTRIB>.
 
 C<DISTRIB> is a struct with following keys/values:
 
@@ -409,7 +409,7 @@ The release name
 
 =item arch
 
-The arch name
+The architecture name
 
 =back
 
@@ -498,7 +498,7 @@ sub list_rpms :Chained('distrib_view') PathPart('rpms') Args(0) {
 
 =head2 Url: /distrib/<DISTRIBUTION>/<RELEASE>/<ARCH>/srpms
 
-Return the list of available sources rpms for given C<DISTRIBUTION>,
+Return the list of available source rpms for given C<DISTRIBUTION>,
 C<RELEASE>, C<ARCH>.
 
 =cut
@@ -524,7 +524,7 @@ sub list_srpms :Chained('distrib_view') PathPart('srpms') Args(0) {
 
 =head2 Url: /distrib/<DISTRIBUTION>/<RELEASE>/<ARCH>/srpms/<RPMNAME>
 
-Show the highter version of source rpm named C<RPMNAME> for given
+Show the highest version of source rpm named C<RPMNAME> for given
 C<DISTRIBUTION>, C<RELEASE>, C<ARCH>.
 
 =cut
@@ -544,7 +544,7 @@ sub srpm_by_name :Chained('distrib_view') PathPart('srpms') {
 
 =head2 Url: /distrib/<DISTRIBUTION>/<RELEASE>/<ARCH>/rpms/<RPMNAME>
 
-Show the highter version of binary rpm named C<RPMNAME> for given
+Show the highest version of binary rpm named C<RPMNAME> for given
 C<DISTRIBUTION>, C<RELEASE>, C<ARCH>.
 
 =cut
@@ -568,8 +568,8 @@ sub rpm_by_name :Chained('distrib_view') PathPart('rpms') {
 Show information about rpm having pkgid C<PKGID> for given
 C<DISTRIBUTION>, C<RELEASE>, C<ARCH>.
 
-This is likelly the same thing than C</rpm/PKGID> but website will return 404
-error if the rpm is not in this distrib
+This is likely the same thing than C</rpm/PKGID> but website will return a 404
+error code if the rpm is not in this distrib
 
 =cut
 
@@ -607,7 +607,7 @@ sub _media_list_rpms :Chained('distrib_view') PathPart('media') CaptureArgs(1) {
 Return the list of rpms in media C<MEDIA> for distribution C<DISTRIB>,
 C<RELEASE>, C<ARCH>.
 
-The return list is an array of struct:
+The result list is an array of struct:
 
     [
         {
