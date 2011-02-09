@@ -73,6 +73,25 @@ sub byrpm :Path :XMLRPC {
         )->all ];
 }
 
+=head2 maintainers.bymaintainer ( MAINT, [ DISTRIB ] )
+
+Return the list of rpms for maintainer C<MAINT>.
+
+The optional C<DISTRIB> filter the result to this specific distribution.
+
+Result example:
+
+    [
+        {
+            'rpm' => 'rpm package',
+            'distribution' => 'Mandriva'
+            'vendor' => 'Mandriva'
+        }
+    ];
+
+=cut
+
+
 sub bymaintainer : XMLRPC {
     my ($self, $c, $maint, $distrib) = @_;
     $c->stash->{xmlrpc} = [ map { { $_->get_columns } } 
