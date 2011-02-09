@@ -445,6 +445,30 @@ sub srpms :XMLRPC {
     $c->stash->{xmlrpc} = $c->stash->{rpm};
 }
 
+=head2 distrib.rpms_name( DISTRIB )
+
+Return the list of rpm name available for C<DISTRIB>.
+
+C<DISTRIB> is a struct with following keys/values:
+
+=over 4
+
+=item distribution
+
+The distribution name
+
+=item release
+
+The release name
+
+=item arch
+
+The architecture name
+
+=back
+
+=cut
+
 sub rpms_name :XMLRPC {
     my ( $self, $c, $distribution, $release, $arch ) = @_;
 
