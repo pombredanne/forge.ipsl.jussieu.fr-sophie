@@ -22,7 +22,7 @@ Return the list of maintainers for rpm source name C<RPMNAME>.
 
 The optional C<DISTRIB> filter the result to this specific distribution.
 
-Result exemple:
+Result example:
 
     [
         {
@@ -37,7 +37,7 @@ Result exemple:
 Return the list of maintainers for source rpm named C<RPM> for distribution
 C<DISTRIB>.
 
-This alternatives are supported:
+Theses alternatives are supported:
 
     /maintainers?rpm=<RPM>;distrib=<DISTRIB>
 
