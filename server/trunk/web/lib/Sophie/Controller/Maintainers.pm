@@ -118,6 +118,24 @@ sub bymaintainer : XMLRPC {
     
 }
 
+=head2 maintainers.search ( MAINT, [ DISTRIB ] )
+
+Search the database for a maintainer matching C<MAINT>.
+
+The optional C<DISTRIB> filter the result to this specific distribution.
+
+Result example:
+
+    [
+        {
+            'owner' => 'maintainer',
+            'distribution' => 'Mandriva'
+            'vendor' => 'Mandriva'
+        }
+    ];
+
+=cut
+
 sub search :XMLRPC {
     my ($self, $c, $maint, $distrib) = @_;
 
