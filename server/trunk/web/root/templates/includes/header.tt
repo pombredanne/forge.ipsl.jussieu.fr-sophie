@@ -35,6 +35,7 @@
         <li><a href="[% c.uri_for('/sources') %]">Source & Patches</a></li>
         <li><a href="[% c.uri_for('/chat') %]">Chat</a></li>
         <li><a href="[% c.uri_for('/help') %]">Help</a></li>
+        <li><a href="[% c.uri_for('/about') %]">About</a></li>
         </ul>
     </div>
     <div style="clear:both"></div>
