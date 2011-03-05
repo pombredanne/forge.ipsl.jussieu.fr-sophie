@@ -230,7 +230,7 @@ sub q : XMLRPC {
     warn join(' ', @{ $res });
     if (!@{ $res }) {
         return $c->stash->{xmlrpc} = {
-            message => [ 'Nothing match `' . $args[0] . '\'' ]
+            message => [ 'Nothing matches `' . $args[0] . '\'' ]
         };
     } else {
         my @message = 'rpm name matching `' . $args[0] . '\':';
@@ -924,7 +924,7 @@ sub what : XMLRPC {
         }
     } else {
         return $c->stash->{xmlrpc} = {
-            message => [ 'Too many result' ],
+            message => [ 'Too many results' ],
         };
     }
 
@@ -1011,7 +1011,7 @@ sub nb_rpm : XMLRPC {
         };
     } elsif (! @$maints) {
         return $c->stash->{xmlrpc} = {
-            message => [ "No maintainers found matching `$args[0]'" ]
+            message => [ "No maintainer found matching `$args[0]'" ]
         };
     } else {
         my @messages;
