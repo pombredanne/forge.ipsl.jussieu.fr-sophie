@@ -38,14 +38,12 @@ Perform an C<rpm -q --qf> on the package having C<PKGID>.
 
 sub queryformat : XMLRPCLocal {
     my ( $self, $c, $pkgid, $qf ) = @_;
-    $c->stash->{xmlrpc} = $c->model('base')->resultset('Rpms')->search(
-        { pkgid => $pkgid },
+    $c->stash->{xmlrpc} = $c->model('base')->resultset('RpmQueryFormat')->search(
+        {},
         { 
-            select => [ qq{rpmqueryformat("header", ?)} ],
-            as => [ 'qf' ],
-            bind => [ $qf ],
+            bind => [ $qf, $pkgid ],
         }
-    )->next->get_column('qf');
+    )->next->qf;
 }
 
 =head2 rpms.tag( PKGID, TAG )
@@ -123,15 +121,13 @@ sub basicinfo :XMLRPCLocal :Chained('rpms_') :PathPart('basicinfo') :Args(0) {
     my %info = $rpm->get_columns;
     $info{src} = $info{issrc} ? 1 : 0;
     foreach (qw(version release arch)) {
-        if (my $r = $c->model('base')->resultset('Rpms')->search(
-            { pkgid => $pkgid },
-            { 
-                select => [ qq{rpmquery("header", ?)} ],
-                as => [ 'qf' ],
-                bind => [ $_ ],
-            }
+        if (my $r = $c->model('base')->resultset('RpmQuery')->search(
+                {},
+                {
+                    bind => [ $_, $pkgid ],
+                }
             )->next) { 
-            $info{$_} = $r->get_column('qf');
+            $info{$_} = $r->qf;
         }
     }
     $info{filename} = $c->forward('queryformat',
