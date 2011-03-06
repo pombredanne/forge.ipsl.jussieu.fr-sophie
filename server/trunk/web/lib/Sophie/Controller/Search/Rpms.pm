@@ -52,7 +52,7 @@ sub rpms_rs : Private {
                 }
             },
             {
-                select => [qw(filename pkgid name shortname version arch label) ],
+                select => [qw(filename pkgid me.name me.shortname Release.version Arch.arch Medias.label) ],
                 as => [qw(filename pkgid distribution dist release arch media) ],
                 rows => $searchspec->{rows} || 30000,
                 order_by => [ 'Rpmfiles.added desc' ],
