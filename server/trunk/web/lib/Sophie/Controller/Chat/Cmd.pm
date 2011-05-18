@@ -97,6 +97,20 @@ sub _fmt_location : Private {
     return join(', ', @loc);
 }
 
+sub _fmt_question : Private {
+    my ($self, $c, $searchspec) = @_;
+
+    my $loc;
+    $loc = sprintf(
+        '(%s, %s, %s)',
+        $searchspec->{dist} || $searchspec->{distribution} || "*",
+        $searchspec->{release} || "*",
+        $searchspec->{arch} || "*",
+    );
+    
+    return $loc;
+}
+
 sub _find_rpm_elsewhere : Private {
     my ($self, $c, $searchspec, $name) = @_;
     if ($searchspec->{distribution}) {
@@ -230,10 +244,12 @@ sub q : XMLRPC {
     warn join(' ', @{ $res });
     if (!@{ $res }) {
         return $c->stash->{xmlrpc} = {
-            message => [ 'Nothing matches `' . $args[0] . '\'' ]
+            message => [ "Nothing matches `$args[0]' in "
+                    .$c->forward('_fmt_question', [$reqspec])],
         };
     } else {
-        my @message = 'rpm name matching `' . $args[0] . '\':';
+        my @message = "rpm name matching `$args[0]' in "
+                    .$c->forward('_fmt_question', [$reqspec])." :";
         while (@{ $res }) {
             my $str = '';
             while (length($str) < 70) {
@@ -273,7 +289,8 @@ sub whatis : XMLRPC {
     if (@{ $res }) {
         if (@{ $res } > 100) {
             return $c->stash->{xmlrpc} = {
-                message => [ 'I have ' . @{ $res } . ' results' ],
+                message => [ 'I have ' . @{ $res } . ' results in '
+                    .$c->forward('_fmt_question', [$reqspec])],
             };
         } else {
             my @names = ();
@@ -281,7 +298,8 @@ sub whatis : XMLRPC {
                 my $info = $c->forward('/rpms/basicinfo', [ $_ ]);
                 push(@names, $info->{name});
             }
-            my @message = 'rpm name matching `' . $args[0] . '\':';
+            my @message = "rpm name matching `$args[0]' in "
+                    .$c->forward('_fmt_question', [$reqspec])." :";
             while (@names) {
                 my $str = '';
                 while (length($str) < 70) {
@@ -297,7 +315,8 @@ sub whatis : XMLRPC {
         }
     } else {
         return $c->stash->{xmlrpc} = {
-            message => [ 'No rpm description matches this keywords' ],
+            message => [ 'No rpm description matches this keywords in '
+                    .$c->forward('_fmt_question', [$reqspec])],
         };
     }
 }
@@ -325,7 +344,8 @@ sub version : XMLRPC {
 
     if (!$c->forward('/distrib/exists', [ $reqspec ])) {
         return $c->stash->{xmlrpc} = {
-            message => [ "I don't have such distribution" ]
+            message => [ "I don't have such distribution : " 
+                    .$c->forward('_fmt_question', [$reqspec])],
         };
     }
 
@@ -335,12 +355,15 @@ sub version : XMLRPC {
         if ($else) {
             return $c->stash->{xmlrpc} = {
                 message => [ 
-                    "There is no rpm named `$args[0]', but the word matches in " . $else
+                    "There is no rpm named `$args[0]' in "
+                    .$c->forward('_fmt_question', [$reqspec])
+                    .", but the word matches in " . $else
                 ],
             }
         } else {
             return $c->stash->{xmlrpc} = {
-                message => [ "The rpm named `$args[0]' has not been found" ],
+                message => [ "The rpm named `$args[0]' has not been found in "
+                    .$c->forward('_fmt_question', [$reqspec])],
             }
         }
     }
@@ -701,7 +724,8 @@ sub qf : XMLRPC {
 
     if (!$c->forward('/distrib/exists', [ $reqspec ])) {
         return $c->stash->{xmlrpc} = {
-            message => [ "I don't have such distribution" ]
+            message => [ "I don't have such distribution : "
+                    .$c->forward('_fmt_question', [$reqspec])],
         };
     }
 
@@ -711,12 +735,15 @@ sub qf : XMLRPC {
         if ($else) {
             return $c->stash->{xmlrpc} = {
                 message => [ 
-                    "There is no rpm named `$args[0]', but the word matches in " . $else
+                    "There is no rpm named `$args[0]' in "
+                    .$c->forward('_fmt_question', [$reqspec])
+                    .", but the word matches in " . $else
                 ],
             }
         } else {
             return $c->stash->{xmlrpc} = {
-                message => [ "The rpm named `$args[0]' has not been found" ],
+                message => [ "The rpm named `$args[0]' has not been found in "
+                    .$c->forward('_fmt_question', [$reqspec])],
             }
         }
     }
@@ -752,7 +779,8 @@ sub more : XMLRPC {
 
     if (!$c->forward('/distrib/exists', [ $reqspec ])) {
         return $c->stash->{xmlrpc} = {
-            message => [ "I don't have such distribution" ]
+            message => [ "I don't have such distribution : "
+                    .$c->forward('_fmt_question', [$reqspec])],
         };
     }
 
@@ -762,12 +790,15 @@ sub more : XMLRPC {
         if ($else) {
             return $c->stash->{xmlrpc} = {
                 message => [ 
-                    "There is no rpm named `$args[0]', but the word matches in " . $else
+                    "There is no rpm named `$args[0]' in "
+                    .$c->forward('_fmt_question', [$reqspec])
+                    .", but the word matches in " . $else
                 ],
             }
         } else {
             return $c->stash->{xmlrpc} = {
-                message => [ "The rpm named `$args[0]' has not been found" ],
+                message => [ "The rpm named `$args[0]' has not been found in "
+                    .$c->forward('_fmt_question', [$reqspec])],
             }
         }
     }
@@ -799,7 +830,8 @@ sub buildfrom : XMLRPC {
         }, @args ]) };
     if (!$c->forward('/distrib/exists', [ $reqspec ])) {
         return $c->stash->{xmlrpc} = {
-            message => [ "I don't have such distribution" ]
+            message => [ "I don't have such distribution in "
+                    .$c->forward('_fmt_question', [$reqspec])],
         };
     }
     my $rpmlist = $c->forward('/search/rpm/byname', [ $reqspec, $args[0] ]);
@@ -808,12 +840,15 @@ sub buildfrom : XMLRPC {
         if ($else) {
             return $c->stash->{xmlrpc} = {
                 message => [ 
-                    "There is no rpm named `$args[0]', but the word matches in " . $else
+                    "There is no rpm named `$args[0]' in "
+                    .$c->forward('_fmt_question', [$reqspec])
+                    .", but the word matches in " . $else
                 ],
             }
         } else {
             return $c->stash->{xmlrpc} = {
-                message => [ "The rpm named `$args[0]' has not been found" ],
+                message => [ "The rpm named `$args[0]' has not been found in "
+                    .$c->forward('_fmt_question', [$reqspec])],
             }
         }
     }
@@ -854,14 +889,16 @@ sub findfile : XMLRPC {
 
     if (!$c->forward('/distrib/exists', [ $reqspec ])) {
         return $c->stash->{xmlrpc} = {
-            message => [ "I don't have such distribution" ]
+            message => [ "I don't have such distribution in "
+                    .$c->forward('_fmt_question', [$reqspec])],
         };
     }
 
     my $rpmlist = $c->forward('/search/rpm/byfile', [ $reqspec, $args[0] ]);
     if (!@{ $rpmlist }) {
         return $c->stash->{xmlrpc} = {
-            message => [ "Sorry, no file $args[0] found" ],
+            message => [ "Sorry, no file $args[0] found in "
+                    .$c->forward('_fmt_question', [$reqspec])],
         }
     } elsif (@{ $rpmlist } > 20) {
         foreach (@{ $rpmlist }) {
@@ -918,13 +955,16 @@ sub what : XMLRPC {
         return $c->stash->{xmlrpc} = {
             message => [
                 "Package matching $depname" . ($evr ? " $sense $evr" : '') .
-                ':', 
+                " in "
+                .$c->forward('_fmt_question', [$reqspec])
+                .':', 
                 join(' ', @name),
             ],
         }
     } else {
         return $c->stash->{xmlrpc} = {
-            message => [ 'Too many results' ],
+            message => [ 'Too many results in ' 
+                    .$c->forward('_fmt_question', [$reqspec])],
         };
     }
 
@@ -950,7 +990,8 @@ sub maint : XMLRPC {
         }, @args ]) };
     if (!$c->forward('/distrib/exists', [ $reqspec ])) {
         return $c->stash->{xmlrpc} = {
-            message => [ "I don't have such distribution" ]
+            message => [ "I don't have such distribution : " 
+                    .$c->forward('_fmt_question', [$reqspec])],
         };
     }
     my $rpmlist = $c->forward('/search/rpm/byname', [ $reqspec, $args[0] ]);
@@ -959,12 +1000,15 @@ sub maint : XMLRPC {
         if ($else) {
             return $c->stash->{xmlrpc} = {
                 message => [ 
-                    "There is no rpm named `$args[0]', but the word matches in " . $else
+                    "There is no rpm named `$args[0]' in "
+                    .$c->forward('_fmt_question', [$reqspec])
+                    .", but the word matches in " . $else
                 ],
             }
         } else {
             return $c->stash->{xmlrpc} = {
-                message => [ "The rpm named `$args[0]' has not been found" ],
+                message => [ "The rpm named `$args[0]' has not been found in "
+                    .$c->forward('_fmt_question', [$reqspec])],
             }
         }
     }
@@ -997,7 +1041,8 @@ sub nb_rpm : XMLRPC {
         }, @args ]) };
     if (!$c->forward('/distrib/exists', [ $dist ])) {
         return $c->stash->{xmlrpc} = {
-            message => [ "I don't have such distribution" ]
+            message => [ "I don't have such distribution : "
+                    .$c->forward('_fmt_question', [$reqspec])],
         };
     }
 
@@ -1006,12 +1051,13 @@ sub nb_rpm : XMLRPC {
     if (@$maints > 3) {
         return $c->stash->{xmlrpc} = {
             message => [ 
-                scalar(@$maints) . " maintainers found matching `$args[0]'"
-            ]
+                scalar(@$maints) . " maintainers found matching `$args[0]' in "
+                    .$c->forward('_fmt_question', [$reqspec])],
         };
     } elsif (! @$maints) {
         return $c->stash->{xmlrpc} = {
-            message => [ "No maintainer found matching `$args[0]'" ]
+            message => [ "No maintainer found matching `$args[0]' in " 
+                    .$c->forward('_fmt_question', [$reqspec])],
         };
     } else {
         my @messages;
