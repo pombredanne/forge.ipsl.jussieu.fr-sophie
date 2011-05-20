@@ -907,7 +907,10 @@ sub findfile : XMLRPC {
                 $c->forward('_fmt_location', [ $reqspec, $_ ]);
         }
         return $c->stash->{xmlrpc} = {
-            message => \@message,
+            message => ["find in "
+                    .$c->forward('_fmt_question', [$reqspec])
+                    ." :",
+                    @message],
         }
     } else {
         my %list;
@@ -916,7 +919,9 @@ sub findfile : XMLRPC {
             $list{$info->{name}} = 1;
         }
         return $c->stash->{xmlrpc} = {
-            message => [ join(', ', sort keys %list) ],
+            message => ["find in "
+                    .$c->forward('_fmt_question', [$reqspec])
+                    ." : ".join(', ', sort keys %list) ],
         };
     }
 }
