@@ -56,12 +56,12 @@ sub list :XMLRPC {
         return $c->stash->{xmlrpc} = [ map { $_->version }
             $rs->search(undef, { order_by => ['version'] })->all ];
     }
-    $rs = $rs->search(version => $release)->search_related('Arch');
+    $rs = $rs->search({ version => $release })->search_related('Arch');
     if (!$arch) {
         return $c->stash->{xmlrpc} = [ map { $_->arch } 
             $rs->search(undef, { order_by => ['arch'] })->all ];
     }
-    $rs = $rs->search(arch => $arch)->search_related('Medias');
+    $rs = $rs->search({ arch => $arch })->search_related('Medias');
     return $c->stash->{xmlrpc} = [ map { $_->label }
         $rs->search(undef, { order_by => ['label'] })->all ];
 }

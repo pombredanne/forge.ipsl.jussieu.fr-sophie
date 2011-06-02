@@ -66,9 +66,9 @@ sub add_media :XMLRPC {
     my ( $self, $c, $distribspec, $mediaspec) = @_;
 
     my $d = $c->model('Base')->resultset('Distribution')
-        ->search(name => $distribspec->{distribution})
-        ->search_related('Release', version => $distribspec->{release})
-        ->search_related('Arch', arch => $distribspec->{arch})->next;
+        ->search({ name => $distribspec->{distribution} })
+        ->search_related('Release', { version => $distribspec->{release} })
+        ->search_related('Arch',    { arch => $distribspec->{arch} })->next;
     if ($d) {
         my $new = my $rs = $c->model('Base')->resultset('Medias')
             ->update_or_create({
@@ -93,10 +93,11 @@ sub remove_media :XMLRPC {
         {
             label => $medianame,
             d_arch => $c->model('Base')->resultset('Distribution')
-                ->search(name => $distribspec->{distribution})
-                ->search_related('Release', version => $distribspec->{release})
-                ->search_related('Arch', arch =>
-                    $distribspec->{arch})->next->d_arch_key,
+                ->search({ name => $distribspec->{distribution} })
+                ->search_related('Release',
+                    { version => $distribspec->{release}} )
+                ->search_related('Arch',
+                    { arch => $distribspec->{arch} })->next->d_arch_key,
         }
     );
 
@@ -172,10 +173,10 @@ sub media_path :XMLRPC {
     $path =~ s/\/+/\//g;
 
     my $med = $c->model('Base')->resultset('Distribution')
-        ->search(name => $distribution)
-        ->search_related('Release', version => $version)
-        ->search_related('Arch', arch => $arch)
-        ->search_related('Medias', label => $label)->next or return;
+        ->search({ name => $distribution })
+        ->search_related('Release', { version => $version })
+        ->search_related('Arch',    { arch => $arch })
+        ->search_related('Medias',  { label => $label })->next or return;
 
     my $rspath = $c->model('Base')->resultset('Paths')
         ->find_or_create({ path => $path }) or do {
@@ -348,9 +349,9 @@ sub clean_distrib : XMLRPC {
     }
 
     my $rsdist = $c->model('Base')->resultset('Distribution')
-        ->search(name => $distribution->{distribution})
-        ->search_related('Release', version => $distribution->{release})
-        ->search_related('Arch', arch => $distribution->{arch})
+        ->search({ name => $distribution->{distribution} })
+        ->search_related('Release', { version => $distribution->{release} })
+        ->search_related('Arch',    { arch => $distribution->{arch} })
         ->search_related('Medias');
 
     my $new = $c->model('Base')->resultset('MediasPaths')->search({
@@ -366,8 +367,6 @@ sub load_distrib : XMLRPC {
 
     my $ref = thaw($dump);
 
-    warn keys %{$ref->{path}};
-
     $c->forward('clean_distrib', [ $ref->{distrib} ]);
 
     $c->forward('create', [ 
@@ -376,6 +375,12 @@ sub load_distrib : XMLRPC {
             $ref->{distrib}{arch},
         ]);
 
+    # cleaning media not existing anymore
+    foreach my $media (@{ $c->forward('/distrib/list', [ $ref->{distrib} ]) || []}) {
+        if (!grep { $media eq $_->{label} } (@{ $ref->{media} || []})) {
+            $c->forward('remove_media', [ $ref->{distrib}, $media ]);
+        }
+    }
     foreach my $media (@{ $ref->{media} || []}) {
         $c->forward('add_media', [ $ref->{distrib}, $media ]);
     }
