@@ -42,6 +42,7 @@ test_requires 'Test::More' => '0.88';
 catalyst;
 
 install_script glob('script/*.pl');
+install_script qw(bin/sophie_fetch_maint bin/sophie_rescan bin/sophie_scan);
 
 WriteMakefile(
     macro => { 
