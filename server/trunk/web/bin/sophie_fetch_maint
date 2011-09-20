@@ -27,11 +27,11 @@ foreach my $maintsource (
             $_->{sources} = $maintsource->pkey;
         }
 
-        if ($sophie->resultset('MaintRpm')->populate($list)) {
-            $maintsource->update({ lastupdated => 'now()' });
-            $sophie->storage->dbh->commit;
-        } else {
-            $sophie->storage->dbh->rollback;
-        }
+        $sophie->txn_do(
+            sub {
+                $sophie->resultset('MaintRpm')->populate($list) &&
+                $maintsource->update({ lastupdated => 'now()' });
+            }
+        );
     }
 }

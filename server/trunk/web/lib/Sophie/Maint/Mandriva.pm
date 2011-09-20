@@ -16,7 +16,6 @@ sub fetch {
     my $ua = LWP::UserAgent->new;
     $ua->timeout(30);
 
-    warn $self->{ref}->url;
     my $res = $ua->get($self->{ref}->url);
 
     if ($res->is_success) {
