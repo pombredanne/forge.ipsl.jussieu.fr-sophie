@@ -90,6 +90,10 @@ sub message : XMLRPC {
         }
     }
 
+    if (! ref($contexts[-1])) {
+        $reqspec->{from} = $contexts[-1];
+    }
+
     my ($cmd, @args) = @msgargs
         ? ($message, @msgargs)
         : Text::ParseWords::shellwords($message);

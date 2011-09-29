@@ -171,6 +171,61 @@ sub help : XMLRPC {
     }
 }
 
+=head2 set [distribution|release|arch] value
+
+Set default search value
+
+=cut
+
+sub set : XMLRPC {
+    my ( $self, $c, $reqspec, $var, $val ) = @_;
+
+    $c->forward('/user/update_data', [ $reqspec->{from}, { $var => $val } ]);
+    
+    return $c->stash->{xmlrpc} = {
+        private_reply => 1,
+        message => [ "$var set to: " . ($val || '(none)') ],
+    };
+}
+
+=head2 show [var]
+
+Show your user settings
+
+=cut
+
+sub show : XMLRPC {
+    my ( $self, $c, $reqspec, $var, ) = @_;
+
+    my $res = $c->forward('/user/fetchdata', [ $reqspec->{from}, ]);
+    
+    if ($var) {
+        my $own = $res->{$var} || '(none)';
+        my $applied = $reqspec->{$var} || '(none)';
+        return $c->stash->{xmlrpc} = {
+            message => [ sprintf("%s is set to %s%s",
+                $var,
+                $own,
+                ($own ne $applied
+                    ? " ($applied is used in this context)"
+                    : '')
+            ) ]
+        };
+    } else {
+        warn my $own = $c->forward('_fmt_question', [$res]);
+        warn my $applied = $c->forward('_fmt_question', [$reqspec]);
+        return $c->stash->{xmlrpc} = {
+            message => [ sprintf('your setting is: %s%s',
+                $own,
+                ($own ne $applied
+                    ? " ($applied is used in this context)"
+                    : ''
+                )
+            ) ],
+        }
+    }
+}
+
 =head2 asv
 
 ASV means in french "age, sexe, ville" (age, sex and town).
@@ -373,7 +428,8 @@ sub version : XMLRPC {
             $c->forward('_fmt_location', [ $reqspec, $_ ]);
     }
     return $c->stash->{xmlrpc} = {
-        message => \@message,
+        private_reply => 1,
+        message => [ @message ],
     }
 }
 
