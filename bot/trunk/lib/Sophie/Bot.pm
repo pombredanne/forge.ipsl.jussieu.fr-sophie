@@ -86,13 +86,8 @@ sub handle_message {
     my ($self, $heap, $context, $message) = @_;
 
     $self->login;
-    if ($message =~ /^\s*set\s+(\w+)\s+(\S+)/) {
-        warn "$1, $2";
-        $self->user_config($heap, $1, $2);
-    } else {
-        eval {
-            $self->submit_query($heap, $context, $message);
-        }
+    eval {
+        $self->submit_query($heap, $context, $message);
     }
 }
 
