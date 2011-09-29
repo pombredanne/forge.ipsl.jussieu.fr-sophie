@@ -458,7 +458,6 @@ sub version : XMLRPC {
             $c->forward('_fmt_location', [ $reqspec, $_ ]);
     }
     return $c->stash->{xmlrpc} = {
-        private_reply => 1,
         message => [ @message ],
     }
 }
