@@ -1,0 +1,46 @@
+# $Id$
+
+%define realname   Sophie-Tools
+%define version    @VERSION@
+%define release    %mkrel %{?svnrelease:0.%{svnrelease}}%{?!svnrelease:1}
+
+Name:       sophie-tools
+Version:    %{version}
+Release:    %{release}
+License:    GPL or Artistic
+Group:      Development/Perl
+Summary:    Sophie's tools
+Source:     %{realname}-%{version}.tar.gz
+Url:        http://search.cpan.org/dist/%{realname}
+BuildRoot:  %{_tmppath}/%{name}-%{version}-%{release}-buildroot
+BuildArch:  noarch
+
+Requires: perl-Term-ReadLine-Gnu
+
+%description
+Command line tools to query Sophie website (http://sophie.zarb.org/)
+
+%prep
+%setup -q -n %{realname}-%{version} 
+
+%build
+%{__perl} Makefile.PL INSTALLDIRS=vendor
+%make
+
+%check
+make test
+
+%install
+rm -rf %buildroot
+%makeinstall_std
+
+%clean
+rm -rf %buildroot
+
+%files
+%defattr(-,root,root)
+%doc Changes README
+%_bindir/*
+%{_mandir}/*/*
+%perl_vendorlib/*
+

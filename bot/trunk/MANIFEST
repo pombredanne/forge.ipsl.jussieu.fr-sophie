@@ -1,6 +1,10 @@
 Changes
-Makefile.PL
 MANIFEST
+Makefile.PL
 README
-t/Sophie-IrcBot.t
-lib/Sophie/IrcBot.pm
+bin/sophie-bot
+bin/sophie-rpm
+lib/Sophie/Bot/IRC.pm
+lib/Sophie/Bot/Term.pm
+lib/Sophie/Bot.pm
+t/Sophie-Bot.t
