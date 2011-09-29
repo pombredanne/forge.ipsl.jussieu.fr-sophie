@@ -173,7 +173,7 @@ sub help : XMLRPC {
 
 =head2 set [distribution|release|arch] value
 
-Set default search value
+Set default search value (see also: unset)
 
 =cut
 
@@ -184,7 +184,31 @@ sub set : XMLRPC {
     
     return $c->stash->{xmlrpc} = {
         private_reply => 1,
-        message => [ "$var set to: " . ($val || '(none)') ],
+        message => [
+            "$var set to: " . ($val || '(none)'),
+            ($c->forward('/distrib/exists', [
+                    $c->forward('/user/fetchdata', [ $reqspec->{from}, ]) ])
+                ? ()
+                : ("warning: your setting does not match any distribution")
+            ),
+        ]
+    };
+}
+
+=head2 unset [distribution|release|arch]
+
+Unset default search value (see also: set)
+
+=cut
+
+sub unset : XMLRPC {
+    my ( $self, $c, $reqspec, $var ) = @_;
+
+    $c->forward('/user/update_data', [ $reqspec->{from}, { $var => undef } ]);
+    
+    return $c->stash->{xmlrpc} = {
+        private_reply => 1,
+        message => [ "$var set to: (none)" ],
     };
 }
 
@@ -212,8 +236,9 @@ sub show : XMLRPC {
             ) ]
         };
     } else {
-        warn my $own = $c->forward('_fmt_question', [$res]);
-        warn my $applied = $c->forward('_fmt_question', [$reqspec]);
+        my $own = $c->forward('_fmt_question', [$res]);
+        my $applied = $c->forward('_fmt_question', [$reqspec]);
+
         return $c->stash->{xmlrpc} = {
             message => [ sprintf('your setting is: %s%s',
                 $own,
@@ -221,7 +246,12 @@ sub show : XMLRPC {
                     ? " ($applied is used in this context)"
                     : ''
                 )
-            ) ],
+            ),
+            ($c->forward('/distrib/exists', [ $res ])
+                ? ()
+                : ("warning: your setting does not match any distribution")
+            )
+            ],
         }
     }
 }

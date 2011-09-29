@@ -110,7 +110,11 @@ sub update_user_data : Private {
     ) || {};
 
     foreach (keys %$data) {
-        $prev_data->{$_} = $data->{$_};
+        if (defined($data->{$_})) {
+            $prev_data->{$_} = $data->{$_};
+        } else {
+            delete($prev_data->{$_});
+        }
     }
 
     $c->forward('set_user_data', [ $user, $dataname, $prev_data ]);
