@@ -38,6 +38,7 @@ BuildRequires: perl(Pod::POM)
 BuildRequires: perl(XML::Simple)
 BuildRequires: perl(XML::RSS)
 BuildRequires: perl(GD::Graph)
+BuildRequires: perl-DBD-Pg
 
 Requires: perl(Catalyst)
 Requires: perl(Catalyst::Plugin::ConfigLoader)
@@ -58,6 +59,7 @@ Requires: perl(Catalyst::Plugin::Session::Store::DBI)
 Requires: perl(Catalyst::Authentication::Store::DBIx::Class)
 Requires: perl(XML::RSS)
 Requires: perl(GD::Graph)
+Requires: perl-DBD-Pg
 # Requires: apache-mod_fastcgi
 # Requires: perl(FCGI)
 # Requires: apache-mod_proxy
