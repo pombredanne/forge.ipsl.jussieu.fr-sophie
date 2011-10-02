@@ -76,9 +76,25 @@ sub _getopt : Private {
 
     local @ARGV = @args;
 
-    GetOptions(%{ $options || {} });
+    eval {
+        # Getopt::Long don't return the error but use warn
+        local $SIG{__WARN__} = sub { 
+            my ($message) = @_;
+            chomp($message);
+            $c->stash->{xmlrpc} = {
+                message => [ $message ]
+            };
+        };
 
-    return \@ARGV;
+        GetOptions(%{ $options || {} }) or do {
+            $c->stash->{getopt_error} = 1;
+        };
+    };
+    if ($@) {
+        $c->stash->{getopt_error} = 1;
+    }
+
+    return [ @ARGV ];
 }
 
 sub _fmt_location : Private {
@@ -353,8 +369,11 @@ sub q : XMLRPC {
             's'   => sub { $reqspec->{src} = 1 },
         }, @args ]) };
 
+    if ($c->stash->{getopt_error}) {
+        return $c->stash->{xmlrpc};
+    }
+
     my $res = $c->forward('/search/tags/name_regexp', $reqspec, $args[0]);
-    warn join(' ', @{ $res });
     if (!@{ $res }) {
         return $c->stash->{xmlrpc} = {
             message => [ "Nothing matches `$args[0]' in "
@@ -397,6 +416,10 @@ sub whatis : XMLRPC {
             'a=s' => \$reqspec->{arch},
             's'   => sub { $reqspec->{src} = 1 },
         }, @args ]) };
+    if ($c->stash->{getopt_error}) {
+        return $c->stash->{xmlrpc};
+    }
+
     my $res = $c->forward('/search/rpm/description', [ $reqspec, @args ]);
 
     if (@{ $res }) {
@@ -454,6 +477,9 @@ sub version : XMLRPC {
             'a=s' => \$reqspec->{arch},
             's'   => sub { $reqspec->{src} = 1 },
         }, @args ]) };
+    if ($c->stash->{getopt_error}) {
+        return $c->stash->{xmlrpc};
+    }
 
     if (!$c->forward('/distrib/exists', [ $reqspec ])) {
         return $c->stash->{xmlrpc} = {
@@ -829,6 +855,9 @@ sub qf : XMLRPC {
             'a=s' => \$reqspec->{arch},
             's'   => sub { $reqspec->{src} = 1 },
         }, @args ]) };
+    if ($c->stash->{getopt_error}) {
+        return $c->stash->{xmlrpc};
+    }
 
     @args == 2 or do {
         $c->error('No argument given');
@@ -889,6 +918,9 @@ sub more : XMLRPC {
             'a=s' => \$reqspec->{arch},
             's'   => sub { $reqspec->{src} = 1 },
         }, @args ]) };
+    if ($c->stash->{getopt_error}) {
+        return $c->stash->{xmlrpc};
+    }
 
     if (!$c->forward('/distrib/exists', [ $reqspec ])) {
         return $c->stash->{xmlrpc} = {
@@ -941,6 +973,10 @@ sub buildfrom : XMLRPC {
             'r=s' => \$reqspec->{release},
             'a=s' => \$reqspec->{arch},
         }, @args ]) };
+    if ($c->stash->{getopt_error}) {
+        return $c->stash->{xmlrpc};
+    }
+
     if (!$c->forward('/distrib/exists', [ $reqspec ])) {
         return $c->stash->{xmlrpc} = {
             message => [ "I don't have such distribution in "
@@ -999,6 +1035,9 @@ sub findfile : XMLRPC {
             'a=s' => \$reqspec->{arch},
             's'   => \$reqspec->{src},
         }, @args ]) };
+    if ($c->stash->{getopt_error}) {
+        return $c->stash->{xmlrpc};
+    }
 
     if (!$c->forward('/distrib/exists', [ $reqspec ])) {
         return $c->stash->{xmlrpc} = {
@@ -1057,6 +1096,9 @@ sub what : XMLRPC {
             'a=s' => \$reqspec->{arch},
             's'   => \$reqspec->{src},
         }, @args ]) };
+    if ($c->stash->{getopt_error}) {
+        return $c->stash->{xmlrpc};
+    }
 
     my ($type, $depname, $sense, $evr) = @args;
 
@@ -1106,6 +1148,10 @@ sub maint : XMLRPC {
             'a=s' => \$reqspec->{arch},
             's'   => \$reqspec->{src},
         }, @args ]) };
+    if ($c->stash->{getopt_error}) {
+        return $c->stash->{xmlrpc};
+    }
+
     if (!$c->forward('/distrib/exists', [ $reqspec ])) {
         return $c->stash->{xmlrpc} = {
             message => [ "I don't have such distribution : " 
@@ -1157,6 +1203,10 @@ sub nb_rpm : XMLRPC {
         {
             'd=s' => \$dist->{distribution},
         }, @args ]) };
+    if ($c->stash->{getopt_error}) {
+        return $c->stash->{xmlrpc};
+    }
+
     if (!$c->forward('/distrib/exists', [ $dist ])) {
         return $c->stash->{xmlrpc} = {
             message => [ "I don't have such distribution : "
