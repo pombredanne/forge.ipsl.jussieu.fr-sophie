@@ -25,7 +25,7 @@ sub new {
 
 
     if ($options{login}) {
-        login($self) or die "Can't login";
+        login($self) or die "Can't login at $options{server}";
     }
 
     my $realclass = $class . ($options{type} ? ('::' . $options{type}) : '');
