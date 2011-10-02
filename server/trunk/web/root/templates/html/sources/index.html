@@ -6,6 +6,9 @@
     <input type="submit">
 </form>
 
+[% IF xmlrpc.size == 0 %]
+<p>no results, sorry !</p>
+[% END %]
 [% FOREACH rpm = xmlrpc %]
 [% IF loop.first %]
 <ul class="sophie_tag">
