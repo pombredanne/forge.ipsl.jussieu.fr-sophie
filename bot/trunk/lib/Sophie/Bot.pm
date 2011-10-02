@@ -46,6 +46,7 @@ sub login {
             $self->request->header('cookie', $$res);
             return 1;
         } else {
+            warn "$res\n";
             return;
         }
     } else {
@@ -54,6 +55,7 @@ sub login {
             $self->request->header('cookie', $$res);
             return 1;
         } else {
+            warn "$res\n";
             return;
         }
     }
