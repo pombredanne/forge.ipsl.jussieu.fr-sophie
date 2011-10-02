@@ -373,7 +373,7 @@ sub q : XMLRPC {
         return $c->stash->{xmlrpc};
     }
 
-    my $res = $c->forward('/search/tags/name_regexp', $reqspec, $args[0]);
+    my $res = $c->forward('/search/tags/name_regexp', [ $reqspec, $args[0] ]);
     if (!@{ $res }) {
         return $c->stash->{xmlrpc} = {
             message => [ "Nothing matches `$args[0]' in "
