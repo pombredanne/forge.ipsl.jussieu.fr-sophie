@@ -180,8 +180,26 @@ Set default search value (see also: unset)
 sub set : XMLRPC {
     my ( $self, $c, $reqspec, $var, $val ) = @_;
 
-    $c->forward('/user/update_data', [ $reqspec->{from}, { $var => $val } ]);
+    if (!$var) {
+        return $c->stash->{xmlrpc} = {
+            private_reply => 1,
+            message => [
+                "What must I set ?"
+            ]
+        }
+    } 
     
+    if (!$val) {
+        return $c->stash->{xmlrpc} = {
+            private_reply => 1,
+            message => [
+                "To what must I set $var ?"
+            ]
+        }
+    } 
+    
+    $c->forward('/user/update_data', [ $reqspec->{from}, { $var => $val } ]);
+
     return $c->stash->{xmlrpc} = {
         private_reply => 1,
         message => [
@@ -204,6 +222,16 @@ Unset default search value (see also: set)
 sub unset : XMLRPC {
     my ( $self, $c, $reqspec, $var ) = @_;
 
+
+    if (!$var) {
+        return $c->stash->{xmlrpc} = {
+            private_reply => 1,
+            message => [
+                "What must I unset ?"
+            ]
+        }
+    } 
+    
     $c->forward('/user/update_data', [ $reqspec->{from}, { $var => undef } ]);
     
     return $c->stash->{xmlrpc} = {
