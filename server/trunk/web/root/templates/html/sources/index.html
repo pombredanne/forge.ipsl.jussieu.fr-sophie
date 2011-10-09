@@ -6,7 +6,7 @@
     <input type="submit">
 </form>
 
-[% IF xmlrpc.size == 0 %]
+[% IF c.req.param('search') && xmlrpc.size == 0 %]
 <p>no results, sorry !</p>
 [% END %]
 [% FOREACH rpm = xmlrpc %]
