@@ -208,12 +208,12 @@ sub set : XMLRPC {
     
     # if the variable is not 'distribution', 'release' or 'arch', Sophie
     # complains and stop
-    if ($var != "distribution" || $var != "release" || $var != "arch") {
+    if ($var != "distribution" && $var != "release" && $var != "arch") {
         return $c->stash->{xmlrpc} = {
             private_reply => 1,
             message => [
-                "'$var' is not valid ! possible parameters are : 'distribution',
-                'release' and 'arch'."
+                "'$var' is not valid ! possible parameters are : " . 
+                "'distribution', 'release' and 'arch'."
             ]
         }
     }
@@ -264,12 +264,12 @@ sub unset : XMLRPC {
     
     # if the variable is not 'distribution', 'release' or 'arch', Sophie
     # complains and stop
-    if ($var != "distribution" || $var != "release" || $var != "arch") {
+    if ($var != "distribution" && $var != "release" && $var != "arch") {
         return $c->stash->{xmlrpc} = {
             private_reply => 1,
             message => [
-                "'$var' is not valid ! possible parameters are : 'distribution',
-                'release' and 'arch'."
+                "'$var' is not valid ! possible parameters are : " .
+                "'distribution', 'release' and 'arch'."
             ]
         }
     }
