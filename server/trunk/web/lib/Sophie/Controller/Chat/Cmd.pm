@@ -195,7 +195,8 @@ Set default search value (see also: unset)
 
 sub set : XMLRPC {
     my ( $self, $c, $reqspec, $var, $val ) = @_;
-
+    
+    # if there is no variable to fix, Sophie ask and stop
     if (!$var) {
         return $c->stash->{xmlrpc} = {
             private_reply => 1,
@@ -205,6 +206,19 @@ sub set : XMLRPC {
         }
     } 
     
+    # if the variable is not 'distribution', 'release' or 'arch', Sophie
+    # complains and stop
+    if ($var != "distribution" || $var != "release" || $var != "arch") {
+        return $c->stash->{xmlrpc} = {
+            private_reply => 1,
+            message => [
+                "'$var' is not valid ! possible parameters are : 'distribution',
+                'release' and 'arch'."
+            ]
+        }
+    }
+
+    # if there is no value to give to the variable, Sophie ask and stop
     if (!$val) {
         return $c->stash->{xmlrpc} = {
             private_reply => 1,
@@ -238,7 +252,7 @@ Unset default search value (see also: set)
 sub unset : XMLRPC {
     my ( $self, $c, $reqspec, $var ) = @_;
 
-
+    # if there is no variable to fix, Sophie ask and stop
     if (!$var) {
         return $c->stash->{xmlrpc} = {
             private_reply => 1,
@@ -248,6 +262,18 @@ sub unset : XMLRPC {
         }
     } 
     
+    # if the variable is not 'distribution', 'release' or 'arch', Sophie
+    # complains and stop
+    if ($var != "distribution" || $var != "release" || $var != "arch") {
+        return $c->stash->{xmlrpc} = {
+            private_reply => 1,
+            message => [
+                "'$var' is not valid ! possible parameters are : 'distribution',
+                'release' and 'arch'."
+            ]
+        }
+    }
+
     $c->forward('/user/update_data', [ $reqspec->{from}, { $var => undef } ]);
     
     return $c->stash->{xmlrpc} = {
