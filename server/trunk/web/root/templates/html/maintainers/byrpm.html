@@ -1,0 +1,5 @@
+<!-- $Id$ -->
+
+[% FOREACH maint = xmlrpc %]
+[% maint.vendor | html %]: [% maint.owner | html %]<br>
+[% END %]

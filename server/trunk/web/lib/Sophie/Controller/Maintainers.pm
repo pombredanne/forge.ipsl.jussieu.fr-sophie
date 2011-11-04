@@ -67,7 +67,7 @@ sub byrpm :Path :XMLRPC {
             } : (),
         )->search({},
             {
-                'select' => [ qw'owner name label' ],
+                'select' => [ qw'me.owner name maintsources.label' ],
                 'as'     => [ qw'owner distribution vendor' ],
             }
         )->all ];
