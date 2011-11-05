@@ -41,7 +41,17 @@ Theses alternatives are supported:
 
     /maintainers?rpm=<RPM>;distrib=<DISTRIB>
 
-    /maintainers/rpm?distrib=<DISTRIB>
+    /maintainers/<RPM>?distrib=<DISTRIB>
+
+    /maintainers/<RPM>/<DISTRIB>
+
+To use JSON (same for AJAX):
+    
+    /maintainers?rpm=<RPM>;distrib=<DISTRIB>;json=1
+
+    /maintainers/<RPM>?distrib=<DISTRIB>;json=1
+
+    /maintainers/<RPM>/<DISTRIB>?json
 
 =cut
 
