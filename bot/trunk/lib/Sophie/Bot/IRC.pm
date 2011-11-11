@@ -8,6 +8,9 @@ use POE qw(Component::IRC);
 
 our $VERSION = '0.01';
 
+sub PING_INTERVAL { 60 }
+sub NO_PONG_TOUT  { 5  }
+
 sub setup_server {
     my ($self, $server, $nick, $password) = @_;
 
@@ -24,7 +27,7 @@ sub setup_server {
         Nick     => $nick,
         Server   => $server,
         Ircname  => 'Rpm2sql',
-        Debug    => 0,
+        Debug    => 1,
     );
  
     POE::Session->create(
@@ -36,16 +39,48 @@ sub setup_server {
             nick => $nick,
         },
         package_states => [
-            ref($self)  => [ qw(_start irc_001 irc_public irc_msg) ],
+            ref($self)  => [ qw(_start irc_001 irc_public irc_msg ping_server
+                irc_pong) ],
         ],
     ); 
 }
 
 sub _start {
     my $heap = $_[HEAP];
+    my $kernel = $_[KERNEL];
     my $irc = $heap->{irc};
+
     $irc->yield('register', 'all', '001');
     $irc->yield('connect', { });
+
+    $kernel->delay( 'ping_server' => PING_INTERVAL );
+}
+
+sub ping_server {
+    my $heap = $_[HEAP];
+    my $kernel = $_[KERNEL];
+    $heap->{nopong} ||= 0;
+    if ($heap->{nopong} >= NO_PONG_TOUT) {
+        $heap->{irc}->yield( 'connect', { } );
+        return;
+    }
+    $heap->{nopong}++;
+    $heap->{irc}->yield( 'ping' => scalar(time()) );
+    $kernel->delay( 'ping_server' => PING_INTERVAL );
+}
+
+sub irc_pong {
+    my $heap = $_[HEAP];
+    my $kernel = $_[KERNEL];
+    $heap->{nopong} = 0;
+}
+
+sub irc_433  {
+    my $heap = $_[HEAP];
+    my $irc = $heap->{irc};
+    my $self = $heap->{sophie};
+
+    die "Nick already in use\n";
 }
 
 sub irc_001 {

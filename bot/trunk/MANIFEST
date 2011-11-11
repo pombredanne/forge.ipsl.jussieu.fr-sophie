@@ -7,4 +7,5 @@ bin/sophie-rpm
 lib/Sophie/Bot/IRC.pm
 lib/Sophie/Bot/Term.pm
 lib/Sophie/Bot.pm
+sophie-tools.spec.in
 t/Sophie-Bot.t
