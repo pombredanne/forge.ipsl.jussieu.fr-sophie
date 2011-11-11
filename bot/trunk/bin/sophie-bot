@@ -17,6 +17,7 @@ GetOptions(
     'd=s' => \my @options,
     'proxy' => \my $proxy,
     'daemon' => \my $daemon,
+    'runas=s' => \my $runas,
 
     # Command option:
     'set-password=s' => \my $password,
@@ -38,6 +39,7 @@ if (my $conf = Config::General->new($configfile)) {
     $pass        ||= $config{pass};
     $daemon      ||= $config{daemon};
     $proxy       ||= $config{proxy};
+    $runas       ||= $config{runas};
 }
 
 my $sc = Sophie::Bot->new(
@@ -84,6 +86,18 @@ if ($password) {
 }
 
 if ($daemon) {
+
+    if ($runas) {
+        my ($login,$pass,$uid,$gid) = $runas =~ /^\d/
+            ? getpwuid($runas)
+            : getpwnam($runas);
+
+        $> = $uid; $) = $gid;
+        if ($> ne $uid) {
+            die "Cannot change to user $runas\n";
+        }
+    }
+
     my $pid = fork();
 
     if (defined($pid)) {
@@ -97,3 +111,4 @@ if ($daemon) {
 }
 
 $sc->run;
+
