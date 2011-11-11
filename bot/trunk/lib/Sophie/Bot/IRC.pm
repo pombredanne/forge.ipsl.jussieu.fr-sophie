@@ -40,7 +40,7 @@ sub setup_server {
         },
         package_states => [
             ref($self)  => [ qw(_start irc_001 irc_public irc_msg ping_server
-                irc_pong) ],
+                irc_pong irc_433) ],
         ],
     ); 
 }

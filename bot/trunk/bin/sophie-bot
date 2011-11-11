@@ -18,6 +18,7 @@ GetOptions(
     'proxy' => \my $proxy,
     'daemon' => \my $daemon,
     'runas=s' => \my $runas,
+    'pidfile=s' => \my $pidfile,
 
     # Command option:
     'set-password=s' => \my $password,
@@ -40,6 +41,7 @@ if (my $conf = Config::General->new($configfile)) {
     $daemon      ||= $config{daemon};
     $proxy       ||= $config{proxy};
     $runas       ||= $config{runas};
+    $pidfile     ||= $config{pidfile};
 }
 
 my $sc = Sophie::Bot->new(
@@ -107,6 +109,14 @@ if ($daemon) {
         } else {
             # child
         }
+    }
+}
+
+if ($pidfile) {
+    if (open(my $handle, '>', $pidfile)) {
+        print $handle $$ . "\n";
+        close($handle);
+    } else {
     }
 }
 
