@@ -17,6 +17,8 @@ BuildArch:  noarch
 BuildRequires: perl(RPC::XML)
 
 Requires: perl-Term-ReadLine-Gnu
+Requires: perl(Config::General)
+Requires: perl(POE::Component::IRC)
 
 %description
 Command line tools to query Sophie website (http://sophie.zarb.org/)
