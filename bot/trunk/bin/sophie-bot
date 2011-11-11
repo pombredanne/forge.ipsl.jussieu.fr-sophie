@@ -85,18 +85,18 @@ if ($password) {
     }
 }
 
-if ($daemon) {
+if ($runas) {
+    my ($login,$pass,$uid,$gid) = $runas =~ /^\d/
+    ? getpwuid($runas)
+    : getpwnam($runas);
 
-    if ($runas) {
-        my ($login,$pass,$uid,$gid) = $runas =~ /^\d/
-            ? getpwuid($runas)
-            : getpwnam($runas);
-
-        $> = $uid; $) = $gid;
-        if ($> ne $uid) {
-            die "Cannot change to user $runas\n";
-        }
+    $> = $uid; $) = $gid;
+    if ($> ne $uid) {
+        die "Cannot change to user $runas\n";
     }
+}
+
+if ($daemon) {
 
     my $pid = fork();
 
