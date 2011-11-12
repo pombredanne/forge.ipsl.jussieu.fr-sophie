@@ -162,7 +162,7 @@ sub info : XMLRPCLocal :Chained('rpms_') :PathPart('info') :Args(0) {
         if (my @r = $c->model('base')->resultset('Rpms')->search(
             { pkgid => $pkgid },
             { 
-                select => [ qq{rpmquery("header", ?)} ],
+                select => [ { rpmquery => [ "header", '?' ] } ],
                 as => [ 'qf' ],
                 bind => [ $_ ],
             }
