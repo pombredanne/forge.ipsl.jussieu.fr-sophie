@@ -1,56 +1,46 @@
 <!-- $Id$ -->
-<table border="0">
+<table border="0" id="tadvsearch">
 <tr>
-    <td></td>
+<td><b>Search rpm:</b></td>
+</tr>
+<tr>
     <td>
-<input type="text" name="search" value="[% c.req.param('search') | html %]">
+    <input type="text" name="search" value="[% c.req.param('search') | html %]">
+
+    <select name="type" OnChange="
+        if (value == 'bydep') {
+            document.getElementById('deptype').style.visibility = '';
+        } else {
+            document.getElementById('deptype').style.visibility = 'hidden';
+        }
+    ">
+    <option value="fuzzyname"[% " selected=selected" IF c.req.param('type') == 'fuzzyname' %]>rpm name match</option>
+    <option value="byname"[% " selected=selected" IF c.req.param('type') == 'byname' %]>rpm exactly named</option>
+    <option value="bydep"[% " selected=selected" IF c.req.param('type') == 'bydep' %]>dependency overlap:</option>
+    <option value="byfile"[% " selected=selected" IF c.req.param('type') == 'byfile' %]>File</option>
+    </select>
+    <span id="deptype" style="[% 'visibility:hidden;' IF c.req.param('type') != 'bydep' %]">
+    <select name="deptype">
+        <option value="P"[% " selected=selected" IF c.req.param('deptype') == 'P' %]>Provides</option>
+        <option value="R"[% " selected=selected" IF c.req.param('deptype') == 'R' %]>Requires</option>
+        <option value="C"[% " selected=selected" IF c.req.param('deptype') == 'C' %]>Conflict</option>
+        <option value="O"[% " selected=selected" IF c.req.param('deptype') == 'O' %]>Obsoletes</option>
+        <option value="T"[% " selected=selected" IF c.req.param('deptype') == 'T' %]>Trigger</option>
+        <option value="S"[% " selected=selected" IF c.req.param('deptype') == 'S' %]>Suggest</option>
+        <option value="E"[% " selected=selected" IF c.req.param('deptype') == 'E' %]>Enhanced</option>
+    </select>
+    </span>
     </td>
 </tr>
 <tr>
-    <td></td>
     <td>
+    Limit to distribution:
     <span id="distribselect">
     [% INCLUDE 'ajax/forms/distribselect.tt' form = 'sophie_adv_search' %]
     </span>
     </td>
 </tr>
 <tr>
-    <td>
-    </td>
-    <td>
-<select name="type" OnChange="
-    if (value == 'bydep') {
-        document.getElementById('deptype').style.visibility = '';
-    } else {
-        document.getElementById('deptype').style.visibility = 'hidden';
-    }
-">
-<option value="fuzzyname"[% " selected=selected" IF c.req.param('type') == 'fuzzyname' %]>Name match</option>
-<option value="byname"[% " selected=selected" IF c.req.param('type') == 'byname' %]>rpm named</option>
-<option value="bydep"[% " selected=selected" IF c.req.param('type') == 'bydep' %]>dependency match</option>
-<option value="byfile"[% " selected=selected" IF c.req.param('type') == 'byfile' %]>File</option>
-</select>
-    </td>
-</tr>
-<tr>
-<td>
-</td>
-<td>
-<span id="deptype" style="[% 'visibility:hidden;' IF c.req.param('type') != 'bydep' %]">
-<select name="deptype">
-    <option value="P"[% " selected=selected" IF c.req.param('deptype') == 'P' %]>Provides</option>
-    <option value="R"[% " selected=selected" IF c.req.param('deptype') == 'R' %]>Requires</option>
-    <option value="C"[% " selected=selected" IF c.req.param('deptype') == 'C' %]>Conflict</option>
-    <option value="O"[% " selected=selected" IF c.req.param('deptype') == 'O' %]>Obsoletes</option>
-    <option value="T"[% " selected=selected" IF c.req.param('deptype') == 'T' %]>Trigger</option>
-    <option value="S"[% " selected=selected" IF c.req.param('deptype') == 'S' %]>Suggest</option>
-    <option value="E"[% " selected=selected" IF c.req.param('deptype') == 'E' %]>Enhanced</option>
-</select>
-</span>
-</td>
-</tr>
-<tr>
-<td></td>
 <td>
 <input type="submit">
 </td>
