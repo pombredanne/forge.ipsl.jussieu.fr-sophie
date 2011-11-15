@@ -2,118 +2,30 @@
 
 use strict;
 use warnings;
-use Linux::Inotify2;
-use POSIX ":sys_wait_h";
 use Getopt::Long;
 use Sophie::Scan;
 
 $ENV{LC_ALL} = 'C';
 require Sophie::Scan::RpmsPath;
 
-GetOptions(
-    'bdelay=i' =>  \my $updated_inotify,
-    'd|daemon'  => \my $daemon,
-) or die "Wrong options";
+my $scan = Sophie::Scan->new;
+$scan->update_meta_paths;
 
-$SIG{CHLD} = sub { wait };
+my @pkey = $scan->list_unscanned_paths;
 
-my %modified_paths;
-my $inotify = undef;
-$updated_inotify ||= 500;
-
-if ($daemon) {
-    if (fork()) {
-        exit(0);
-    }
-}
-
-my $update = 1;
-alarm($updated_inotify);
-while (1) {
-    local $SIG{ALRM} = sub {
-        alarm($updated_inotify);
-        $update = 1;
-    };
-    if ($update) {
-        if (update_base(keys %modified_paths)) {
-            %modified_paths = ();
-            $update = 0;
-        }
-    }
-    warn "$$ Inotify";
-    $inotify = inotify_path();
-    if ($inotify) {
-        $inotify->poll and $update = 1;
-    } else {
-        sleep(300);
-    }
-}
-
-sub inotify_path {
-
-    my $i = Linux::Inotify2->new;
-    
-    my @paths = Sophie::Scan->new->list_paths;
-    if (!@paths) {
-        return;
-    }
-    foreach (@paths) {
-        -d $_ or next;
-        $i->watch(
-            $_,
-            IN_DELETE | IN_MODIFY | IN_CREATE,
-            sub {
-                my $e = shift;
-                warn $e->w->name;
-                $modified_paths{$e->w->name} = 1;
-                1;
-            }
-        )
-    }
-
-    $i;
-}
-
-sub update_base {
-    my @path = @_;
-
-    if (waitpid(-1, &WNOHANG) != -1) {
-        warn "child still running";
-        return;
-    }
-    warn "$$ updating base";
-    if (my $pid = fork()) {
-    } else {
-        alarm 0;
+foreach my $pathkey (@pkey) {
+    my $time = time;
+    my @delta = Sophie::Scan::RpmsPath
+    ->new($pathkey, Sophie::Scan->new)
+    ->find_delta;
+    while (my @d = splice(@delta, 0, 25)) {
         my $scan = Sophie::Scan->new;
-        $scan->update_meta_paths;
-
-        my @pkey;
-        {
-            @pkey = $scan->paths_to_keys(@path);
-            
-            push(@pkey, $scan->list_unscanned_paths);
-        }
-
-        exit(0) if (!@pkey);
-
-        foreach my $pathkey (@pkey) {
-            my $time = time;
-            my @delta = Sophie::Scan::RpmsPath
-                ->new($pathkey, Sophie::Scan->new)
-                ->find_delta;
-            while (my @d = splice(@delta, 0, 25)) {
-                my $scan = Sophie::Scan->new;
-                my $path = Sophie::Scan::RpmsPath->new($pathkey, $scan);
-                $path->update_content(@d);
-                last if (time > $time + 15 * 60);
-            }
-
-            Sophie::Scan::RpmsPath->new($pathkey, Sophie::Scan->new)->set_updated
-                if (!@delta); # update only if we finished
-        }
-        exit(0);
+        my $path = Sophie::Scan::RpmsPath->new($pathkey, $scan);
+        $path->update_content(@d);
+        last if (time > $time + 15 * 60);
     }
-    return 1;
+
+    Sophie::Scan::RpmsPath->new($pathkey, Sophie::Scan->new)->set_updated
+    if (!@delta); # update only if we finished
 }
 

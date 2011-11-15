@@ -24,8 +24,12 @@ sub list_unscanned_paths {
     my ($self) = @_;
 
     return $self->base->resultset('Paths')->search({
-            updated => [ undef,
-            \[ " < now() - '24 hours'::interval"],
+            -or => [
+                updated => [ 
+                    undef,
+                    \[ " < now() - '24 hours'::interval"],
+                ],
+                { needupdate => 'true', },
             ],
     })->get_column('d_path_key')->all
 }
