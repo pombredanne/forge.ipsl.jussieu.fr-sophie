@@ -6,14 +6,29 @@ use Linux::Inotify2;
 use POSIX ":sys_wait_h";
 use Getopt::Long;
 use Sophie::Client;
+use Config::General;
 
 $ENV{LC_ALL} = 'C';
 
 GetOptions(
-    'bdelay=i' =>  \my $updated_inotify,
+    'c=s'      => \my $configfile,
+    'bdelay=i' => \my $updated_inotify,
     'd|daemon' => \my $daemon,
     'u|url=s'  => \my $server,
+    'l=s'      => \my $login,
+    'p=s'      => \my $pass,
+    'proxy=s'  => \my $proxy,
 ) or die "Wrong options";
+
+$configfile ||= '/etc/sophie/sophie-notify.conf';
+
+if (-f $configfile && (my $conf = Config::General->new($configfile))) {
+    my %config = $conf->getall;
+    $server      ||= $config{url};
+    $login       ||= $config{login};
+    $pass        ||= $config{pass};
+    $proxy       ||= $config{proxy};
+}
 
 $updated_inotify ||= 500;
 
@@ -24,7 +39,10 @@ if ($daemon) {
 }
 
 my $sc = Sophie::Client->new(
-    server => $server,
+    server     => $server,
+    login      => $login,
+    password   => $pass,
+    proxy      => $proxy,
 );
 
 my $update = 1;
@@ -46,7 +64,6 @@ while (1) {
         list_paths();
         $update = 0;
     }
-    warn "$$ Inotify";
     if ($inotify) {
         $inotify->poll;
     } else {
@@ -65,7 +82,7 @@ sub notify_base {
     if (ref $res && !$res->is_fault) {
         %modified_paths = ();
     } else {
-        warn "XML RPC error";
+        #warn "XML RPC error";
     }
 }
 
@@ -75,18 +92,15 @@ sub list_paths {
     if (ref $res && !$res->is_fault) {
         @paths = grep { -d $_ } map { $_->{path} } @{ $res->value };
     } else {
-        warn "XML RPC error";
+        #warn "XML RPC error";
     }
 }
 
 
 sub inotify_path {
-    warn "inotify_path";
     my $i = Linux::Inotify2->new;
     my $sub = sub {
         my $e = shift;
-        warn $e->w->name;
-
         $modified_paths{$e->w->name} = 1;
         notify_base();
         1;

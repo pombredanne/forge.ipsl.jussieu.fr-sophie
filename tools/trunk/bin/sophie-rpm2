@@ -15,7 +15,6 @@ GetOptions(
     'u=s' => \my $url,
     'l=s' => \my $login,
     'p=s' => \my $pass,
-    't=s' => \my $type,
     'd=s' => \my @options,
     'proxy' => \my $proxy,
 
@@ -42,7 +41,6 @@ my $sc = Sophie::Client->new(
     server => $url,
     login => $login,
     password => $pass,
-    type => $type,
     proxy => $proxy,
 );
 

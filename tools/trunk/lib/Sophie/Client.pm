@@ -39,7 +39,7 @@ sub login {
         my $res = $self->send_request('login',
             $options{login},
             $options{password});
-        if (ref $res) {
+        if (ref $res && !$res->is_fault) {
             $self->request->header('cookie', $$res);
             return 1;
         } else {
