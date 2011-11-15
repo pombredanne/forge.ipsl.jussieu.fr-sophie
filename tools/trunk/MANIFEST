@@ -3,5 +3,6 @@ Makefile.PL
 MANIFEST
 README
 bin/sophie-rpm
+bin/sophie-rpm2
 lib/Sophie/Client.pm
 lib/Sophie/Client/Transaction.pm

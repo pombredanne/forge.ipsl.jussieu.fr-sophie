@@ -3,7 +3,7 @@ use ExtUtils::MakeMaker;
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
 WriteMakefile(
-    NAME              => 'Sophie::Tools',
+    NAME              => 'Sophie::Bot',
     VERSION_FROM      => 'lib/Sophie/Bot.pm', # finds $VERSION
     PREREQ_PM         => {}, # e.g., Module::Name => 1.1
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
@@ -11,7 +11,6 @@ WriteMakefile(
        AUTHOR         => 'Olivier Thauvin <nanardon@nanardon.zarb.org>') : ()),
     EXE_FILES => [ qw(
         bin/sophie-bot
-        bin/sophie-rpm
     ) ],
     macro => {
         INSTALLMAN5DIR      => '$(PERLPREFIX)/share/man/man5',
@@ -33,19 +32,19 @@ svnmanifest:
 ChangeLog:
 \tsvn log > ChangeLog
 
-sophie-tools.spec: sophie-tools.spec.in Makefile
+sophie-bot.spec: sophie-bot.spec.in Makefile
 \tsed -e 's/\@VERSION@/\$(VERSION)/' < \$< > \$@
 
-rpm: \$(DISTVNAME).tar.gz sophie-tools.spec
+rpm: \$(DISTVNAME).tar.gz sophie-bot.spec
 \tmkdir ./noarch || :
 \trpmbuild -ba --clean\\
 \t --define "_sourcedir `pwd`" \\
 \t --define "_specdir `pwd`" \\
 \t --define "_srcrpmdir \$(DESTRPMDIR)" \\
 \t --define "_rpmdir \$(DESTRPMDIR)" \\
-\t sophie-tools.spec
+\t sophie-bot.spec
 
-svnrpm: \$(DISTVNAME).tar.gz sophie-tools.spec
+svnrpm: \$(DISTVNAME).tar.gz sophie-bot.spec
 \tmkdir \$(DESTRPMDIR)/noarch || :
 \trpmbuild -ba --clean\\
 \t --define "_sourcedir `pwd`" \\
@@ -53,7 +52,7 @@ svnrpm: \$(DISTVNAME).tar.gz sophie-tools.spec
 \t --define "_srcrpmdir \$(DESTRPMDIR)" \\
 \t --define "_rpmdir \$(DESTRPMDIR)" \\
 \t --define "svnrelease `LC_ALL=C svn info | grep '^Revision:' | sed 's/Revision: //'`" \\
-\t sophie-tools.spec
+\t sophie-bot.spec
 
 EOF
 }

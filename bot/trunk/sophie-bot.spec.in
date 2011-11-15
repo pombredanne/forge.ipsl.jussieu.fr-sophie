@@ -1,22 +1,27 @@
-%define realname   Sophie-tools
-%define version    0.01
-%define release    %mkrel 1
+# $Id$
 
-Name:       Sophie-tools
+%define realname   Sophie-Bot
+%define version    @VERSION@
+%define release    %mkrel %{?svnrelease:0.%{svnrelease}}%{?!svnrelease:1}
+
+Name:       sophie-bot
 Version:    %{version}
 Release:    %{release}
 License:    GPL or Artistic
 Group:      Development/Perl
-Summary:    Sophie Tools
+Summary:    Sophie's tools
 Source:     %{realname}-%{version}.tar.gz
-Url:        http://sophie.zarb.org/
+Url:        http://search.cpan.org/dist/%{realname}
 BuildRoot:  %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch:  noarch
+BuildRequires: perl(RPC::XML)
 
-BuildRequires: perl(RPC::XML::Client)
+Requires: perl-Term-ReadLine-Gnu
+Requires: perl(Config::General)
+Requires: perl(POE::Component::IRC)
 
 %description
-Tools to query and check rpms using Sophie's website.
+Command line tools to query Sophie website (http://sophie.zarb.org/)
 
 %prep
 %setup -q -n %{realname}-%{version} 
@@ -32,7 +37,6 @@ make test
 rm -rf %buildroot
 %makeinstall_std
 
-
 %clean
 rm -rf %buildroot
 
@@ -40,7 +44,6 @@ rm -rf %buildroot
 %defattr(-,root,root)
 %doc Changes README
 %_bindir/*
-%{_mandir}/man1/*
-%{_mandir}/man3/*
+%{_mandir}/*/*
 %perl_vendorlib/*
 

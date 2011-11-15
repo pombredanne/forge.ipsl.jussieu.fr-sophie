@@ -56,6 +56,17 @@ sub login {
     }
 }
 
+sub pkgid_to_filename {
+    my ($self, $pkgid) = @_;
+
+    my $res = $self->send_request('rpms.basicinfo', $pkgid);
+    if (ref $res && !$res->is_fault) {
+        return $res->value->{filename};
+    } else {
+        die "XML RPC error";
+    }
+}
+
 sub ts {
     my ($self, $distrib) = @_;
     return Sophie::Client::Transaction->new($self, $distrib);

@@ -1,4 +1,4 @@
-# $Id$
+# $Id: sophie-tools.spec.in 400 2011-11-11 17:11:23Z nanardon $
 
 %define realname   Sophie-Tools
 %define version    @VERSION@

@@ -104,6 +104,8 @@ sub is_updated {
         }
         foreach($res->value->{pool}) {
         }
+    } else {
+        die( ref $res ? $res->string : $res);
     }
 }
 
@@ -118,6 +120,55 @@ sub check_conflicts {
     if (ref $res && !$res->is_fault) {
         foreach(@{ $res->value->{pkg} || []}) {
             $self->{removed}{pkg}{$_} = 1;
+        }
+        foreach(@{ $res->value->{pool} || []}) {
+            $self->{removed}{pool}{$_} = 1;
+        }
+    }
+}
+
+sub find_obsoletes {
+    my ($self, $rpmid, %options) = @_;
+    my $res = $self->client->send_request(
+        'analysis.find_obsoletes',
+        $self->distrib,
+        $rpmid,
+        $self->rpmid
+    );
+    if (ref $res && !$res->is_fault) {
+        foreach(@{ $res->value->{pkg} || []}) {
+            if ($options{verbose}) {
+                warn sprintf("%s obsolete %s\n",
+                    $self->{rpms}{$rpmid},
+                    $self->show_pkg($_)
+                );
+            }
+                
+            $self->{removed}{pkg}{$_} = 1;
+        }
+        foreach(@{ $res->value->{pool} || []}) {
+            $self->{removed}{pool}{$_} = 1;
+        }
+    }
+}
+
+sub find_updates {
+    my ($self, $rpmid, %options) = @_;
+    my $res = $self->client->send_request(
+        'analysis.find_updates',
+        $self->distrib,
+        $rpmid,
+        $self->rpmid
+    );
+    if (ref $res && !$res->is_fault) {
+        foreach(@{ $res->value->{pkg} || []}) {
+            $self->{removed}{pkg}{$_} = 1;
+            if ($options{verbose}) {
+                warn sprintf("%s update %s\n",
+                    $self->{rpms}{$rpmid},
+                    $self->show_pkg($_)
+                );
+            }
         }
         foreach(@{ $res->value->{pool} || []}) {
             $self->{removed}{pool}{$_} = 1;
@@ -233,6 +284,12 @@ sub files_conflicts {
 
 sub run {
     my ($self, %options) = @_;
+
+    warn "Finding package to remove\n";
+    foreach ($self->rpmid) {
+        $self->find_updates($_, %options);
+        $self->find_obsoletes($_, %options);
+    }
 
     warn "Checking rpm are not obsoleted\n";
     foreach ($self->rpmid) {

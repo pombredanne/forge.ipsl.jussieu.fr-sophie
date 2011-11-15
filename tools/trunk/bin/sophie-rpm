@@ -141,7 +141,9 @@ foreach my $rpm (@ARGV) {
     $ts->add_rpm($rpm) or die "Cannot add $rpm";
 }
 
-my $res = $ts->run;
+my $res = $ts->run(
+    verbose => $verbose,
+);
 $ts->summary if (@ARGV > 1);
 print "\nThis transaction would failed\n" if(!$res);
 if ($search) {
