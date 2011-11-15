@@ -14,7 +14,7 @@ sub new {
     my ($class, %options) = @_;
 
     my $self = $class->SUPER::new(
-        $options{server} || 'http://sophie2.aero.jussieu.fr/rpc'
+        $options{server} || 'http://sophie.zarb.org/rpc'
     );
     if ($options{proxy}) {
         $self->useragent->proxy([ 'http' ], $options{proxy});

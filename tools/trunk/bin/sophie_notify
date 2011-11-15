@@ -1,0 +1,107 @@
+#!/bin/env perl
+
+use strict;
+use warnings;
+use Linux::Inotify2;
+use POSIX ":sys_wait_h";
+use Getopt::Long;
+use Sophie::Client;
+
+$ENV{LC_ALL} = 'C';
+
+GetOptions(
+    'bdelay=i' =>  \my $updated_inotify,
+    'd|daemon' => \my $daemon,
+    'u|url=s'  => \my $server,
+) or die "Wrong options";
+
+$updated_inotify ||= 500;
+
+if ($daemon) {
+    if (fork()) {
+        exit(0);
+    }
+}
+
+my $sc = Sophie::Client->new(
+    server => $server,
+);
+
+my $update = 1;
+my %modified_paths;
+my @paths;
+alarm($updated_inotify);
+
+list_paths();
+
+while (1) {
+    local $SIG{ALRM} = sub {
+        alarm($updated_inotify);
+        $update = 1;
+    };
+
+    my $inotify = inotify_path();
+
+    if ($update) {
+        list_paths();
+        $update = 0;
+    }
+    warn "$$ Inotify";
+    if ($inotify) {
+        $inotify->poll;
+    } else {
+        sleep(300);
+    }
+    notify_base();
+}
+
+sub notify_base {
+    keys %modified_paths or return;
+    $sc->login;
+    my $res = $sc->send_request(
+        'admin.update.set_path_needupdate',
+        keys %modified_paths,
+    );
+    if (ref $res && !$res->is_fault) {
+        %modified_paths = ();
+    } else {
+        warn "XML RPC error";
+    }
+}
+
+sub list_paths {
+    $sc->login;
+    my $res = $sc->send_request('admin.update.paths');
+    if (ref $res && !$res->is_fault) {
+        @paths = grep { -d $_ } map { $_->{path} } @{ $res->value };
+    } else {
+        warn "XML RPC error";
+    }
+}
+
+
+sub inotify_path {
+    warn "inotify_path";
+    my $i = Linux::Inotify2->new;
+    my $sub = sub {
+        my $e = shift;
+        warn $e->w->name;
+
+        $modified_paths{$e->w->name} = 1;
+        notify_base();
+        1;
+    };
+    
+    foreach (@paths) {
+        -d $_ or next;
+        $i->watch(
+            $_,
+            IN_DELETE | IN_MODIFY | IN_CREATE,
+            $sub,
+        );
+    }
+
+    $i;
+}
+
+
