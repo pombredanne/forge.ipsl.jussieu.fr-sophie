@@ -127,7 +127,6 @@ sub set_exists {
 
 sub set_no_needupdate {
     my ($self) = @_;
-    warn "$$ UPD";
     $self->db->base->resultset('Paths')->find(
         { d_path_key => $self->key }
     )->update({ needupdate => 'false' });
@@ -136,7 +135,6 @@ sub set_no_needupdate {
 
 sub set_updated {
     my ($self) = @_;
-    warn "$$ UPD";
     $self->db->base->resultset('Paths')->find(
         { d_path_key => $self->key }
     )->update({ 'updated' => \'now()' });

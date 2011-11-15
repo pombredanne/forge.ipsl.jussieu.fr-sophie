@@ -15,6 +15,9 @@ my @pkey = $scan->list_unscanned_paths;
 
 foreach my $pathkey (@pkey) {
     my $time = time;
+    Sophie::Scan::RpmsPath
+        ->new($pathkey, Sophie::Scan->new)
+        ->set_no_needupdate;
     my @delta = Sophie::Scan::RpmsPath
     ->new($pathkey, Sophie::Scan->new)
     ->find_delta;

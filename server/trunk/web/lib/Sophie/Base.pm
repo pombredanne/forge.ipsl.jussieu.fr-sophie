@@ -16,6 +16,7 @@ sub default_config {
        -f $file or next;
         my $cg = Config::General->new($file);
         $config = { $cg->getall() };
+        last
     }
     $config or die "No config found";
     return $config;
