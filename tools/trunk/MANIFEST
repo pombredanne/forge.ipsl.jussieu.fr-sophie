@@ -1,8 +1,9 @@
 Changes
-Makefile.PL
 MANIFEST
+Makefile.PL
 README
+Sophie-tools.spec
 bin/sophie-rpm
-bin/sophie-rpm2
-lib/Sophie/Client.pm
 lib/Sophie/Client/Transaction.pm
+lib/Sophie/Client.pm
+t/Sophie-IrcBot.t
