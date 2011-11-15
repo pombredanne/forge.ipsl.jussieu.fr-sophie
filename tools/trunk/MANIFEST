@@ -2,8 +2,13 @@ Changes
 MANIFEST
 Makefile.PL
 README
-Sophie-tools.spec
+bin/sophie-notify
 bin/sophie-rpm
+bin/sophie-rpm2
+bin/sophie_admin
+bin/sophie_dump
+bin/sophie_load
+lib/Sophie/Cli.pm
 lib/Sophie/Client/Transaction.pm
 lib/Sophie/Client.pm
-t/Sophie-IrcBot.t
+sophie-tools.spec.in
