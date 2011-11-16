@@ -72,29 +72,28 @@ sub find_delta {
 
     if ($localrpms) {
         push(@delta, { delta => 'DE' });
+
+        my %list;
+        foreach (keys %{ $localrpms || {} }, keys %{ $baserpms }) {
+            $list{$_} = 1;
+        }
+
+        foreach my $rpm (sort { $b cmp $a } keys %list) {
+            if ($localrpms->{$rpm} && $baserpms->{$rpm}) {
+                # nothing to do
+            } elsif ($localrpms->{$rpm}) {
+                push(@delta, { rpm => $rpm, delta => 'A', mtime => $localrpms->{$rpm} });
+            } elsif ($baserpms->{$rpm}) {
+                push(@delta, { rpm => $rpm, delta => 'R', mtime => $baserpms->{$rpm} });
+            }
+        }
+        sort { $a->{delta} eq $b->{delta} 
+            ? ($a->{mtime} <=> $b->{mtime})
+            : ($a->{delta} cmp $b->{delta})
+        } @delta;
     } else {
         push(@delta, { delta => 'DM' });
     }
-
-
-    my %list;
-    foreach (keys %{ $localrpms || {} }, keys %{ $baserpms }) {
-        $list{$_} = 1;
-    }
-
-    foreach my $rpm (sort { $b cmp $a } keys %list) {
-        if ($localrpms->{$rpm} && $baserpms->{$rpm}) {
-            # nothing to do
-        } elsif ($localrpms->{$rpm}) {
-            push(@delta, { rpm => $rpm, delta => 'A', mtime => $localrpms->{$rpm} });
-        } elsif ($baserpms->{$rpm}) {
-            push(@delta, { rpm => $rpm, delta => 'R', mtime => $baserpms->{$rpm} });
-        }
-    }
-    sort { $a->{delta} eq $b->{delta} 
-        ? ($a->{mtime} <=> $b->{mtime})
-        : ($a->{delta} cmp $b->{delta})
-    } @delta;
 }
 
 sub update_content {
