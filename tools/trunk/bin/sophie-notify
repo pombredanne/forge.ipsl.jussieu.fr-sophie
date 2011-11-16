@@ -11,13 +11,15 @@ use Config::General;
 $ENV{LC_ALL} = 'C';
 
 GetOptions(
-    'c=s'      => \my $configfile,
-    'bdelay=i' => \my $updated_inotify,
-    'd|daemon' => \my $daemon,
-    'u|url=s'  => \my $server,
-    'l=s'      => \my $login,
-    'p=s'      => \my $pass,
-    'proxy=s'  => \my $proxy,
+    'c=s'       => \my $configfile,
+    'bdelay=i'  => \my $updated_inotify,
+    'd|daemon'  => \my $daemon,
+    'u|url=s'   => \my $server,
+    'l=s'       => \my $login,
+    'p=s'       => \my $pass,
+    'proxy=s'   => \my $proxy,
+    'pidfile=s' => \my $pidfile,
+    'runas=s'   => \my $runas,
 ) or die "Wrong options";
 
 $configfile ||= '/etc/sophie/sophie-notify.conf';
@@ -28,9 +30,30 @@ if (-f $configfile && (my $conf = Config::General->new($configfile))) {
     $login       ||= $config{login};
     $pass        ||= $config{pass};
     $proxy       ||= $config{proxy};
+    $pidfile     ||= $config{pidfile};
+    $runas       ||= $config{runas};
 }
 
 $updated_inotify ||= 500;
+
+my $sc = Sophie::Client->new(
+    server     => $server,
+    login      => $login,
+    password   => $pass,
+    proxy      => $proxy,
+) or die "Can't access to sophie web site";
+
+if ($runas) {
+    my ($login,$pass,$uid,$gid) = $runas =~ /^\d/
+    ? getpwuid($runas)
+    : getpwnam($runas);
+
+    $> = $uid; $) = $gid;
+    if ($> ne $uid) {
+        die "Cannot change to user $runas\n";
+    }
+}
+
 
 if ($daemon) {
     if (fork()) {
@@ -38,12 +61,13 @@ if ($daemon) {
     }
 }
 
-my $sc = Sophie::Client->new(
-    server     => $server,
-    login      => $login,
-    password   => $pass,
-    proxy      => $proxy,
-);
+if ($pidfile) {
+    if (open(my $handle, '>', $pidfile)) {
+        print $handle $$ . "\n";
+        close($handle);
+    } else {
+    }
+}
 
 my $update = 1;
 my %modified_paths;
