@@ -4,6 +4,6 @@ use Test::More;
 
 
 use Catalyst::Test 'Sophie';
-use Sophie::Controller::Admin::Update;
+use_ok 'Sophie::Controller::Admin::Update';
 
 done_testing();
