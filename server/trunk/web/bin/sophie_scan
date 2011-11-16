@@ -39,7 +39,7 @@ foreach my $pathkey (@pkey) {
         my $path = Sophie::Scan::RpmsPath->new($pathkey, Sophie::Scan->new);
         $path->set_updated;
         $path->set_no_needupdate
-            if ($mark ne $path->get_needupdate);
+            unless ($mark ne $path->get_needupdate);
     }
 }
 

@@ -87,13 +87,15 @@ sub find_delta {
                 push(@delta, { rpm => $rpm, delta => 'R', mtime => $baserpms->{$rpm} });
             }
         }
-        sort { $a->{delta} eq $b->{delta} 
+        return sort { $a->{delta} eq $b->{delta} 
             ? ($a->{mtime} <=> $b->{mtime})
             : ($a->{delta} cmp $b->{delta})
         } @delta;
     } else {
         push(@delta, { delta => 'DM' });
     }
+
+    @delta
 }
 
 sub update_content {

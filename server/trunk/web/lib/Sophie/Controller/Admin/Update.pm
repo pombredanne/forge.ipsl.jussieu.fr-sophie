@@ -49,7 +49,7 @@ sub paths_to_update : XMLRPC {
                     undef,
                     \[ " < now() - '24 hours'::interval" ],
                 ], },
-                { needupdate => scalar(time()) },
+                { needupdate => { '>' => 0 } },
             ]
         },
         {
@@ -62,7 +62,6 @@ sub paths_to_update : XMLRPC {
 sub set_path_needupdate : XMLRPC {
     my ($self, $c, @paths) = @_;
 
-    warn "rufhruef";
     #$self->model('Base')->txn_do(
     #    sub {
             foreach my $path (@paths) {
@@ -72,7 +71,7 @@ sub set_path_needupdate : XMLRPC {
                 ) or next;
                 $p->update(
                     {
-                        needupdate => 'true',
+                        needupdate => scalar(time),
                     }
                 );
             }
