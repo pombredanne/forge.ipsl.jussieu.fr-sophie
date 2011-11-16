@@ -35,7 +35,6 @@ sub index :Path :Args(0) :XMLRPCPath('/login') {
             if ($c->req->xmlrpc->is_xmlrpc_request) {
                 $c->stash->{xmlrpc} = 'sophie_session=' . $c->sessionid;
             } else {
-                warn 'redirect';
                 $c->res->redirect($c->uri_for('/'));
             }
         } else {

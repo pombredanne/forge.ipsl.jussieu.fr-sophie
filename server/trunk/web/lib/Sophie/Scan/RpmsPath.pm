@@ -129,8 +129,15 @@ sub set_no_needupdate {
     my ($self) = @_;
     $self->db->base->resultset('Paths')->find(
         { d_path_key => $self->key }
-    )->update({ needupdate => 'false' });
+    )->update({ needupdate => 0 });
     $self->db->commit;
+}
+
+sub get_needupdate {
+    my ($self) = @_;
+    $self->db->base->resultset('Paths')->find(
+        { d_path_key => $self->key }
+    )->get_column('needupdate');
 }
 
 sub set_updated {

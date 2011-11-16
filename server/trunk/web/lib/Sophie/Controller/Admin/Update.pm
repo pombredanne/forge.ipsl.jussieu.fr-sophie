@@ -16,8 +16,6 @@ Catalyst Controller.
 
 =cut
 
-sub begin : Pivate {}
-
 sub paths :XMLRPC {
     my ($self, $c) = @_;
 
@@ -51,7 +49,7 @@ sub paths_to_update : XMLRPC {
                     undef,
                     \[ " < now() - '24 hours'::interval" ],
                 ], },
-                { needupdate => 'true' },
+                { needupdate => scalar(time()) },
             ]
         },
         {

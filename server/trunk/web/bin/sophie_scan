@@ -14,13 +14,20 @@ $scan->update_meta_paths;
 my @pkey = $scan->list_unscanned_paths;
 
 foreach my $pathkey (@pkey) {
+    
     my $time = time;
-    Sophie::Scan::RpmsPath
-        ->new($pathkey, Sophie::Scan->new)
-        ->set_no_needupdate;
-    my @delta = Sophie::Scan::RpmsPath
-    ->new($pathkey, Sophie::Scan->new)
-    ->find_delta;
+    my $mark = 0;
+    my @delta;
+
+    {
+        my $path = Sophie::Scan::RpmsPath
+            ->new($pathkey, Sophie::Scan->new);
+        #$path->set_no_needupdate;
+
+        $mark = $path->get_needupdate;
+        @delta = $path->find_delta;
+    }
+
     while (my @d = splice(@delta, 0, 25)) {
         my $scan = Sophie::Scan->new;
         my $path = Sophie::Scan::RpmsPath->new($pathkey, $scan);
@@ -28,7 +35,11 @@ foreach my $pathkey (@pkey) {
         last if (time > $time + 15 * 60);
     }
 
-    Sophie::Scan::RpmsPath->new($pathkey, Sophie::Scan->new)->set_updated
-    if (!@delta); # update only if we finished
+    if (!@delta) { # update only if we finished
+        my $path = Sophie::Scan::RpmsPath->new($pathkey, Sophie::Scan->new);
+        $path->set_updated;
+        $path->set_no_needupdate
+            if ($mark ne $path->get_needupdate);
+    }
 }
 

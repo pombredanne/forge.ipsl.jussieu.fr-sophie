@@ -29,7 +29,7 @@ sub list_unscanned_paths {
                     undef,
                     \[ " < now() - '24 hours'::interval"],
                 ],
-                { needupdate => 'true', },
+                { needupdate => { '>' => 0 }, },
             ],
     })->get_column('d_path_key')->all
 }
