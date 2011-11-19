@@ -1206,7 +1206,7 @@ sub maint : XMLRPC {
     foreach (@{ $rpmlist }) {
         my $res = $c->forward('/rpms/maintainers', [ $_ ]);
         foreach (@$res) {
-            my $m = 'For ' . $_->{vendor} . ': ' . $_->{owner};
+            my $m = 'For ' . $_->{vendor} . ' (' . $_->{rpm} . '): ' . $_->{owner};
             $maint{$m} = 1;
         }
     }
