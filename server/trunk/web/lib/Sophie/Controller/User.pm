@@ -41,7 +41,7 @@ sub fetch_user_data : Private {
     my ( $self, $c, $user, $dataname ) = @_;
 
     if (my $rs = $c->model('Base')->resultset('Users')->search(
-        mail => $user,
+        { mail => $user, }
     )->search_related(
         'UsersData', { varname => $dataname }
     )->next) {
