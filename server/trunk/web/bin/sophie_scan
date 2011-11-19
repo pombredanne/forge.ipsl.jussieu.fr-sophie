@@ -28,11 +28,11 @@ foreach my $pathkey (@pkey) {
         @delta = $path->find_delta;
     }
 
-    while (my @d = splice(@delta, 0, 25)) {
+    while (my @d = splice(@delta, 0, 10)) {
         my $scan = Sophie::Scan->new;
         my $path = Sophie::Scan::RpmsPath->new($pathkey, $scan);
         $path->update_content(@d);
-        last if (time > $time + 15 * 60);
+        last if (time > $time + 7 * 60);
     }
 
     if (!@delta) { # update only if we finished
