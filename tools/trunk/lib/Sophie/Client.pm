@@ -26,7 +26,10 @@ sub new {
 
 
     if ($options{login}) {
-        login($self) or die "Can't login";
+        login($self) or do {
+            warn "Can't login\n";
+            return;
+        };
     }
 
     bless($self, $class);
