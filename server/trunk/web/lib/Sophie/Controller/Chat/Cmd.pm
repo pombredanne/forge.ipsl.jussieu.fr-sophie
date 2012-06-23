@@ -201,29 +201,65 @@ sub set : XMLRPC {
         return $c->stash->{xmlrpc} = {
             private_reply => 1,
             message => [
-                "What must I set ?"
+                "What must I set ? possible parameters are : " . 
+                    "'distribution', 'release' and 'arch'."
             ]
         }
     } 
     
-    # if the variable is not 'distribution', 'release' or 'arch', Sophie
+    # if the variable is not 'distribution', 'distrib', 'release' or 'arch', Sophie
     # complains and stop
     if ($var ne "distribution" && $var ne "release" && $var ne "arch") {
-        return $c->stash->{xmlrpc} = {
-            private_reply => 1,
-            message => [
-                "'$var' is not valid ! possible parameters are : " . 
-                "'distribution', 'release' and 'arch'."
-            ]
+        # in order not to implement 'distrib' on the server, $var is changes
+        # into 'distribution'
+        if ($var eq "distrib") {
+            $var = "distribution";
+        } else {
+            return $c->stash->{xmlrpc} = {
+                private_reply => 1,
+                message => [
+                    "'$var' is not valid ! possible parameters are : " . 
+                        "'distribution', 'release' and 'arch'."
+                ]
+            }
         }
     }
 
     # if there is no value to give to the variable, Sophie ask and stop
     if (!$val) {
+        # the message will depend on the actual settings of the user: the answer
+        # contains the command to ask Sophie the possibilities
+        my $msgtmp = "To what must I set $var ? (use 'list";
+        my $msgfin = "' to see the possibilities)";
+
+        if ($var ne "distribution") {
+            # the message is built using the user's pref
+            my $res = $c->forward('/user/fetchdata', [ $reqspec->{from}, ]);
+            my $owndistrib = $res->{"distribution"} || '(none)';
+            if ($var eq "release" && $owndistrib eq '(none)') {
+                    $msgtmp = "Release depends on Distribution. Use 'list" .
+                        "' to see the possibilities";
+                    $msgfin = "";
+            } else {
+                $msgtmp .= " ".$owndistrib;
+
+                if ($var eq "arch") {
+                    my $ownrelease = $res->{"release"} || '(none)';
+                    if ($ownrelease eq '(none)') {
+                        $msgtmp = "Arch depends on Release. Use 'list " .
+                            $owndistrib."' to see the possibilities";
+                        $msgfin = "";
+                    } else {
+                        $msgtmp .= " ".$ownrelease;
+                    }
+                }
+            }
+        }
+
         return $c->stash->{xmlrpc} = {
             private_reply => 1,
             message => [
-                "To what must I set $var ?"
+                $msgtmp.$msgfin
             ]
         }
     } 
@@ -262,15 +298,21 @@ sub unset : XMLRPC {
         }
     } 
     
-    # if the variable is not 'distribution', 'release' or 'arch', Sophie
+    # if the variable is not 'distribution', 'distrib', 'release' or 'arch', Sophie
     # complains and stop
     if ($var ne "distribution" && $var ne "release" && $var ne "arch") {
-        return $c->stash->{xmlrpc} = {
-            private_reply => 1,
-            message => [
-                "'$var' is not valid ! possible parameters are : " .
-                "'distribution', 'release' and 'arch'."
-            ]
+        # in order not to implement 'distrib' on the server, $var is changes
+        # into 'distribution'
+        if ($var eq "distrib") {
+            $var = "distribution";
+        } else {
+            return $c->stash->{xmlrpc} = {
+                private_reply => 1,
+                message => [
+                    "'$var' is not valid ! possible parameters are : " .
+                    "'distribution', 'release' and 'arch'."
+                ]
+            }
         }
     }
 
