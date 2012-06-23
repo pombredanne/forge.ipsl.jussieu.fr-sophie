@@ -1,1 +1,5 @@
-Run script/sophie_server.pl to test the application.
+To launch the application locally:
+* connect to the DB: 
+    ssh -L5432:sophie-db.latmos.ipsl.fr:5432 cartman.latmos.ipsl.fr
+* run script/sophie_server.pl
+* open your web browser on http://localhost:3000/
