@@ -35,17 +35,36 @@ $SIG{__DIE__} = sub {
 
 $configfile ||= '/etc/sophie/sophie-notify.conf';
 
-if (-f $configfile && (my $conf = Config::General->new($configfile))) {
-    my %config = $conf->getall;
-    $server      ||= $config{url};
-    $login       ||= $config{login};
-    $pass        ||= $config{pass};
-    $proxy       ||= $config{proxy};
-    $pidfile     ||= $config{pidfile};
-    $runas       ||= $config{runas};
+if (-f $configfile) {
+    if (my $conf = Config::General->new($configfile)) {
+        my %config = $conf->getall;
+        $server      ||= $config{url};
+        $login       ||= $config{login};
+        $pass        ||= $config{pass};
+        $proxy       ||= $config{proxy};
+        $pidfile     ||= $config{pidfile};
+        $runas       ||= $config{runas};
+    } else {
+        die "Cannot ope configuration file $configfile\n";
+    }
 }
 
 $updated_inotify ||= 500;
+
+if ($daemon) {
+    if (fork()) {
+        exit(0);
+    }
+}
+
+if ($pidfile) {
+    if (open(my $handle, '>', $pidfile)) {
+        print $handle $$ . "\n";
+        close($handle);
+    } else {
+    }
+}
+
 
 if ($runas) {
     my ($login,$pass,$uid,$gid) = $runas =~ /^\d/
@@ -55,13 +74,6 @@ if ($runas) {
     $> = $uid; $) = $gid;
     if ($> ne $uid) {
         die "Cannot change to user $runas\n";
-    }
-}
-
-
-if ($daemon) {
-    if (fork()) {
-        exit(0);
     }
 }
 
@@ -75,14 +87,6 @@ while (! ($sc = Sophie::Client->new(
 ))) {
     warn "Can't access to sophie web site, waiting 60s before retry\n";
     sleep 60;
-}
-
-if ($pidfile) {
-    if (open(my $handle, '>', $pidfile)) {
-        print $handle $$ . "\n";
-        close($handle);
-    } else {
-    }
 }
 
 my $update = 1;
