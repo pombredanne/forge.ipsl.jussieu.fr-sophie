@@ -7,11 +7,13 @@ use POSIX ":sys_wait_h";
 use Getopt::Long;
 use Sophie::Client;
 use Config::General;
+use Pod::Usage;
+use Sys::Syslog;
 
 $ENV{LC_ALL} = 'C';
 
 GetOptions(
-    'c=s'       => \my $configfile,
+    'c|config=s'       => \my $configfile,
     'bdelay=i'  => \my $updated_inotify,
     'd|daemon'  => \my $daemon,
     'u|url=s'   => \my $server,
@@ -20,7 +22,16 @@ GetOptions(
     'proxy=s'   => \my $proxy,
     'pidfile=s' => \my $pidfile,
     'runas=s'   => \my $runas,
-) or die "Wrong options";
+) or pod2usage(1);
+
+openlog('sophie-notify', 'ndelay,pid' . ($daemon ? '' : ',perror'), 'user');
+$SIG{__WARN__} = sub {
+    syslog('warning', @_);
+};
+$SIG{__DIE__} = sub {
+    syslog('crit', @_);
+    exit(1);
+};
 
 $configfile ||= '/etc/sophie/sophie-notify.conf';
 
@@ -35,13 +46,6 @@ if (-f $configfile && (my $conf = Config::General->new($configfile))) {
 }
 
 $updated_inotify ||= 500;
-
-my $sc = Sophie::Client->new(
-    server     => $server,
-    login      => $login,
-    password   => $pass,
-    proxy      => $proxy,
-) or die "Can't access to sophie web site";
 
 if ($runas) {
     my ($login,$pass,$uid,$gid) = $runas =~ /^\d/
@@ -59,6 +63,18 @@ if ($daemon) {
     if (fork()) {
         exit(0);
     }
+}
+
+my $sc;
+
+while (! ($sc = Sophie::Client->new(
+    server     => $server,
+    login      => $login,
+    password   => $pass,
+    proxy      => $proxy,
+))) {
+    warn "Can't access to sophie web site, waiting 60s before retry\n";
+    sleep 60;
 }
 
 if ($pidfile) {
