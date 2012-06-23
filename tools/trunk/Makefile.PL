@@ -12,6 +12,7 @@ WriteMakefile(
       (ABSTRACT_FROM  => 'lib/Sophie/Client.pm', # retrieve abstract from module
        AUTHOR         => 'Olivier Thauvin <nanardon@nanardon.zarb.org>') : ()),
     EXE_FILES => [ qw(
+        bin/sophie-notify
         bin/sophie-rpm
         bin/sophie-rpm2
     ) ],
