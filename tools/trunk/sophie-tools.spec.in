@@ -37,12 +37,16 @@ make test
 rm -rf %buildroot
 %makeinstall_std
 
+mkdir -p %buildroot/etc/init.d
+install -m755 sysinit/sophie-notify %buildroot/etc/init.d/sophie-notify
+
 %clean
 rm -rf %buildroot
 
 %files
 %defattr(-,root,root)
 %doc Changes README
+/etc/init.d/sophie-notify
 %_bindir/*
 %{_mandir}/*/*
 %perl_vendorlib/*

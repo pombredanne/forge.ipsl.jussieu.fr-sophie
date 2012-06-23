@@ -2,6 +2,8 @@
 
 use strict;
 use warnings;
+use FindBin;
+use lib "$FindBin::Bin/../lib";
 use Linux::Inotify2;
 use POSIX ":sys_wait_h";
 use Getopt::Long;
@@ -9,6 +11,7 @@ use Sophie::Client;
 use Config::General;
 use Pod::Usage;
 use Sys::Syslog;
+
 
 $ENV{LC_ALL} = 'C';
 
@@ -55,6 +58,7 @@ if ($daemon) {
     if (fork()) {
         exit(0);
     }
+    warn "Fork done, entering daemon mode\n";
 }
 
 if ($pidfile) {
@@ -62,6 +66,7 @@ if ($pidfile) {
         print $handle $$ . "\n";
         close($handle);
     } else {
+        die "Can't write pidfile $pidfile, exiting :\\\n";
     }
 }
 
@@ -134,6 +139,8 @@ sub list_paths {
     $sc->login;
     my $res = $sc->send_request('admin.update.paths');
     if (ref $res && !$res->is_fault) {
+        # strange error probably due to server bug
+        ref $res->value eq 'ARRAY' or return;
         @paths = grep { -d $_ } map { $_->{path} } @{ $res->value };
     } else {
         #warn "XML RPC error";

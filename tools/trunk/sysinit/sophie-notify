@@ -1,0 +1,53 @@
+#!/bin/sh
+
+# chkconfig: 345 90 10
+# description: Self Monitoring and Reporting Technology (SMART) Daemon
+# processname: smartd
+
+### BEGIN INIT INFO
+# Provides:  sophie-notify
+# Required-Start: $syslog
+# Required-Stop: $syslog
+# Default-Start: 3 5
+# Default-Stop:
+# Short-Description: Monitor change on Sophie's rpms path
+# Description: Monitor change on Sophie's rpms path
+### END INIT INFO
+
+# Source function library
+. /etc/rc.d/init.d/functions
+
+RETVAL=0
+prog=sophie-notify
+bin=sophie-notify
+
+case "$1" in
+    start)
+	gprintf "Starting %s: " "$prog"
+	daemon $bin --daemon --pidfile /var/run/sophie-notify.pid
+        RETVAL=$?
+        echo
+        [ $RETVAL -eq 0 ] && touch /var/lock/subsys/$prog
+	;;
+    stop)
+	gprintf "Shutting down %s: " "$prog"
+	killproc $prog
+        RETVAL=$?
+        echo
+        [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/$prog
+
+	;;
+    reload|restart)
+	$0 stop
+	$0 start
+	;;
+    status)
+	status $prog
+	;;
+    *)
+	gprintf "Usage: %s {start|stop|reload|report|restart|status}\n" "$0"
+	RETVAL=1
+	;;
+esac
+
+exit $RETVAL

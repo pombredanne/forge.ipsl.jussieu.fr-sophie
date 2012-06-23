@@ -12,3 +12,4 @@ lib/Sophie/Cli.pm
 lib/Sophie/Client/Transaction.pm
 lib/Sophie/Client.pm
 sophie-tools.spec.in
+sysinit/sophie-notify
