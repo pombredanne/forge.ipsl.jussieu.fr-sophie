@@ -9,7 +9,7 @@ use Sys::Syslog;
 use Pod::Usage;
 
 GetOptions(
-    'd' => \my $daemon,
+    'd|daemon' => \my $daemon,
     'sleep=i' => \my $sleep,
     'runas=s' => \my $runas,
     'pidfile=s' => \my $pidfile,
