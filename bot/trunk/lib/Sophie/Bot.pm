@@ -31,7 +31,10 @@ sub new {
     my $realclass = $class . ($options{type} ? ('::' . $options{type}) : '');
     no strict qw(refs);
     eval "require $realclass;";
-    return if($@);
+    if($@) {
+        warn $@;
+        return;
+    }
     bless($self, $realclass);
 }
 

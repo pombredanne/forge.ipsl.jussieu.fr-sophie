@@ -80,7 +80,16 @@ sub irc_433  {
     my $irc = $heap->{irc};
     my $self = $heap->{sophie};
 
-    die "Nick already in use\n";
+    warn "Nickname already in use\n";
+
+    my $config = $self->get_var($heap->{server});
+
+    if (my $pass = $config->{password}) {
+        $irc->yield('privmsg', 'nickserv', "ghost " . $heap->{nick} . " $pass");
+    }
+
+    $_[KERNEL]->stop;
+    #die "Nick already in use\n";
 }
 
 sub irc_001 {
@@ -168,30 +177,35 @@ sub user_config {
 sub run {
     my ($self) = @_;
 
-    if ($self->{options}{ircserver}) {
-        $self->setup_server(
-            $self->{options}{ircserver},
-            $self->{options}{ircnick},
-        );
-    } else {
-        my $resp = $self->send_request('user.fetchdata', 'botconfig');
-        if (ref $resp) {
-            if ($resp->value) {
-                foreach (ref($resp->value->{server}) ? @{$resp->value->{server}}
-                    : $resp->value->{server}) {
-                    $self->setup_server($_);
+    while (1) {
+        if ($self->{options}{ircserver}) {
+            $self->setup_server(
+                $self->{options}{ircserver},
+                $self->{options}{ircnick},
+            );
+        } else {
+            my $resp = $self->send_request('user.fetchdata', 'botconfig');
+            if (ref $resp) {
+                if ($resp->value) {
+                    foreach (ref($resp->value->{server}) ? @{$resp->value->{server}}
+                        : $resp->value->{server}) {
+                        $self->setup_server($_);
+                    }
+                } else {
+                    warn "No config found\n";
+                    return;
                 }
             } else {
-                warn "No config found\n";
+                warn "Cannot fetch config\n";
                 return;
             }
-        } else {
-            warn "Cannot fetch config\n";
-            return;
         }
-    }
 
-    POE::Kernel->run();
+        POE::Kernel->run();
+        my $wait = 15 + rand(60);
+        warn "waiting $wait to reconnect\n";
+        sleep($wait);
+    }
 }
 
 1;

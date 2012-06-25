@@ -50,7 +50,7 @@ my $sc = Sophie::Bot->new(
     password => $pass,
     type => $type || 'Term',
     proxy => $proxy,
-);
+) or die "Cannot get sophie object\n";
 
 if ($password) {
     my $res = $sc->send_request('user.set_password', $password);
