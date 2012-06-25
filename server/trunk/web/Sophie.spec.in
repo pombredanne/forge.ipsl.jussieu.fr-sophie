@@ -84,7 +84,7 @@ install -m 755 bin/sophie_cron %buildroot/%_sysconfdir/cron.daily/sophie_cron
 
 mkdir -p %buildroot/%_sysconfdir/init.d
 
-install -m 755 sysinit/sophie-scan %buildroot/%_sysconfdir/init.d/sophie-scan
+install -m 755 sysinit/sophie-update %buildroot/%_sysconfdir/init.d/sophie-update
 
 %clean
 rm -rf %buildroot
@@ -94,7 +94,7 @@ rm -rf %buildroot
 %doc Changes README
 %dir %_sysconfdir/sophie
 %_sysconfdir/cron.daily/sophie_cron
-%_sysconfdir/init.d/sophie-scan
+%_sysconfdir/init.d/sophie-update
 %config(noreplace) %_sysconfdir/sophie/*
 %_bindir/*
 %{_mandir}/man3/*
