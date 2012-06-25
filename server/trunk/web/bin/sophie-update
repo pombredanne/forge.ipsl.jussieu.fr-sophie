@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Getopt::Long;
 use Sophie::Scan;
+use Sophie::Base;
 use Sys::Syslog;
 use Pod::Usage;
 
@@ -17,7 +18,7 @@ GetOptions(
 $ENV{LC_ALL} = 'C';
 require Sophie::Scan::RpmsPath;
 
-sub process {
+sub process_rpms {
     my $scan = Sophie::Scan->new;
     $scan->update_meta_paths;
 
@@ -53,7 +54,42 @@ sub process {
     }
 }
 
-openlog('sophie-notify', 'ndelay,pid' . ($daemon ? '' : ',perror'), 'user');
+sub process_maint {
+    my $sophie = Sophie::Base->connect;
+
+    foreach my $maintsource (
+        $sophie->resultset('MaintSources')
+        ->search->all) {
+
+        my $realclass = 'Sophie::Maint::' . $maintsource->accessor;
+        no strict qw(refs);
+        eval "require $realclass;";
+        next if($@);
+
+        warn "Updating maintainers for " . $maintsource->label . "\n";
+        my $fetcher = $realclass->new($maintsource);
+        if (my $list = $fetcher->fetch) {
+            $sophie->resultset('MaintRpm')->search(
+                {
+                    sources => $maintsource->pkey,
+                }
+            )->delete;
+
+            foreach (@$list) {
+                $_->{sources} = $maintsource->pkey;
+            }
+
+            $sophie->txn_do(
+                sub {
+                    $sophie->resultset('MaintRpm')->populate($list) &&
+                    $maintsource->update({ lastupdated => 'now()' });
+                }
+            );
+        }
+    }
+}
+
+openlog('sophie-update', 'ndelay,pid' . ($daemon ? '' : ',perror'), 'user');
 $SIG{__WARN__} = sub {
     syslog('warning', @_);
 };
@@ -92,15 +128,28 @@ if ($runas) {
 
 $sleep ||= 60;
 
+my $lastmaint = 0;
+
 while (1) {
     my $csleep = int(rand($sleep) + ($sleep / 2 ));
     my $currenttime = time;
     if (my $pid = fork) {
         waitpid($pid, 0);
     } else {
-        process();
+        process_rpms();
         exit(0);
     }
+
+    if ($lastmaint < time - ($sleep * 100)) {
+        if (my $pid = fork) {
+            waitpid($pid, 0);
+            $lastmaint = time;
+        } else {
+            process_maint();
+            exit(0);
+        }
+    }
+    
     my $delay = $csleep - (time - $currenttime);
 
     if ($delay > 0) {
