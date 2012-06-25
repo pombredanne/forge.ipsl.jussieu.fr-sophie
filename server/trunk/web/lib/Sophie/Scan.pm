@@ -82,6 +82,8 @@ sub call_plugin_parser {
     my $mod = ucfirst(lc($plugins));
     eval "require Sophie::Scan::RpmParser::$mod;";
     warn $@ if($@);
+    local $SIG{__DIE__} = sub {}; # In daemon mode Die is trapped for syslog
+                                  # Here we ignore die from DBIx
     eval {
         my $parser = "Sophie::Scan::RpmParser::$mod"->new($self);
         $parser->run($rpm, $pkgid, $new);
