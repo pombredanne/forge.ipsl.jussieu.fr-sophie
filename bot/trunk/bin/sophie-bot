@@ -42,6 +42,7 @@ if (my $conf = Config::General->new($configfile)) {
     $proxy       ||= $config{proxy};
     $runas       ||= $config{runas};
     $pidfile     ||= $config{pidfile};
+    $type        ||= $config{type};
 }
 
 my $sc = Sophie::Bot->new(
@@ -87,19 +88,7 @@ if ($password) {
     }
 }
 
-if ($runas) {
-    my ($login,$pass,$uid,$gid) = $runas =~ /^\d/
-    ? getpwuid($runas)
-    : getpwnam($runas);
-
-    $> = $uid; $) = $gid;
-    if ($> ne $uid) {
-        die "Cannot change to user $runas\n";
-    }
-}
-
 if ($daemon) {
-
     my $pid = fork();
 
     if (defined($pid)) {
@@ -117,6 +106,17 @@ if ($pidfile) {
         print $handle $$ . "\n";
         close($handle);
     } else {
+    }
+}
+
+if ($runas) {
+    my ($login,$pass,$uid,$gid) = $runas =~ /^\d/
+    ? getpwuid($runas)
+    : getpwnam($runas);
+
+    $> = $uid; $) = $gid;
+    if ($> ne $uid) {
+        die "Cannot change to user $runas\n";
     }
 }
 

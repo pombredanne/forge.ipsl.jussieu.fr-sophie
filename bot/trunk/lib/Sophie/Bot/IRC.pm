@@ -61,7 +61,7 @@ sub ping_server {
     my $kernel = $_[KERNEL];
     $heap->{nopong} ||= 0;
     if ($heap->{nopong} >= NO_PONG_TOUT) {
-        $heap->{irc}->yield( 'connect', { } );
+        $_[KERNEL]->stop;
         return;
     }
     $heap->{nopong}++;
@@ -89,7 +89,6 @@ sub irc_433  {
     }
 
     $_[KERNEL]->stop;
-    #die "Nick already in use\n";
 }
 
 sub irc_001 {
