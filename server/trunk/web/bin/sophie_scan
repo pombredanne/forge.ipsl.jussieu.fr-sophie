@@ -4,42 +4,107 @@ use strict;
 use warnings;
 use Getopt::Long;
 use Sophie::Scan;
+use Sys::Syslog;
+use Pod::Usage;
+
+GetOptions(
+    'd' => \my $daemon,
+    'sleep=i' => \my $sleep,
+    'runas=s' => \my $runas,
+    'pidfile=s' => \my $pidfile,
+) or do { pod2usage(1) };
 
 $ENV{LC_ALL} = 'C';
 require Sophie::Scan::RpmsPath;
 
-my $scan = Sophie::Scan->new;
-$scan->update_meta_paths;
+sub process {
+    my $scan = Sophie::Scan->new;
+    $scan->update_meta_paths;
 
-my @pkey = $scan->list_unscanned_paths;
+    my @pkey = $scan->list_unscanned_paths;
 
-foreach my $pathkey (@pkey) {
-    
-    my $time = time;
-    my $mark = 0;
-    my @delta;
+    foreach my $pathkey (@pkey) {
+        
+        my $time = time;
+        my $mark = 0;
+        my @delta;
 
-    {
-        my $path = Sophie::Scan::RpmsPath
-            ->new($pathkey, Sophie::Scan->new);
-        #$path->set_no_needupdate;
+        {
+            my $path = Sophie::Scan::RpmsPath
+                ->new($pathkey, Sophie::Scan->new);
 
-        $mark = $path->get_needupdate;
-        @delta = $path->find_delta;
-    }
+            $mark = $path->get_needupdate;
+            @delta = $path->find_delta;
+        }
 
-    while (my @d = splice(@delta, 0, 10)) {
-        my $scan = Sophie::Scan->new;
-        my $path = Sophie::Scan::RpmsPath->new($pathkey, $scan);
-        $path->update_content(@d);
-        last if (time > $time + 7 * 60);
-    }
+        while (my @d = splice(@delta, 0, 10)) {
+            my $scan = Sophie::Scan->new;
+            my $path = Sophie::Scan::RpmsPath->new($pathkey, $scan);
+            $path->update_content(@d);
+            last if (time > $time + 7 * 60);
+        }
 
-    if (!@delta) { # update only if we finished
-        my $path = Sophie::Scan::RpmsPath->new($pathkey, Sophie::Scan->new);
-        $path->set_updated;
-        $path->set_no_needupdate
-            unless ($mark ne $path->get_needupdate);
+        if (!@delta) { # update only if we finished
+            my $path = Sophie::Scan::RpmsPath->new($pathkey, Sophie::Scan->new);
+            $path->set_updated;
+            $path->set_no_needupdate
+                unless ($mark ne $path->get_needupdate);
+        }
     }
 }
 
+openlog('sophie-notify', 'ndelay,pid' . ($daemon ? '' : ',perror'), 'user');
+$SIG{__WARN__} = sub {
+    syslog('warning', @_);
+};
+$SIG{__DIE__} = sub {
+    syslog('crit', @_);
+    exit(1);
+};
+
+if ($daemon) {
+    if (fork()) {
+        exit(0);
+    }
+    warn "Fork done, entering daemon mode\n";
+}
+
+if ($pidfile) {
+    if (open(my $handle, '>', $pidfile)) {
+        print $handle $$ . "\n";
+        close($handle);
+    } else {
+        die "Can't write pidfile $pidfile, exiting :\\\n";
+    }
+}
+
+
+if ($runas) {
+    my ($login,$pass,$uid,$gid) = $runas =~ /^\d/
+    ? getpwuid($runas)
+    : getpwnam($runas);
+
+    $> = $uid; $) = $gid;
+    if ($> ne $uid) {
+        die "Cannot change to user $runas\n";
+    }
+}
+
+$sleep ||= 60;
+
+while (1) {
+    my $csleep = int(rand($sleep) + ($sleep / 2 ));
+    my $currenttime = time;
+    if (my $pid = fork) {
+        waitpid($pid, 0);
+    } else {
+        process();
+        exit(0);
+    }
+    my $delay = $csleep - (time - $currenttime);
+
+    if ($delay > 0) {
+        warn "sleep $delay\n";
+        sleep $delay;
+    }
+}

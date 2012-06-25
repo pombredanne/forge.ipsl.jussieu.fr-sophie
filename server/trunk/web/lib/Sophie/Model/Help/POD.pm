@@ -75,6 +75,22 @@ sub bot_help_html {
     return;
 }
 
+sub admin_help_text {
+    my ($self, $context, $cmd) = @_;
+    my $module = 'Admin::Cli' . ($context ? "::$context" : '');
+    my $botpom = $self->{pom}{$module};
+    foreach my $head1 ($botpom->content) {
+        $head1->title eq 'AVAILABLE FUNCTIONS' or next;
+        foreach ($head1->content) {
+            $_->title =~ /^\Q$cmd\E( |$)/ or next;
+            my $ppvt = Pod::POM::View::Text->new;
+            return $_->present($ppvt);
+        }
+        last;
+    }
+    return;
+}
+
 sub chat_functions {
     my ($self) = @_;
     my $botpom = $self->{pom}{'Chat::Cmd'};

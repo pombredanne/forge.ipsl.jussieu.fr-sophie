@@ -64,7 +64,7 @@ sub local_ls_rpms {
 sub find_delta {
     my ($self) = @_;
 
-    warn "$$ " . $self->path;
+    warn "Scanning " . $self->path . "\n";
 
     my @delta;
     my $localrpms = $self->local_ls_rpms;
@@ -151,7 +151,7 @@ sub set_updated {
 
 sub remove_rpm {
     my ($self, $rpm) = @_;
-    warn "$$ deleting $rpm";
+    warn "Deleting $rpm\n";
     $self->db->base->storage->txn_do(
         sub {
 
@@ -165,7 +165,8 @@ sub remove_rpm {
 sub add_rpm {
     my ($self, $rpm) = @_;
 
-    warn "$$ adding $rpm";
+    -f $self->path . '/' . $rpm or return;
+    warn "Adding $rpm\n";
     my @stat = stat($self->path . '/' . $rpm);
     eval {
         my ($pkgid, $new) = $self->db->base->storage->txn_do(
@@ -198,7 +199,7 @@ sub _add_header {
         $header = RPM4::Header->new($self->path . '/' . $rpm, $self->{db}) 
     };
     $header or do {
-        warn "$$ Cannot read " . $self->path . '/' . $rpm;
+        warn "Cannot read " . $self->path . "/$rpm\n";
         return "";
     };
 
@@ -207,7 +208,6 @@ sub _add_header {
             { pkgid => $header->queryformat('%{PKGID}') }
         )->get_column('pkgid')->all;
         if ($find) {
-            warn "$$ Find";
             return($header->queryformat('%{PKGID}'), 0);
         }
     }

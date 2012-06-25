@@ -454,6 +454,67 @@ sub create_user : XMLRPC {
     }
 }
 
+sub help : private {
+    my ( $self, $c, $cmd ) = @_;
+    my $ctx = $c->session->{admin_ctx} || '';
+    my $module = 'Admin::Cli' . ($ctx ? "::$ctx" : '');
+    if ($cmd) {
+        my @message = grep { /\S+/ } split(/\n/,
+            $c->model('Help::POD')->admin_help_text($ctx, $cmd) || 'No help available');
+        return $c->stash->{xmlrpc} = [ $self->prompt($c), \@message ];
+    } else {
+        return $c->stash->{xmlrpc} = [
+            $self->prompt($c),
+            [
+                'available command:',
+                join(', ', sort grep { $_ !~ /^end$/ }
+                    ('help', @{ $c->controller($module)->_commands })),
+            ]
+        ];
+    }
+}   
+
+sub prompt : XMLRPC {
+    my ($self, $c) = @_;
+    my $ctx = $c->session->{admin_ctx} || '';
+    my $path = '/admin/cli' . ($ctx ? lc("/$ctx") : '');
+    if ($c->get_action( 'prompt', $path )) {
+        return $c->stash->{xmlrpc} = $c->forward("$path/prompt");
+    } else {
+        return $c->stash->{xmlrpc} = '> ';
+    }
+}
+
+sub cli : XMLRPC {
+    my ($self, $c, $cmd, @args) = @_;
+
+    if ($cmd eq 'help') {
+        $c->go('help', [ @args ]);
+    }
+    
+    my $ctx = $c->session->{admin_ctx} || '';
+    my $path = '/admin/cli' . ($ctx ? lc("/$ctx") : '');
+    if ($c->get_action( $cmd, $path )) {
+        return $c->go($path . '/' . $cmd, [ @args ]);
+    } else {
+        $c->error( "No such command $cmd" );
+    }
+}
+
+sub complete : XMLRPC {
+    my ($self, $c, $cmd, @args) = @_;
+
+    my $ctx = $c->session->{admin_ctx} || '';
+    my $path = '/admin/cli' . ($ctx ? lc("/$ctx") : '');
+    if ($c->get_action( "_c_$cmd", $path )) {
+        my $vals = $c->go($path . '/' . "_c_$cmd", [ @args ]);
+        return $args[-1] ? [ grep { index($_, $args[-1]) == 0 } @$vals ] : $vals;
+    } else {
+        return $c->stash->{xmlrpc} = [];
+    }
+}
+
+
 =head1 AUTHOR
 
 Olivier Thauvin
