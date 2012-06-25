@@ -26,7 +26,8 @@ sub path {
     my ($self) = @_;
     
     $self->db->base->resultset('Paths')->find(
-        { d_path_key => $self->key }
+        { d_path_key => $self->key },
+        { key => 'd_path_key' },
     )->path;
 }
 
@@ -121,7 +122,8 @@ sub update_content {
 sub set_exists {
     my ($self, $exists) = @_;
     $self->db->base->resultset('Paths')->find(
-        { d_path_key => $self->key }
+        { d_path_key => $self->key },
+        { key => 'd_path_key' },
     )->update({ 'exists' => ($exists ? 1 : 0) });
     $self->db->commit;
 }
@@ -129,7 +131,8 @@ sub set_exists {
 sub set_no_needupdate {
     my ($self) = @_;
     $self->db->base->resultset('Paths')->find(
-        { d_path_key => $self->key }
+        { d_path_key => $self->key },
+        { key => 'd_path_key' },
     )->update({ needupdate => 0 });
     $self->db->commit;
 }
@@ -137,14 +140,16 @@ sub set_no_needupdate {
 sub get_needupdate {
     my ($self) = @_;
     $self->db->base->resultset('Paths')->find(
-        { d_path_key => $self->key }
+        { d_path_key => $self->key },
+        { key => 'd_path_key' },
     )->get_column('needupdate');
 }
 
 sub set_updated {
     my ($self) = @_;
     $self->db->base->resultset('Paths')->find(
-        { d_path_key => $self->key }
+        { d_path_key => $self->key },
+        { key => 'd_path_key' },
     )->update({ 'updated' => \'now()' });
     $self->db->commit;
 }

@@ -72,7 +72,8 @@ sub run {
                             {
                                 count => $filelist{$fname}->count,
                                 pkgid => $pkgid,
-                            }
+                            },
+                            { key => 'pkgid_count' },
                         );
                         foreach my $param ($ini->Parameters('Desktop Entry')) {
                             my ($key, $locale) = $param =~ /^([^\[]+)(?:\[(.*)\])?$/;
