@@ -31,7 +31,7 @@ $RPC::XML::FORCE_STRING_ENCODING = 1;
 
 extends 'Catalyst';
 
-our $VERSION = '0.02';
+our $VERSION = '0.04';
 $VERSION = eval $VERSION;
 
 # Configure the application.
