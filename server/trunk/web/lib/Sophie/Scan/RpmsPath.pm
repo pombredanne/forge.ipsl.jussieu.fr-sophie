@@ -173,6 +173,7 @@ sub add_rpm {
     -f $self->path . '/' . $rpm or return;
     warn "Adding $rpm\n";
     my @stat = stat($self->path . '/' . $rpm);
+    local $SIG{__DIE__} = undef;
     eval {
         my ($pkgid, $new) = $self->db->base->storage->txn_do(
             sub {
