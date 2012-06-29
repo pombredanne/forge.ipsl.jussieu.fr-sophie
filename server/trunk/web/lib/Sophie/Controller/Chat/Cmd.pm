@@ -391,50 +391,6 @@ List available distribution, release, architecture matching given arguments.
 sub list : XMLRPC {
     my ($self, $c, $reqspec, @args) = @_;
 
-    my $list = $c->forward('_listQuery' , [ @args ]);
-
-    if (!@$list) { 
-        return $c->stash->{xmlrpc} = {
-            message => [ "I don't have any distribution matching: "
-                         . join(' / ', grep { $_ } @args[0..2]) ],
-        };
-    }
-
-    return $c->stash->{xmlrpc} = {
-        message => [ 
-            ($args[0] 
-                ? join(' / ', grep { $_ } @args[0..2]) . ': '
-                : '') .
-            join(', ', @list) ],
-    }
-}
-
-#=head2 _listlc [distribution [release [arch]]]
-#
-#List available distribution, release, architecture matching given arguments, in
-#lower case.
-#
-#=cut
-
-sub _listlc : private {
-    my ($self, $c, $reqspec, @args) = @_;
-
-    # call for the common list query
-    my $list = $c->forward('_listQuery' , [ @args ]);
-
-    # lowercase of the list and return
-    return [ map( lc, @{ $list || [] } ) ];
-}
-
-=head2 _listQuery [distribution [release [arch]]]
-
-#List available distribution, release, architecture matching given arguments.
-
-=cut
-
-sub _listQuery : Private {
-    my ($self, $c, $reqspec, @args) = @_;
-
     my $distrib = {
         distribution => $args[0],
         release      => $args[1],
@@ -442,10 +398,19 @@ sub _listQuery : Private {
     };
 
     if (!$c->forward('/distrib/exists', [ $distrib ])) {
-        return [];
+        return $c->stash->{xmlrpc} = {
+            message => [ "I don't have any distribution matching: "
+                         . join(' / ', grep { $_ } @args[0..2]) ],
+        };
     }
 
-    return @{ $c->forward('/distrib/list', [ $distrib ]) };
+    my @list = @{ $c->forward('/distrib/list', [ $distrib ]) };
+    return $c->stash->{xmlrpc} = {
+        message => [ 
+            ($args[0] 
+                ? join(' / ', grep { $_ } @args[0..2]) . ': '
+                : '') .
+            join(', ', @list) ],
     }
 }
 
