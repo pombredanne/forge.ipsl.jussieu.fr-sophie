@@ -101,10 +101,21 @@ sub message : XMLRPC {
     if ($c->get_action( $cmd, '/chat/cmd' )) {
         return $c->go('/chat/cmd/' . $cmd, [ $reqspec, @args ]);
     } else {
-        $c->stash->{xmlrpc} = {
-            error => 'No such command',
-        };
+        return $c->forward('err_no_cmd', []);
     }
+}
+
+=head2 err_no_cmd
+
+Return the 'no such command error'.
+
+=cut
+
+sub err_no_cmd : Private {
+    my ($self, $c ) = @_;
+    return $c->stash->{xmlrpc} = {
+        error => 'No such command',
+    };
 }
 
 sub paste : XMLRPCLocal {

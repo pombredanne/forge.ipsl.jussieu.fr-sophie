@@ -17,6 +17,25 @@ Catalyst Controller.
 
 =cut
 
+my %hidden_functions;
+
+# The given function will not be listed by help anymore
+
+sub _hidden_functions {
+    my ($func) = @_;
+
+    $hidden_functions{$func} = 1;
+}
+
+my @to_list_functions;
+
+# The given functions will be listed by help
+
+sub _to_list_functions {
+    my ($func) = @_;
+
+    push(@to_list_functions, $func);
+}
 
 =head2 index
 
@@ -68,7 +87,13 @@ sub end : Private {
 
 sub _commands {
     my ( $self, $c ) = @_;
-    [ grep { m/^[^_]/ } map { $_->name } $self->get_action_methods() ];
+    [
+        sort { $a cmp $b }
+        grep { ! $hidden_functions{$_} } # Command to not list
+                                    # TODO: not hardcode list here
+        grep { m/^[^_]/ }
+        (map { $_->name }
+        $self->get_action_methods()), @to_list_functions ];
 }
 
 sub _getopt : Private {
@@ -1310,6 +1335,39 @@ sub nb_rpm : XMLRPC {
         return $c->stash->{xmlrpc} = {
             message => \@messages,
         };
+    }
+}
+
+_to_list_functions('try me');
+
+=head2 try me
+
+Just try me
+
+=head1 HIDDEN BOT FUNCTION
+
+=cut
+
+_hidden_functions('try');
+
+sub try : XMLRPC {
+    my ($self, $c, $reqspec, @args) = @_;
+
+    if (($args[0] || '') eq 'me') {
+        my %tryme = %{ $c->forward('/user/fetchdata', [ 'tryme' ]) || {} };
+        my @msgs = @{ $tryme{msgs} || []};
+
+        if (@msgs) {
+            return $c->stash->{xmlrpc} = {
+                message => [ $msgs[rand(scalar(@msgs))] ],
+            };
+        } else {
+            return $c->stash->{xmlrpc} = {
+                message => [ 'I don\'t know what you mean' ],
+            };
+        }
+    } else {
+        return $c->stash->{xmlrpc} = $c->go('/chat/err_no_cmd', []);
     }
 }
 
