@@ -17,7 +17,11 @@ our $VERSION = '0.01';
 
 sub show_reply {
     my ($self, $heap, $reply) = @_;
-    print "$_\n" foreach (@{$reply->{message}});
+    if ($reply->{error}) {
+        print $reply->{error} . "\n";
+    } else {
+        print "$_\n" foreach (@{$reply->{message}});
+    }
 }
 
 sub user_config {
