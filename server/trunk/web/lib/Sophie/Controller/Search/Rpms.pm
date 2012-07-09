@@ -145,13 +145,11 @@ sub bydate_rpc : XMLRPCPath('bydate') {
     my ( $self, $c, $searchspec, $date ) = @_;
     $searchspec ||= {};
 
-    $c->stash->{rs} =
-        $c->forward('rpms_rs')->search({
-            -nest => \[
-                "Rpmfiles.added > '1970-01-01'::date + ?::interval",
-                [ plain_text => "$date seconds" ],   
-            ],
-        });
+    $c->stash->{rs} = $c->forward('rpms_rs')->search(
+        \[ "Rpmfiles.added > '1970-01-01'::date + ?::interval",
+            [ plain_text => "$date seconds" ],
+        ]
+    );
 }
 
 sub byfilename : Private {

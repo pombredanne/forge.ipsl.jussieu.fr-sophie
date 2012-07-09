@@ -93,8 +93,9 @@ sub file :Local {
                 : ())
           },
           { 
-              'select' => [ 'contents is NOT NULL as has_content', 'rpmfilesmode(mode) as perm', @col, '"group"',
-                  '"user"' ],
+              'select' => "contents is NOT NULL as has_content,
+              rpmfilesmode(mode) as perm, " . join( ', ', @col) . ", \"group\",
+                  \"user\"",
               as => [ qw(has_content perm), @col, 'group', 'user' ],
               order_by => [ 'pkgid' ],
 

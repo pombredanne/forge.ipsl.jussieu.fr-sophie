@@ -27,16 +27,6 @@ sub begin : Private {
     $c->forward('/begin');
 }
 
-=head2 index
-
-=cut
-
-sub index :Path :Args(0) {
-    my ( $self, $c ) = @_;
-
-    $c->response->body('Matched Sophie::Controller::Admin in Admin.');
-}
-
 sub create :XMLRPC {
     my ( $self, $c, $distribution, $version, $arch ) = @_;
 
@@ -454,7 +444,7 @@ sub create_user : XMLRPC {
     }
 }
 
-sub help : private {
+sub help : Private {
     my ( $self, $c, $cmd ) = @_;
     my $ctx = $c->session->{admin_ctx} || '';
     my $module = 'Admin::Cli' . ($ctx ? "::$ctx" : '');
