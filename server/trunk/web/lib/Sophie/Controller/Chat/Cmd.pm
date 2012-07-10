@@ -11,7 +11,7 @@ Sophie::Controller::Chat::Cmd - Catalyst Controller
 
 =head1 DESCRIPTION
 
-Catalyst Controller.
+This module handle chat command.
 
 =head1 METHODS
 
@@ -54,10 +54,10 @@ sub end : Private {
     $reqspec->{max_line} ||= 4;
     my $message =  $c->stash->{xmlrpc};
 
-    my @backup = @{ $message->{message} };
+    my @backup = @{ $message->{message} || []};
     my $needpaste = 0;
 
-    if (@{ $message->{message} } > ($reqspec->{max_line})) {
+    if ($message->{message} && @{ $message->{message} } > ($reqspec->{max_line})) {
         @{ $message->{message} } = 
             # -2 because line 0 and we remove one for paste url
             @backup[0 .. $reqspec->{max_line} -2];
@@ -219,8 +219,21 @@ Set default search value (see also: unset)
 =cut
 
 sub set : XMLRPC {
-    my ( $self, $c, $reqspec, $var, $val ) = @_;
+    my ( $self, $c, $reqspec, @args ) = @_;
     
+    my $for;
+    my ($var, $val) = @{ $c->forward('_getopt', [
+        {
+            'for=s' => \$for,
+        }, @args ]) };
+    if ($for && !$c->forward('_check_auth', [ $reqspec ])) {
+        return $c->stash->{xmlrpc} = {
+            private_reply => 1,
+            error => 'You must be authenticated to change settings for someone else',
+        };
+    }
+    $for ||= $reqspec->{from};
+
     # if there is no variable to fix, Sophie ask and stop
     if (!$var) {
         return $c->stash->{xmlrpc} = {
@@ -231,6 +244,7 @@ sub set : XMLRPC {
             ]
         }
     } 
+
     
     # if the variable is not 'distribution', 'distrib', 'release' or 'arch', Sophie
     # complains and stop
@@ -259,7 +273,7 @@ sub set : XMLRPC {
 
         if ($var ne "distribution") {
             # the message is built using the user's pref
-            my $res = $c->forward('/user/fetchdata', [ $reqspec->{from}, ]);
+            my $res = $c->forward('/user/fetchdata', [ $for, ]);
             my $owndistrib = $res->{"distribution"} || '(none)';
             if ($var eq "release" && $owndistrib eq '(none)') {
                     $msgtmp = "Release depends on Distribution. Use 'list" .
@@ -289,14 +303,14 @@ sub set : XMLRPC {
         }
     } 
     
-    $c->forward('/user/update_data', [ $reqspec->{from}, { $var => $val } ]);
+    $c->forward('/user/update_data', [ $for, { $var => $val } ]);
 
     return $c->stash->{xmlrpc} = {
         private_reply => 1,
         message => [
             "$var set to: " . ($val || '(none)'),
             ($c->forward('/distrib/exists', [
-                    $c->forward('/user/fetchdata', [ $reqspec->{from}, ]) ])
+                    $c->forward('/user/fetchdata', [ $for, ]) ])
                 ? ()
                 : ("warning: your setting does not match any distribution")
             ),
@@ -311,7 +325,20 @@ Unset default search value (see also: set)
 =cut
 
 sub unset : XMLRPC {
-    my ( $self, $c, $reqspec, $var ) = @_;
+    my ( $self, $c, $reqspec, @args ) = @_;
+
+    my $for;
+    my ($var) = @{ $c->forward('_getopt', [
+        {
+            'for=s' => \$for,
+        }, @args ]) };
+    if ($for && !$c->forward('_check_auth', [ $reqspec ])) {
+        return $c->stash->{xmlrpc} = {
+            private_reply => 1,
+            error => 'You must be authenticated to change settings for someone else',
+        };
+    }
+    $for ||= $reqspec->{from};
 
     # if there is no variable to fix, Sophie ask and stop
     if (!$var) {
@@ -341,7 +368,7 @@ sub unset : XMLRPC {
         }
     }
 
-    $c->forward('/user/update_data', [ $reqspec->{from}, { $var => undef } ]);
+    $c->forward('/user/update_data', [ $for, { $var => undef } ]);
     
     return $c->stash->{xmlrpc} = {
         private_reply => 1,
@@ -1338,6 +1365,111 @@ sub nb_rpm : XMLRPC {
     }
 }
 
+=head2 auth
+
+Authentify yourself to have access to bot admin command
+
+=cut
+
+sub auth : XMLRPC {
+    my ($self, $c, $reqspec, $password) = @_;
+
+    my $config = $c->forward('/user/fetchdata', [ 'botconfig' ]) || {};
+
+    my $from = lc($reqspec->{from});
+
+    require Data::Dumper;
+    print Data::Dumper::Dumper( $config );
+
+    if ($config
+        && (ref $config->{admin} eq 'HASH')
+        && (my $pass = $config->{admin}{$from})) {
+        if ($pass eq crypt($password, $pass)) {
+            $c->session->{botauth}{$from} = time;
+            return $c->{stash}->{xmlrpc} = {
+                message => [ 'You are now authenticated', ],
+            };
+        }
+    }
+
+    return $c->{stash}->{xmlrpc} = {
+        error => 'Cannot authenticated you !',
+    };
+}
+
+=head2 chpwd
+
+Change your admin password if you have one.
+
+=cut
+
+sub chpwd : XMLRPC {
+    my ( $self, $c, $reqspec, $password ) = @_;
+    
+    if (!$c->forward('_check_auth', [ $reqspec ])) {
+        return $c->stash->{xmlrpc} = {
+            private_reply => 1,
+            error => 'You must be authenticated to change your password',
+        };
+    }
+
+    my $from = lc($reqspec->{from});
+
+    # the message is built using the user's pref
+    my $res = $c->forward('/user/fetchdata', [ 'botconfig', ]);
+
+    my @char = ('a' .. 'z', 'A' .. 'Z', 0 .. 9);
+    $res->{admin}{$from} = crypt(
+        $password,
+        '$1$' . join('', map{ $char[rand(scalar(@char))] } (0 .. 5))
+    );
+    
+    $c->forward('/user/setdata', [ 'botconfig', $res ]);
+
+    return $c->stash->{xmlrpc} = {
+        private_reply => 1,
+        message => [ 'Your new password has been stored' ],
+    };
+}
+
+=head2 bye
+
+Leave admin permission
+
+=cut
+
+sub bye : XMLRPC {
+    my ($self, $c, $reqspec) = @_;
+
+    my $from = lc($reqspec->{from});
+
+    if ($c->forward('_check_auth', [ $reqspec ])) {
+        delete($c->session->{botauth}{$from});
+        return $c->{stash}->{xmlrpc} = {
+            message => [ 'See you soon' ],
+        };
+    } else {
+        return $c->{stash}->{xmlrpc} = {
+            message => [ 'It seems you were not login' ],
+        };
+    }
+}
+
+sub _check_auth : Private {
+    my ( $self, $c, $reqspec ) = @_;
+
+    my $from = lc($reqspec->{from});
+
+    if ($c->session->{botauth}{$from}
+        && $c->session->{botauth}{$from} > time - 3600) { # One hour session
+        $c->session->{botauth}{$from} = time;
+        return 1;
+    } else {
+        delete($c->session->{botauth}{$from});
+        return;
+    }
+}
+
 _to_list_functions('try me');
 
 =head2 try me
@@ -1370,6 +1502,20 @@ sub try : XMLRPC {
         return $c->stash->{xmlrpc} = $c->go('/chat/err_no_cmd', []);
     }
 }
+
+=head1 USER VARIABLE
+
+=head2 botconfig
+
+Contains basic data for bot startup and managment
+
+  server:
+    - irc.domain.org
+  admin:
+    - nick: crypt_password
+      nick2: crypt_password
+
+
 
 =head1 AUTHOR
 
