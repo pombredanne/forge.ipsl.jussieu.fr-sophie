@@ -13,16 +13,17 @@ GetOptions(
     'u=s' => \my $url,
     'l=s' => \my $login,
     'p=s' => \my $pass,
-    't=s' => \my $type,
-    'd=s' => \my @options,
-    'proxy' => \my $proxy,
-    'daemon' => \my $daemon,
-    'runas=s' => \my $runas,
+    't=s'      => \my $type,
+    'd=s'       => \my @options,
+    'proxy'     => \my $proxy,
+    'daemon'    => \my $daemon,
+    'runas=s'   => \my $runas,
     'pidfile=s' => \my $pidfile,
 
     # Command option:
     'set-password=s' => \my $password,
-    'edit-var=s'       => \my $data,
+    'edit-var=s'     => \my $data,
+    'list-var'       => \my $listvar,
 ) or pod2usage;
 
 my %options;
@@ -82,6 +83,17 @@ if ($password) {
                 exit(1);
             }
         }
+    } else {
+        print( (ref $res ? $res->string : $res) . "\n");
+        exit(1);
+    }
+} elsif ($listvar) {
+    my $res = $sc->send_request('user.listdata');
+    if (ref $res && !$res->is_fault) {
+        foreach (@{ $res->value || []}) {
+            print $_ . "\n";
+        }
+        exit (0);
     } else {
         print( (ref $res ? $res->string : $res) . "\n");
         exit(1);

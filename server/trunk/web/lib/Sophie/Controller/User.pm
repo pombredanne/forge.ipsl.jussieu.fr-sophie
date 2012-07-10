@@ -53,6 +53,23 @@ sub fetch_user_data : Private {
     return $c->stash->{xmlrpc};
 }
 
+sub list_user_data : XMLRPC {
+    my ( $self, $c, $user ) = @_;
+
+    return $c->stash->{xmlrpc} = [
+        $c->model('Base')->resultset('Users')->search(
+            { mail => $user, }
+        )->search_related('UsersData')->get_column('varname')->all
+    ];    
+}
+
+sub listdata : XMLRPC {
+    my ( $self, $c, $dataname ) = @_;
+
+    $c->user or return {};
+
+    return $c->forward('list_user_data', [ $c->user->mail || '', $dataname ]);
+}
 
 sub fetchdata : XMLRPC {
     my ( $self, $c, $dataname ) = @_;
