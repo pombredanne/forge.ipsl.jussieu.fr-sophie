@@ -1516,6 +1516,27 @@ Contains basic data for bot startup and managment
       nick2: crypt_password
 
 
+=head2 default
+
+The default variable for the bot
+
+=head2 tryme
+
+    msgs:
+      - sentence 1
+      - sentence 2
+
+=over 4
+
+=item msgs
+
+The list of sentence display by the so usefull 'try me' functions.
+
+=back
+
+=head2 SERVER@NICK
+
+Chat users settings
 
 =head1 AUTHOR
 
