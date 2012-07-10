@@ -17,7 +17,9 @@ our $VERSION = '0.01';
 
 sub show_reply {
     my ($self, $heap, $reply) = @_;
-    if ($reply->{error}) {
+    if ($reply->{faultString}) {
+        print $reply->{faultString} . "\n";
+    } elsif ($reply->{error}) {
         print $reply->{error} . "\n";
     } else {
         print "$_\n" foreach (@{$reply->{message}});
