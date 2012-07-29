@@ -55,38 +55,82 @@ sub invit_login : Local {
 sub create_request : Private {
     my ($self, $c, $mail) = @_;
 
-    my $valid_code = join('', map { printf("%02x", rand(256)) } (0 .. 15));
+    my $valid_code = join('', map { sprintf("%02x", rand(256)) } (0 .. 15));
 
     $c->model('Base::AccountRequest')->create({
             mail => $mail,
             valid_code => $valid_code,
+            ip_address => $c->req->address,
     });
+    $c->model('Base')->storage->dbh->commit;
+
+    return $valid_code;
 }
 
 sub create :Local {
     my ($self, $c) = @_;
 
-    warn $c->req->param('valid');
-    warn $c->session->{valid_create_user};
     if ((my $valid = $c->req->param('valid')) && $c->req->param('username')) {
+       # create a login request
+       my $valid_code = $c->forward('create_request', [ $c->req->param('username') ],);
+
        if ($valid == $c->session->{valid_create_user}) {
-           my $res = $c->forward('/admin/create_user',
-               [
-                   $c->req->param('username'),
-                   $c->req->param('password'),
-               ]
-            );
-            if ($res) {
-               $c->res->redirect($c->uri_for('/login',
-                   { username => $c->req->param('username') }
-               ));
-           }
-       }
+           $c->stash->{email} = {
+               header => [
+                   to      => $c->req->param('username'),
+                   from    => 'sophie@zarb.org',
+                   subject => 'Sophie.zarb.org confirm request',
+               ],
+               body    => "
+Someone, hopefully you, request an account on Sophe web site.
+
+To complete your subscription follow the link bellow:
+
+" . $c->uri_for('/login/confirm', { id => $valid_code }) . "
+
+If this is an error, simply ignore this mail.
+
+",
+           };
+           $c->forward( $c->view('Email') );
+        }
     }
     my $aa = (0 .. 9)[rand(9)];
     my $bb = (0 .. 9)[rand(9)];
     $c->stash->{valid} = "$aa + $bb";
     $c->session->{valid_create_user} = $aa + $bb;
+}
+
+sub confirm :Local {
+    my ($self, $c) = @_;
+
+    my $reqid = $c->req->param('id');
+
+    my $request = $c->model('Base::AccountRequest')->find(
+        {
+            valid_code => $reqid,
+        });
+    if (!$request) {
+        # ERR
+    }
+    $c->stash->{email} = $request->mail;
+
+    if ($c->req->param('password')) {
+       my $res = $c->forward('/admin/create_user',
+           [
+               $request->mail,
+               $c->req->param('password'),
+           ]
+        );
+        if ($res) {
+           $request->delete;
+           $c->model('Base')->storage->dbh->commit;
+           # TODO authenticate user directly
+           $c->res->redirect($c->uri_for('/login',
+               { username => $request->mail }
+           ));
+       }
+    }
 }
 
 =head1 AUTHOR

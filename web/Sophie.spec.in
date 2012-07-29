@@ -53,6 +53,7 @@ Requires: perl(Catalyst::Plugin::Prototype)
 Requires: perl(Catalyst::View::TT)
 Requires: perl(Catalyst::View::JSON)
 Requires: perl(Catalyst::View::GD)
+Requires: perl(Catalyst::View::Email)
 Requires: perl(Catalyst::Plugin::Compress::Zlib)
 Requires: perl-Catalyst-Plugin-Server
 Requires: perl(Catalyst::Plugin::Session::Store::DBI)

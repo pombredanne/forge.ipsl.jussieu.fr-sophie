@@ -78,6 +78,18 @@ __PACKAGE__->config(
             },
         },
     },
+    'View::Email' => {
+        default => {
+            charset => 'utf-8',
+            content_type => 'text/plain',
+        },
+        sender => {
+            mailer => 'SMTP',
+            mailer_args => {
+                host => 'localhost',
+            },
+        },
+    }
 );
 
 __PACKAGE__->config->{session} = {
