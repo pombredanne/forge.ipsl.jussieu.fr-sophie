@@ -55,7 +55,7 @@ sub srcfiles : XMLRPCLocal {
          { $_->get_columns }
         }
         
-        $c->model('Base::Rpms')
+        $c->model('Base::SrcFiles')
         ->search(
             { 
                 name => $name,
@@ -65,16 +65,10 @@ sub srcfiles : XMLRPCLocal {
                     : (),
             },
             {
-                select => [ 'evr' ],
-            }
-        )->search_related('SrcFiles')->search(
-            {
-                #has_content => 1,
-            },
-            {
-                    select => [ 'basename', 'evr', 'SrcFiles.pkgid' ],
-                    group_by => [ 'basename', 'evr', 'SrcFiles.pkgid' ],
+                    select => [ 'basename', 'Rpms.evr', 'pkgid' ],
+                    group_by => [ 'basename', 'evr', 'me.pkgid' ],
                     order_by => [ 'evr using >>', 'basename' ],
+                    join => [ 'Rpms' ],
             }
         )->all ];
 }

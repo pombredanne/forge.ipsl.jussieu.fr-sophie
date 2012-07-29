@@ -40,6 +40,8 @@ sub index :Path :Args(0) :XMLRPCPath('/login') {
         } else {
             if ($c->req->xmlrpc->is_xmlrpc_request) {
                 $c->error('invalid login / password');
+            } else {
+                $c->stash->{error} = 'Invalid login / password';
             }
         }
     }
@@ -50,10 +52,15 @@ sub invit_login : Local {
 
 }
 
-sub logout :Local {
-    my ($self, $c) = @_;
+sub create_request : Private {
+    my ($self, $c, $mail) = @_;
 
-    $c->logout;
+    my $valid_code = join('', map { printf("%02x", rand(256)) } (0 .. 15));
+
+    $c->model('Base::AccountRequest')->create({
+            mail => $mail,
+            valid_code => $valid_code,
+    });
 }
 
 sub create :Local {
@@ -80,7 +87,6 @@ sub create :Local {
     my $bb = (0 .. 9)[rand(9)];
     $c->stash->{valid} = "$aa + $bb";
     $c->session->{valid_create_user} = $aa + $bb;
-
 }
 
 =head1 AUTHOR

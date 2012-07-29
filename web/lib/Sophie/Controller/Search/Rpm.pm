@@ -226,21 +226,21 @@ sub description_rpc : XMLRPCPath('description') {
     my $distrs = $c->forward('/search/distrib_search', [ $searchspec, 1 ]);
     $c->stash->{rs} = $c->model('Base')->resultset('Rpms')->search(
         {
-            -nest => \[
-                    "to_tsvector('english', description) @@ to_tsquery(?)",
-                    [ plain_text => $tsquery],
-                ],
+            -and => [
+                \[ "to_tsvector('english', description) @@ to_tsquery(?)",
+                    [ plain_text => $tsquery ] ],
                 (exists($searchspec->{src})
                     ? (issrc => $searchspec->{src} ? 1 : 0)
                     : ()),
                 ($distrs 
                     ? (pkgid => { IN => $distrs->get_column('pkgid')->as_query, },)
                     : ()),
+            ]
         },
         {
             select => [ 
-                "ts_rank_cd(to_tsvector('english', description),to_tsquery(?)) as rank",
-                'pkgid'
+                \[ "ts_rank_cd(to_tsvector('english', description),to_tsquery(?)) as rank" ],
+               'pkgid'
             ],
             bind => [ $tsquery ], 
             order_by => [ 'rank desc', 'name', 'evr using >>', 'issrc' ],

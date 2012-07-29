@@ -13,7 +13,7 @@ __PACKAGE__->set_primary_key('d_path_key');
 #__PACKAGE__->add_unique_constraint('path' => [ 'path' ]);
 __PACKAGE__->belongs_to('MetaPaths' => 'Sophie::Base::Result::MetaPaths', 'meta_path');
 __PACKAGE__->has_many(MediasPaths => 'Sophie::Base::Result::MediasPaths', 'd_path');
-__PACKAGE__->has_many(Rpmfiles => 'Sophie::Base::Result::RpmFile', 'd_path');
+__PACKAGE__->has_many(Rpmfile => 'Sophie::Base::Result::RpmFile', 'd_path');
 
 
 1;

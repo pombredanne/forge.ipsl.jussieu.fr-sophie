@@ -15,6 +15,7 @@ ok( request("/rpms/$pkgid/deps")->is_success, 'Request a pkgid/deps should succe
 ok( request("/rpms/$pkgid/files")->is_success, 'Request a pkgid/files should succeed' );
 ok( request("/rpms/$pkgid/changelog")->is_success, 'Request a pkgid/changelog should succeed' );
 ok( request("/rpms/$pkgid/location")->is_success, 'Request a pkgid/location should succeed' );
+ok( request("/rpms/$pkgid/scriptlet")->is_success, 'Request a pkgid/scriptlet should succeed' );
 
 ok( xmlrequest_ok('rpms.basicinfo', $pkgid), 'XMLRPC rpms.basicinfo' );
 ok( request("/rpms/$pkgid/basicinfo?json"), "rpms/basicinfo?json" );

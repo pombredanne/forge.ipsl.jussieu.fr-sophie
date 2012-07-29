@@ -104,7 +104,7 @@ sub distrib_search : Private {
         return $rs
             ->search_related('MediasPaths')
             ->search_related('Paths')
-            ->search_related('Rpmfiles');
+            ->search_related('Rpmfile');
         } else {
             return;
         }
@@ -196,11 +196,11 @@ sub deps_rs : Private {
             { deptype => $deptype },
             { depname => $depname },
             ($depsense
-                ? ({-nest => \[
+                ? (\[
                     'rpmdepmatch(flags, me.evr, rpmsenseflag(?), ?)',
                     [ plain_text => $depsense],
                     [ plain_text => $depevr ]
-                ]})
+                ])
             : ()),
             ($searchspec->{pkgid}
                 ? { 'pkgid' => $searchspec->{pkgid} }

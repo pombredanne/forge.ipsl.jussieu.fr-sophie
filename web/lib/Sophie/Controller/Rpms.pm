@@ -248,7 +248,7 @@ sub dependency :XMLRPC :Chained('rpms_') :PathPart('dependency') :Args(1) {
             },
             { 
                 order_by => [ 'count' ],
-                select => [ 'rpmsenseflag("flags")', qw(depname flags evr) ],
+                select => [ \[ 'rpmsenseflag("flags")' ], qw(depname flags evr) ],
                 as => [ qw'sense depname flags evr' ],
 
             },
@@ -410,8 +410,10 @@ sub deps :Chained('rpms_') :PathPart('deps') :Args(0) :XMLRPCLocal {
             },
             { 
                 order_by => [ 'count' ],
-                select => [ 'rpmsenseflag("flags")',
-                    qw(depname flags evr deptype) ],
+                select => [
+                    \[ 'rpmsenseflag("flags")' ],
+                    qw(depname flags evr deptype)
+                ],
                 as => [ qw'sense depname flags evr deptype' ],
 
             },
@@ -456,8 +458,11 @@ sub files :Chained('rpms_') :PathPart('files') :Args(0) :XMLRPCLocal {
                 pkgid => $pkgid,
             },
             { 
-                'select' => [ 'contents is NOT NULL as has_content', 'rpmfilesmode(mode) as perm', @col, '"group"',
-                    '"user"' ],
+                'select' => [ 
+                    \[ 'contents is NOT NULL as has_content' ],
+                    \[ 'rpmfilesmode(mode) as perm' ],
+                    @col, '"group"', '"user"'
+                ],
                 as => [ qw(has_content perm), @col, 'group', 'user' ],
                 order_by => [ 'dirname', 'basename' ],
 
@@ -529,8 +534,8 @@ sub scriptlet :Chained('rpms_') :PathPart('scriptlet') :Args(0) :XMLRPCLocal {
             { pkgid => $pkgid },
             { 
                 select => [ 
-                    qq{rpmquery("header", ?)},
-                    qq{rpmquery("header", ?)},
+                    \[ qq{rpmquery("header", ?)} ],
+                    \[ qq{rpmquery("header", ?)} ],
                 ],
                 as => [ qw(script prog) ],
                 bind => $_,
@@ -545,11 +550,11 @@ sub scriptlet :Chained('rpms_') :PathPart('scriptlet') :Args(0) :XMLRPCLocal {
             { pkgid => $pkgid },
             { 
                 select => [ 
-                    qq{rpmquery("header", ?)},
-                    qq{rpmquery("header", ?)},
-                    qq{rpmquery("header", ?)},
-                    qq{rpmsenseflag(rpmquery("header", ?)::int)},
-                    qq{rpmquery("header", ?)},
+                    \[ qq{rpmquery("header", ?)} ],
+                    \[ qq{rpmquery("header", ?)} ],
+                    \[ qq{rpmquery("header", ?)} ],
+                    \[ qq{rpmsenseflag(rpmquery("header", ?)::int)} ],
+                    \[ qq{rpmquery("header", ?)} ],
                 ],
                 as => [ qw(script prog name sense version) ],
                 bind => [qw(
@@ -579,24 +584,26 @@ sub location :Chained('rpms_') :PathPart('location') :Args(0) {
     $c->stash->{xmlrpc} = [
         map {
         {
-            distribution => $_->get_column('name'),
-            dist => $_->get_column('shortname'),
-            release => $_->get_column('version'),
-            arch => $_->get_column('arch'), 
-            media => $_->get_column('label'),
-            media_group => $_->get_column('group_label'),
+            distribution => ($_->Arch->Release->Distribution->name || undef),
+            dist => ($_->Arch->Release->Distribution->shortname || undef),
+            release => ($_->Arch->Release->version || undef),
+            arch => ($_->Arch->arch || undef),
+            media => ($_->label || undef),
+            media_group => ($_->group_label || undef),
         }
-        }
-        $c->forward('/distrib/distrib_rs', [ {} ])
-         ->search_related('MediasPaths')
-                 ->search_related('Paths')
-        ->search_related('Rpmfiles',
+        } $c->model('Base')->resultset('RpmFile')->search(
             { pkgid => $pkgid },
-            {
-                select => [ qw(shortname name version arch label group_label) ],
-                order_by => [ qw(name version arch label) ],
-            }
-        )->all ]
+        )->search_related('Paths')
+         ->search_related('MediasPaths')
+         ->search_related('Medias', {},
+             {
+                 select => [ qw() ],
+                 prefetch => {
+                     Arch => { Release => 'Distribution' }
+                 }
+             }
+         )->all ]
+
 }
 
 sub analyse :Chained('rpms_') :PathPart('analyse') :Args(0) :XMLRPC {

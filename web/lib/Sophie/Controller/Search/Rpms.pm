@@ -34,7 +34,7 @@ sub rpms_rs : Private {
     return $c->forward('/distrib/distrib_rs', [ $searchspec ])
         ->search_related('MediasPaths')
         ->search_related('Paths')
-        ->search_related('Rpmfiles',
+        ->search_related('Rpmfile',
             {
                 pkgid => {
                     IN => $c->model('Base::Rpms')->search(
@@ -55,7 +55,7 @@ sub rpms_rs : Private {
                 select => [qw(filename pkgid me.name me.shortname Release.version Arch.arch Medias.label) ],
                 as => [qw(filename pkgid distribution dist release arch media) ],
                 rows => $searchspec->{rows} || 30000,
-                order_by => [ 'Rpmfiles.added desc' ],
+                order_by => [ 'Rpmfile.added desc' ],
             },
         );
 }
@@ -146,7 +146,7 @@ sub bydate_rpc : XMLRPCPath('bydate') {
     $searchspec ||= {};
 
     $c->stash->{rs} = $c->forward('rpms_rs')->search(
-        \[ "Rpmfiles.added > '1970-01-01'::date + ?::interval",
+        \[ "Rpmfile.added > '1970-01-01'::date + ?::interval",
             [ plain_text => "$date seconds" ],
         ]
     );
