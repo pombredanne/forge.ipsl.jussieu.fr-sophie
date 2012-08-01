@@ -3,6 +3,7 @@ MANIFEST
 Makefile.PL
 README
 bin/sophie-notify
+bin/sophie
 bin/sophie-rpm
 bin/sophie-rpm2
 bin/sophie_admin
@@ -11,5 +12,6 @@ bin/sophie_load
 lib/Sophie/Cli.pm
 lib/Sophie/Client/Transaction.pm
 lib/Sophie/Client.pm
+lib/Sophie/Client/Functions/Help.pm
 sophie-tools.spec.in
 sysinit/sophie-notify

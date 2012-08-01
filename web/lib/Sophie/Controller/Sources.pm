@@ -86,26 +86,23 @@ sub srcfilesbyfile : XMLRPCLocal {
          { $_->get_columns }
         }
         
-        $c->model('Base::Rpms')
-        ->search(
-            { 
-                name => $name,
-                issrc => 1,
-                $rpmrs
-                    ? (pkgid => { IN => $rpmrs->get_column('pkgid')->as_query },)
-                    : (),
-            },
-            {
-                select => [ 'evr' ],
-            }
-        )->search_related('SrcFiles')->search(
+        $c->model('Base::SrcFiles')->search(
             {
                 has_content => 1,
                 basename => $filename,
+                ($rpmrs
+                    ? ('me.pkgid' => { IN => $rpmrs->get_column('pkgid')->as_query },)
+                    : ()),
+                ($name
+                    ? ('me.pkgid' => { IN => $c->model('Base::Rpms')->search(
+                                { name => $name }, { select => ['Rpms.pkgid'] })
+                                ->get_column('pkgid')->as_query })
+                    : ()),
             },
             {
-                    '+columns' => [ qw(me.evr) ],
+                    '+columns' => [ qw(Rpms.evr) ],
                     order_by => [ 'evr using >>' ],
+                    join => [ 'Rpms' ],
             }
         )->all ];
 

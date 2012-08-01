@@ -265,6 +265,38 @@ sub file_rs : Private {
     return $c->model('BaseSearch')->apply_rpm_filter($rs, $searchspec);
 }
 
+sub file_md5_rs : Private {
+    my ( $self, $c, $searchspec, $md5) = @_;
+    $searchspec ||= {};
+
+    $md5 or return;
+
+    my $rs = $c->model('Base::Files')->search(
+        {
+            -and => [
+                md5 => $md5,
+                ($searchspec->{content} ? { has_content => 1 } : ()),
+                ($searchspec->{pkgid}
+                    ? { 'pkgid' => { IN => $searchspec->{pkgid} } }
+                    : ()),
+            ],
+        },
+        {
+            '+select' => [
+                'contents is NOT NULL as has_content',
+                { rpmfilesmode => 'mode' },
+            ],
+            '+as' => [ qw(has_content perm), ]
+        }
+    );
+    if (exists($searchspec->{src})) {
+        $rs = $rs->search_related('Rpms',
+            { issrc => $searchspec->{src} ? 1 : 0 }
+        )
+    }
+    return $c->model('BaseSearch')->apply_rpm_filter($rs, $searchspec);
+}
+
 sub end : Private {
     my ($self, $c, $searchspec) = @_;
 

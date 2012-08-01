@@ -1,0 +1,135 @@
+#! /bin/env perl
+
+use strict;
+use warnings;
+use Getopt::Long;
+use Pod::Usage;
+use Config::General;
+use File::Temp;
+use FindBin;
+use lib "$FindBin::Bin/../lib";
+use Sophie::Client;
+
+=head1 NAME
+
+    sophie - Command to query Sophie
+
+=cut
+
+=head1 SYNOPSYS
+
+    sophie-rpm [options] command [args]
+
+=over4
+
+=item -c configfile
+
+Use this config instead default one (C<~/.sophie.conf>)
+
+=item --proxy proxy
+
+Use this proxy to connect sophie's web site. The proxy must given as an url
+like C<http://proxy:8080/>
+
+=item -v
+
+Being verbose, show each required packages
+
+=item -s
+
+Search in database package matching unresolved dependencies
+
+=back
+
+=cut
+
+=item HEAD1 config file
+
+The configuration must look like something like this
+
+    # url http://sophie.zarb.org/rpc
+    # proxy http://nanardon.zarb.org:3128/
+    <distrib>
+    distribution Mandriva
+    release 2010.0
+    arch x86_64
+    </distrib>
+    <distrib>
+    distribution Mandriva
+    release cooker
+    arch x86_64
+    </distrib>
+
+=over 4
+
+=item proxy URL
+
+Optionnal proxy to use to connect to sophie website
+
+=item url URL
+
+The url of C<RPC> top method, default is C<http://sophie.zarb.org/rpc>.
+
+=cut 
+
+Getopt::Long::Configure('require_order');
+
+GetOptions(
+    'c=s'   => \my $configfile,
+    'u=s'   => \my $url,
+    'l=s'   => \my $login,
+    'p=s'   => \my $pass,
+    'v'     => \my $verbose,
+    's'     => \my $search,
+    'proxy' => \my $proxy,
+    'help'  => sub { pod2usage(0) },
+) or pod2usage;
+
+$configfile ||= "$ENV{HOME}/.sophie.conf";
+
+if (-f $configfile && (my $conf = Config::General->new($configfile))) {
+    my %config = $conf->getall;
+    $url         ||= $config{url};
+    $login       ||= $config{login};
+    $pass        ||= $config{pass};
+    $proxy       ||= $config{proxy};
+}
+
+my $sc = Sophie::Client->new(
+    server => $url,
+    login => $login,
+    password => $pass,
+    proxy => $proxy,
+);
+
+$sc->login;
+
+my $command = shift(@ARGV);
+$command or pod2usage();
+
+my $module = 'Sophie::Client::Functions::' . ucfirst($command);
+eval "require $module;";
+if ($@) {
+    die "No such command\n";
+} else {
+    my $cmd = $module->new($sc);
+    exit($cmd->run(@ARGV) ? 0 : 1);
+}
+
+=head1 AUTHOR
+
+Olivier Thauvin C<nanardon@nanardon.zarb.org>
+
+=head1 SEE ALSO
+
+L<http://sophie.zarb.org>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2010 by Olivier Thauvin
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.12.2 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
