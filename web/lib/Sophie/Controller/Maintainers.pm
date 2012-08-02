@@ -121,7 +121,7 @@ sub bymaintainer : XMLRPC {
             } : (),
         )->search({},
             {
-                'select' => [ qw'rpm name label' ],
+                'select' => [ qw'me.rpm name MaintSources.label' ],
                 'as'     => [ qw'rpm distribution vendor' ],
             }
         )->all ];
@@ -163,7 +163,7 @@ sub search :XMLRPC {
             } : (),
         )->search({},
             {
-                'select' => [ qw'owner name label' ],
+                'select' => [ qw'me.owner name MaintSources.label' ],
                 'as'     => [ qw'owner distribution vendor' ],
                 'group_by' => [ qw'owner name label' ],
                 'order_by' => [ qw'owner name label' ],
