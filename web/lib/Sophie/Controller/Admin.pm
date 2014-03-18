@@ -292,8 +292,8 @@ sub dump_distrib : XMLRPC {
         ->search_related('MetaPaths')
         ->search({}, 
             { 
-                'select' => [ qw(path type) ], 
-                'as'     => [ qw(path type) ] ,
+                'select' => [ qw(path type data) ], 
+                'as'     => [ qw(path type data) ] ,
             }
         )->all ];
 
@@ -301,7 +301,7 @@ sub dump_distrib : XMLRPC {
 }
 
 sub add_meta_path : XMLRPC {
-    my ($self, $c, $distrib, $meta, $type) = @_;
+    my ($self, $c, $distrib, $meta, $type, $data) = @_;
 
     my ($dist) = 
         $c->model('Base')->resultset('Distribution')
@@ -317,9 +317,11 @@ sub add_meta_path : XMLRPC {
             d_arch => $dist,
             type => $type,
             path => $meta,
+            data => $data,
         },
         { key => 'upath' },
     )) {
+        $c->model('Base')->storage->dbh->commit;
         return $c->stash->{xmlrpc} = 'OK';
     } else {
         return;
@@ -380,8 +382,9 @@ sub load_distrib : XMLRPC {
         }
     }
     foreach my $meta (@{ $ref->{metapath} || []}) {
+        warn $meta;
         $c->forward('add_meta_path', 
-            [ $ref->{distrib}, $meta->{path}, $meta->{type} ]);
+            [ $ref->{distrib}, $meta->{path}, $meta->{type}, $meta->{data} ]);
     }
 
     #$c->model('Base')->storage->dbh->rollback;
