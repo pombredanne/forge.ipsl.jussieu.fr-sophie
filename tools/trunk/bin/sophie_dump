@@ -11,12 +11,18 @@ GetOptions(
     's=s' => \my $server,
 );
 
-ReadMode('noecho');
-print "Enter password: ";
-my $password = ReadLine(0);
-ReadMode 0;
-print "\n";
-chomp($password);
+my $password;
+
+if ($ENV{SOPHIE_PASSWD}) {
+    $password  = $ENV{SOPHIE_PASSWD};
+} else {
+    ReadMode('noecho');
+    print "Enter password: ";
+    $password = ReadLine(0);
+    ReadMode 0;
+    print "\n";
+    chomp($password);
+}
 
 require Data::Dumper;
 my $xmlcli = RPC::XML::Client->new($server || 'http://sophie.zarb.org/rpc');
