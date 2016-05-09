@@ -302,6 +302,7 @@ sub dump_distrib : XMLRPC {
 
 sub add_meta_path : XMLRPC {
     my ($self, $c, $distrib, $meta, $type, $data) = @_;
+    warn "$distrib, $meta, $type";
 
     my ($dist) = 
         $c->model('Base')->resultset('Distribution')
@@ -387,7 +388,7 @@ sub load_distrib : XMLRPC {
             [ $ref->{distrib}, $meta->{path}, $meta->{type}, $meta->{data} ]);
     }
 
-    #$c->model('Base')->storage->dbh->rollback;
+    $c->model('Base')->storage->dbh->commit;
 }
 
 sub set_user_data : XMLRPC {
