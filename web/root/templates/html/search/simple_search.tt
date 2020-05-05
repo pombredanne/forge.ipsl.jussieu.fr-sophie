@@ -1,7 +1,7 @@
 <!-- $Id$ -->
 <div id="sophie_header_search">
     <form action="[% c.uri_for('/search/results') %]">
-        <input type="text" name="search" value="[% c.req.param('search') %]">
+        <input type="text" name="search" value="[% c.req.param('search') | html %]">
         <input type="image"
             src="[% c.uri_for('/static/images', 'search.png') %]"
             alt="Search"
